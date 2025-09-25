@@ -19,6 +19,8 @@ import {
 
 // Import routes
 import requirementsRoutes from './routes/requirements.routes';
+import linksRoutes from './routes/links.routes';
+import traceabilityRoutes from './routes/traceability.routes';
 
 // Import database
 import { db } from './config/database';
@@ -40,6 +42,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // API routes
 app.use('/api/v1/requirements', requirementsRoutes);
+app.use('/api/v1', linksRoutes);
+app.use('/api/v1', traceabilityRoutes);
 
 // Basic health check endpoint
 app.get('/health', async (_req, res) => {
@@ -77,6 +81,8 @@ app.get('/', (_req, res) => {
     endpoints: {
       health: '/health',
       requirements: '/api/v1/requirements',
+      links: '/api/v1/links',
+      traceability: '/api/v1/requirements/:id/links',
       documentation: '/api/v1/requirements (for API documentation)',
     },
     features: [
@@ -85,6 +91,9 @@ app.get('/', (_req, res) => {
       'Advanced filtering and search',
       'Bulk operations',
       'CSV export',
+      'Requirement linking and traceability',
+      'Impact analysis and dependency tracking',
+      'Circular dependency detection',
       'Real-time updates via WebSocket',
       'Comprehensive audit logging',
     ],
@@ -108,6 +117,23 @@ app.get('/api/v1', (_req, res) => {
         'GET /api/v1/requirements/summary': 'Get requirements statistics',
         'GET /api/v1/requirements/export': 'Export requirements to CSV',
         'PUT /api/v1/requirements/bulk': 'Bulk update requirements',
+      },
+      links: {
+        'POST /api/v1/requirements/:id/links': 'Create link from requirement',
+        'GET /api/v1/requirements/:id/links': 'Get all links for requirement',
+        'POST /api/v1/requirements/:id/links/validate': 'Validate potential link',
+        'GET /api/v1/links': 'Get links with filtering',
+        'GET /api/v1/links/statistics': 'Get link statistics',
+        'PUT /api/v1/links/:linkId': 'Update existing link',
+        'PUT /api/v1/links/:linkId/suspect': 'Mark/unmark link as suspect',
+        'DELETE /api/v1/links/:linkId': 'Delete link',
+      },
+      traceability: {
+        'GET /api/v1/traceability/matrix': 'Generate complete traceability matrix',
+        'GET /api/v1/traceability/analytics': 'Get comprehensive link analytics',
+        'GET /api/v1/traceability/coverage': 'Get coverage report with filtering',
+        'GET /api/v1/traceability/impact/:id': 'Get impact analysis for requirement',
+        'GET /api/v1/traceability/path/:fromId/:toId': 'Get traceability path between requirements',
       },
     },
     authentication: 'Currently disabled for demo purposes',

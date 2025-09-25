@@ -3,10 +3,12 @@
  */
 
 import { generateUniqueId } from '../utils/id-generator';
+import { BaseLink, LinkFilters } from '../models/link.model';
 
 class SimpleMockService {
   private requirements: Map<string, any> = new Map();
   private versions: Map<string, any[]> = new Map();
+  private links: Map<string, BaseLink> = new Map();
 
   async createRequirement(data: any): Promise<any> {
     const id = await generateUniqueId('REQ');
@@ -100,6 +102,79 @@ class SimpleMockService {
         totalPages: Math.ceil(result.total / result.limit)
       }
     };
+  }
+
+  // Link management methods
+  async createLink(link: BaseLink): Promise<BaseLink> {
+    this.links.set(link.id, { ...link });
+    return link;
+  }
+
+  async getLinkById(id: string): Promise<BaseLink | null> {
+    return this.links.get(id) || null;
+  }
+
+  async updateLink(id: string, data: Partial<BaseLink>): Promise<BaseLink | null> {
+    const existing = this.links.get(id);
+    if (!existing) return null;
+
+    const updated = { ...existing, ...data, updatedAt: new Date() };
+    this.links.set(id, updated);
+    return updated;
+  }
+
+  async deleteLink(id: string): Promise<boolean> {
+    return this.links.delete(id);
+  }
+
+  async getLinks(filters: LinkFilters = {}): Promise<BaseLink[]> {
+    let links = Array.from(this.links.values());
+
+    // Apply filters
+    if (filters.linkType && filters.linkType.length > 0) {
+      links = links.filter(link => filters.linkType!.includes(link.linkType));
+    }
+
+    if (filters.sourceId) {
+      links = links.filter(link => link.sourceId === filters.sourceId);
+    }
+
+    if (filters.targetId) {
+      links = links.filter(link => link.targetId === filters.targetId);
+    }
+
+    if (filters.isSuspect !== undefined) {
+      links = links.filter(link => link.isSuspect === filters.isSuspect);
+    }
+
+    if (filters.createdBy) {
+      links = links.filter(link => link.createdBy === filters.createdBy);
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      links = links.filter(link =>
+        link.description?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    return links;
+  }
+
+  async getIncomingLinks(requirementId: string): Promise<BaseLink[]> {
+    return Array.from(this.links.values()).filter(link => link.targetId === requirementId);
+  }
+
+  async getOutgoingLinks(requirementId: string): Promise<BaseLink[]> {
+    return Array.from(this.links.values()).filter(link => link.sourceId === requirementId);
+  }
+
+  async getAllRequirements(): Promise<any[]> {
+    return Array.from(this.requirements.values());
+  }
+
+  async getAllLinks(): Promise<BaseLink[]> {
+    return Array.from(this.links.values());
   }
 }
 
