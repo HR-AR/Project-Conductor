@@ -246,3 +246,89 @@ export const validateGetRequirementVersions = [
   validationRules.id('id'),
   handleValidationErrors,
 ];
+
+// ========================================
+// COMMENT VALIDATION
+// ========================================
+
+/**
+ * Create comment validation
+ */
+export const validateCreateComment = [
+  validationRules.id('id'), // requirement ID
+  body('content')
+    .notEmpty()
+    .withMessage('Comment content is required')
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Comment content must be between 1 and 2000 characters')
+    .trim(),
+  body('parentCommentId')
+    .optional()
+    .matches(/^CMT-\d{8}-\d{4}$/)
+    .withMessage('Parent comment ID must be a valid comment ID'),
+  handleValidationErrors,
+];
+
+/**
+ * Update comment validation
+ */
+export const validateUpdateComment = [
+  param('id')
+    .matches(/^CMT-\d{8}-\d{4}$/)
+    .withMessage('Comment ID must be a valid comment ID'),
+  body('content')
+    .notEmpty()
+    .withMessage('Comment content is required')
+    .isLength({ min: 1, max: 2000 })
+    .withMessage('Comment content must be between 1 and 2000 characters')
+    .trim(),
+  handleValidationErrors,
+];
+
+/**
+ * Get comments validation
+ */
+export const validateGetComments = [
+  validationRules.id('id'), // requirement ID
+  query('parentCommentId')
+    .optional()
+    .matches(/^CMT-\d{8}-\d{4}$/)
+    .withMessage('Parent comment ID must be a valid comment ID'),
+  query('isRootOnly')
+    .optional()
+    .isBoolean()
+    .withMessage('isRootOnly must be a boolean'),
+  query('includeDeleted')
+    .optional()
+    .isBoolean()
+    .withMessage('includeDeleted must be a boolean'),
+  query('userId')
+    .optional()
+    .isLength({ min: 1 })
+    .withMessage('User ID must be provided'),
+  query('search')
+    .optional()
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Search query must be between 1 and 200 characters'),
+  handleValidationErrors,
+];
+
+/**
+ * Get comment by ID validation
+ */
+export const validateGetCommentById = [
+  param('id')
+    .matches(/^CMT-\d{8}-\d{4}$/)
+    .withMessage('Comment ID must be a valid comment ID'),
+  handleValidationErrors,
+];
+
+/**
+ * Delete comment validation
+ */
+export const validateDeleteComment = [
+  param('id')
+    .matches(/^CMT-\d{8}-\d{4}$/)
+    .withMessage('Comment ID must be a valid comment ID'),
+  handleValidationErrors,
+];

@@ -16,8 +16,14 @@ import {
   REQUIREMENT_STATUS,
 } from '../models/requirement.model';
 import IdGenerator from '../utils/id-generator';
+import WebSocketService from './websocket.service';
 
-export class RequirementsService {
+class RequirementsService {
+  private webSocketService?: WebSocketService | undefined;
+
+  constructor(webSocketService?: WebSocketService) {
+    this.webSocketService = webSocketService;
+  }
   /**
    * Create a new requirement
    */
@@ -56,8 +62,20 @@ export class RequirementsService {
       // Create initial version
       await this.createVersion(requirement, createdBy, 'Initial creation');
 
-      // Return with user details
-      return await this.getRequirementById(requirement.id);
+      // Get the complete requirement with user details
+      const fullRequirement = await this.getRequirementById(requirement.id);
+
+      // Emit WebSocket event for requirement creation
+      if (this.webSocketService) {
+        this.webSocketService.broadcastRequirementUpdate(
+          requirement.id,
+          fullRequirement,
+          'created',
+          createdBy
+        );
+      }
+
+      return fullRequirement;
     } catch (error) {
       console.error('Error creating requirement:', error);
       throw new Error('Failed to create requirement');
@@ -264,8 +282,20 @@ export class RequirementsService {
         changeReason || 'Requirement updated'
       );
 
-      // Return updated requirement with user details
-      return await this.getRequirementById(id);
+      // Get updated requirement with user details
+      const updatedRequirementWithDetails = await this.getRequirementById(id);
+
+      // Emit WebSocket event for requirement update
+      if (this.webSocketService) {
+        this.webSocketService.broadcastRequirementUpdate(
+          id,
+          updatedRequirementWithDetails,
+          'updated',
+          updatedBy
+        );
+      }
+
+      return updatedRequirementWithDetails;
     });
   }
 
@@ -287,8 +317,23 @@ export class RequirementsService {
         throw new Error('Requirement not found or already archived');
       }
 
+      const archivedRequirement = result.rows[0];
+
       // Create version record for deletion
-      await this.createVersion(result.rows[0], deletedBy, 'Requirement archived');
+      await this.createVersion(archivedRequirement, deletedBy, 'Requirement archived');
+
+      // Get the complete requirement for WebSocket broadcast
+      const fullRequirement = await this.getRequirementById(id);
+
+      // Emit WebSocket event for requirement deletion/archival
+      if (this.webSocketService) {
+        this.webSocketService.broadcastRequirementUpdate(
+          id,
+          fullRequirement,
+          'deleted',
+          deletedBy
+        );
+      }
     } catch (error) {
       console.error('Error deleting requirement:', error);
       throw error;
@@ -561,4 +606,5 @@ export class RequirementsService {
   }
 }
 
+export { RequirementsService };
 export default RequirementsService;

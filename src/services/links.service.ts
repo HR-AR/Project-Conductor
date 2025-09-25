@@ -16,8 +16,14 @@ import {
 } from '../models/link.model';
 import { simpleMockService } from './simple-mock.service';
 import { generateUniqueId } from '../utils/id-generator';
+import WebSocketService from './websocket.service';
 
 class LinksService {
+  private webSocketService?: WebSocketService | undefined;
+
+  constructor(webSocketService?: WebSocketService) {
+    this.webSocketService = webSocketService;
+  }
 
   /**
    * Create a bidirectional link between two requirements
@@ -80,7 +86,14 @@ class LinksService {
     }
 
     // Return the forward link with populated fields
-    return this.populateLink(forwardLink);
+    const populatedLink = await this.populateLink(forwardLink);
+
+    // Emit WebSocket event for link creation
+    if (this.webSocketService) {
+      this.webSocketService.broadcastLinkUpdate(populatedLink, 'created', createdBy);
+    }
+
+    return populatedLink;
   }
 
   /**
@@ -137,7 +150,14 @@ class LinksService {
     };
 
     await simpleMockService.updateLink(linkId, updatedLink);
-    return this.populateLink(updatedLink);
+    const populatedLink = await this.populateLink(updatedLink);
+
+    // Emit WebSocket event for link update
+    if (this.webSocketService) {
+      this.webSocketService.broadcastLinkUpdate(populatedLink, 'updated', _updatedBy);
+    }
+
+    return populatedLink;
   }
 
   /**
@@ -159,17 +179,27 @@ class LinksService {
     };
 
     await simpleMockService.updateLink(linkId, updatedLink);
-    return this.populateLink(updatedLink);
+    const populatedLink = await this.populateLink(updatedLink);
+
+    // Emit WebSocket event for link suspect status change
+    if (this.webSocketService) {
+      this.webSocketService.broadcastLinkUpdate(populatedLink, 'updated', markedBy);
+    }
+
+    return populatedLink;
   }
 
   /**
    * Delete a link and its reverse link if it exists
    */
-  async deleteLink(linkId: string): Promise<boolean> {
+  async deleteLink(linkId: string, deletedBy?: string): Promise<boolean> {
     const link = await simpleMockService.getLinkById(linkId);
     if (!link) {
       return false;
     }
+
+    // Populate the link before deletion for WebSocket broadcast
+    const populatedLink = await this.populateLink(link);
 
     // Find and delete reverse link if it exists
     const reverseLinkType = this.getReverseLinkType(link.linkType);
@@ -186,7 +216,14 @@ class LinksService {
     }
 
     // Delete the original link
-    return await simpleMockService.deleteLink(linkId);
+    const deleted = await simpleMockService.deleteLink(linkId);
+
+    // Emit WebSocket event for link deletion
+    if (deleted && this.webSocketService) {
+      this.webSocketService.broadcastLinkUpdate(populatedLink, 'deleted', deletedBy);
+    }
+
+    return deleted;
   }
 
   /**
@@ -373,4 +410,5 @@ class LinksService {
 }
 
 export const linksService = new LinksService();
+export { LinksService };
 export default LinksService;

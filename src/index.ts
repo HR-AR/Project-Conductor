@@ -17,13 +17,23 @@ import {
   corsHandler,
 } from './middleware/error-handler';
 
+// Import services will be accessed through service factory
+
 // Import routes
 import requirementsRoutes from './routes/requirements.routes';
 import linksRoutes from './routes/links.routes';
 import traceabilityRoutes from './routes/traceability.routes';
+import { createCommentsRoutes } from './routes/comments.routes';
 
 // Import database
 import { db } from './config/database';
+
+// Import presence service
+import { presenceService } from './services/presence.service';
+
+// Import WebSocket service and service factory
+import WebSocketService from './services/websocket.service';
+import ServiceFactory from './services/service-factory';
 
 const app = express();
 const server = createServer(app);
@@ -33,6 +43,17 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
   },
 });
+
+// Initialize WebSocket service with Socket.io instance
+const webSocketService = new WebSocketService(io);
+
+// Initialize service factory with WebSocket support
+ServiceFactory.initialize(webSocketService);
+
+// Get service instances from factory
+const requirementsService = ServiceFactory.getRequirementsService();
+const linksService = ServiceFactory.getLinksService();
+const commentsService = ServiceFactory.getCommentsService();
 
 // Global middleware
 app.use(corsHandler);
@@ -44,12 +65,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/v1/requirements', requirementsRoutes);
 app.use('/api/v1', linksRoutes);
 app.use('/api/v1', traceabilityRoutes);
+app.use('/api/v1', createCommentsRoutes(webSocketService));
 
 // Basic health check endpoint
 app.get('/health', async (_req, res) => {
   try {
     // Test database connection
     const dbStatus = await db.testConnection();
+
+    // Get presence statistics
+    const presenceStats = presenceService.getPresenceStats();
 
     res.json({
       status: 'ok',
@@ -58,6 +83,7 @@ app.get('/health', async (_req, res) => {
       timestamp: new Date().toISOString(),
       database: dbStatus ? 'connected' : 'disconnected',
       environment: process.env['NODE_ENV'] || 'development',
+      presence: presenceStats,
     });
   } catch (error) {
     res.status(503).json({
@@ -68,6 +94,47 @@ app.get('/health', async (_req, res) => {
       database: 'disconnected',
       environment: process.env['NODE_ENV'] || 'development',
       error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Presence monitoring endpoint
+app.get('/api/v1/presence/stats', (_req, res) => {
+  try {
+    const stats = presenceService.getPresenceStats();
+    const allUsers = presenceService.getAllActiveUsers();
+
+    res.json({
+      statistics: stats,
+      activeUsers: allUsers.map(user => ({
+        userId: user.userId,
+        username: user.username,
+        status: user.status,
+        isEditing: user.isEditing,
+        requirementId: user.requirementId,
+        lastSeen: user.lastSeen,
+      })),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to retrieve presence statistics',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get presence for specific requirement
+app.get('/api/v1/presence/requirement/:requirementId', (req, res) => {
+  try {
+    const { requirementId } = req.params;
+    const requirementPresence = presenceService.getUsersInRequirement(requirementId);
+
+    res.json(requirementPresence);
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to retrieve requirement presence',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -83,6 +150,7 @@ app.get('/', (_req, res) => {
       requirements: '/api/v1/requirements',
       links: '/api/v1/links',
       traceability: '/api/v1/requirements/:id/links',
+      comments: '/api/v1/requirements/:id/comments',
       documentation: '/api/v1/requirements (for API documentation)',
     },
     features: [
@@ -95,6 +163,9 @@ app.get('/', (_req, res) => {
       'Impact analysis and dependency tracking',
       'Circular dependency detection',
       'Real-time updates via WebSocket',
+      'User presence tracking and collaboration',
+      'Live editing indicators',
+      'Comment threading system with real-time updates',
       'Comprehensive audit logging',
     ],
   });
@@ -135,6 +206,31 @@ app.get('/api/v1', (_req, res) => {
         'GET /api/v1/traceability/impact/:id': 'Get impact analysis for requirement',
         'GET /api/v1/traceability/path/:fromId/:toId': 'Get traceability path between requirements',
       },
+      comments: {
+        'POST /api/v1/requirements/:id/comments': 'Create a new comment on a requirement',
+        'GET /api/v1/requirements/:id/comments': 'Get all comments for a requirement',
+        'GET /api/v1/requirements/:id/comments/summary': 'Get comments summary for a requirement',
+        'GET /api/v1/comments/:id': 'Get a single comment by ID',
+        'PUT /api/v1/comments/:id': 'Update a comment',
+        'DELETE /api/v1/comments/:id': 'Delete a comment',
+        'GET /api/v1/comments/:id/thread': 'Get comment thread (parent + all replies)',
+      },
+      presence: {
+        'GET /api/v1/presence/stats': 'Get overall presence statistics and active users',
+        'GET /api/v1/presence/requirement/:requirementId': 'Get presence information for specific requirement',
+      },
+      websocket: {
+        'user:initialize': 'Initialize user presence on connection',
+        'join-requirement': 'Join requirement room for real-time updates',
+        'leave-requirement': 'Leave requirement room',
+        'editing:start': 'Start editing a requirement',
+        'editing:stop': 'Stop editing a requirement',
+        'status:update': 'Update user status (online/away/offline)',
+        'presence:get': 'Get presence list for requirement',
+        'comment:created': 'Real-time notification when a comment is created',
+        'comment:updated': 'Real-time notification when a comment is updated',
+        'comment:deleted': 'Real-time notification when a comment is deleted',
+      },
     },
     authentication: 'Currently disabled for demo purposes',
     rateLimit: '100 requests per 15 minutes (default), 20 requests per 15 minutes (write operations)',
@@ -145,24 +241,192 @@ app.get('/api/v1', (_req, res) => {
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
+  // Initialize user presence on connection
+  socket.on('user:initialize', (data: { userId: string; username: string }) => {
+    const { userId, username } = data;
+    const presence = presenceService.trackUserJoin(socket.id, userId, username);
+
+    // Emit user initialization confirmation
+    socket.emit('presence:initialized', presence);
+
+    console.log(`User ${username} (${userId}) initialized with socket ${socket.id}`);
+  });
+
   // Join requirement rooms for real-time updates
-  socket.on('join-requirement', (requirementId: string) => {
+  socket.on('join-requirement', (data: { requirementId: string; userId: string; username: string }) => {
+    const { requirementId, userId, username } = data;
+
     socket.join(`requirement:${requirementId}`);
-    console.log(`Client ${socket.id} joined requirement room: ${requirementId}`);
+
+    // Track user joining requirement
+    const presence = presenceService.trackUserJoin(socket.id, userId, username, requirementId);
+
+    // Get all users in the requirement
+    const requirementPresence = presenceService.getUsersInRequirement(requirementId);
+
+    // Broadcast user joined to other users in the room
+    socket.to(`requirement:${requirementId}`).emit('presence:user-joined', {
+      user: presence,
+      requirementId,
+    });
+
+    // Send current presence list to the joining user
+    socket.emit('presence:list', requirementPresence);
+
+    console.log(`Client ${socket.id} (${username}) joined requirement room: ${requirementId}`);
   });
 
+  // Leave requirement room
   socket.on('leave-requirement', (requirementId: string) => {
+    const presence = presenceService.trackUserLeave(socket.id);
+
+    if (presence) {
+      // Broadcast user left to other users in the room
+      socket.to(`requirement:${requirementId}`).emit('presence:user-left', {
+        user: presence,
+        requirementId,
+      });
+
+      console.log(`Client ${socket.id} (${presence.username}) left requirement room: ${requirementId}`);
+    }
+
     socket.leave(`requirement:${requirementId}`);
-    console.log(`Client ${socket.id} left requirement room: ${requirementId}`);
   });
 
+  // Handle editing start
+  socket.on('editing:start', (data: { userId: string; requirementId: string }) => {
+    const { userId, requirementId } = data;
+    const presence = presenceService.setEditingStatus(userId, requirementId, true);
+
+    if (presence) {
+      // Broadcast editing start to other users in the room
+      socket.to(`requirement:${requirementId}`).emit('presence:editing-start', {
+        user: presence,
+        requirementId,
+      });
+
+      console.log(`User ${presence.username} started editing requirement ${requirementId}`);
+    }
+  });
+
+  // Handle editing stop
+  socket.on('editing:stop', (data: { userId: string; requirementId: string }) => {
+    const { userId, requirementId } = data;
+    const presence = presenceService.setEditingStatus(userId, requirementId, false);
+
+    if (presence) {
+      // Broadcast editing stop to other users in the room
+      socket.to(`requirement:${requirementId}`).emit('presence:editing-stop', {
+        user: presence,
+        requirementId,
+      });
+
+      console.log(`User ${presence.username} stopped editing requirement ${requirementId}`);
+    }
+  });
+
+  // Handle status updates (online, away, etc.)
+  socket.on('status:update', (data: { userId: string; status: 'online' | 'away' | 'offline' }) => {
+    const { userId, status } = data;
+    const presence = presenceService.updateUserStatus(userId, status);
+
+    if (presence && presence.requirementId) {
+      // Broadcast status change to users in the same requirement room
+      socket.to(`requirement:${presence.requirementId}`).emit('presence:status-change', {
+        user: presence,
+        requirementId: presence.requirementId,
+      });
+    }
+  });
+
+  // Get presence for a specific requirement
+  socket.on('presence:get', (requirementId: string) => {
+    const requirementPresence = presenceService.getUsersInRequirement(requirementId);
+    socket.emit('presence:list', requirementPresence);
+  });
+
+  // Handle custom WebSocket events for enhanced collaboration
+  socket.on('requirement:comment', (data: { requirementId: string; comment: string; userId: string; username: string }) => {
+    const { requirementId, comment, userId, username } = data;
+
+    // Broadcast comment to other users in the requirement room
+    socket.to(`requirement:${requirementId}`).emit('requirement:comment-added', {
+      requirementId,
+      comment,
+      userId,
+      username,
+      timestamp: new Date(),
+    });
+  });
+
+  // Handle requirement field change notifications for real-time collaboration
+  socket.on('requirement:field-change', (data: { requirementId: string; field: string; value: any; userId: string; username: string }) => {
+    const { requirementId, field, value, userId, username } = data;
+
+    // Broadcast field change to other users viewing the requirement
+    socket.to(`requirement:${requirementId}`).emit('requirement:field-changed', {
+      requirementId,
+      field,
+      value,
+      userId,
+      username,
+      timestamp: new Date(),
+    });
+  });
+
+  // Handle cursor position updates for collaborative editing
+  socket.on('requirement:cursor', (data: { requirementId: string; field: string; position: number; userId: string; username: string }) => {
+    const { requirementId, field, position, userId, username } = data;
+
+    // Broadcast cursor position to other editors
+    socket.to(`requirement:${requirementId}`).emit('requirement:cursor-updated', {
+      requirementId,
+      field,
+      position,
+      userId,
+      username,
+      timestamp: new Date(),
+    });
+  });
+
+  // Handle text selection updates for collaborative editing
+  socket.on('requirement:selection', (data: { requirementId: string; field: string; start: number; end: number; userId: string; username: string }) => {
+    const { requirementId, field, start, end, userId, username } = data;
+
+    // Broadcast text selection to other editors
+    socket.to(`requirement:${requirementId}`).emit('requirement:selection-updated', {
+      requirementId,
+      field,
+      start,
+      end,
+      userId,
+      username,
+      timestamp: new Date(),
+    });
+  });
+
+  // Handle disconnection
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    const presence = presenceService.handleDisconnect(socket.id);
+
+    if (presence) {
+      // If user was in a requirement room, notify other users
+      if (presence.requirementId) {
+        socket.to(`requirement:${presence.requirementId}`).emit('presence:user-left', {
+          user: presence,
+          requirementId: presence.requirementId,
+        });
+      }
+
+      console.log(`Client disconnected: ${socket.id} (${presence.username})`);
+    } else {
+      console.log('Client disconnected:', socket.id);
+    }
   });
 });
 
-// Export io for use in other modules (for real-time updates)
-export { io };
+// Export io and services for use in other modules (for real-time updates)
+export { io, webSocketService, requirementsService, linksService, commentsService };
 
 // Error handling middleware (must be last)
 app.use(notFoundHandler);
@@ -177,6 +441,23 @@ const startServer = async () => {
     await db.initialize();
     console.log('Database initialized successfully');
 
+    // Set up periodic presence cleanup (every 5 minutes)
+    const cleanupInterval = setInterval(() => {
+      const cleanedCount = presenceService.cleanupStalePresence(15); // 15 minutes timeout
+      if (cleanedCount > 0) {
+        console.log(`Cleaned up ${cleanedCount} stale presence records`);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Clean up interval on process termination
+    const cleanup = () => {
+      clearInterval(cleanupInterval);
+      console.log('Server cleanup completed');
+    };
+
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
+
     // Only start the server if this file is run directly (not imported for testing)
     if (require.main === module) {
       server.listen(PORT, () => {
@@ -185,6 +466,7 @@ const startServer = async () => {
         console.log(`API documentation available at: http://localhost:${PORT}/api/v1`);
         console.log(`Requirements API available at: http://localhost:${PORT}/api/v1/requirements`);
         console.log(`Environment: ${process.env['NODE_ENV'] || 'development'}`);
+        console.log('Real-time presence tracking enabled');
       });
     }
   } catch (error) {

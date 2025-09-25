@@ -1,9 +1,8 @@
 /**
- * Simple Mock Service for Testing
+ * Comments Service - Business logic for comment operations
  */
 
 import { generateUniqueId } from '../utils/id-generator';
-import { BaseLink, LinkFilters } from '../models/link.model';
 import {
   BaseComment,
   Comment,
@@ -12,185 +11,21 @@ import {
   CommentFilters,
   CommentThread,
   CommentSummary,
+  CommentEventData,
+  COMMENT_EVENTS,
 } from '../models/comment.model';
 
-class SimpleMockService {
-  private requirements: Map<string, any> = new Map();
-  private versions: Map<string, any[]> = new Map();
-  private links: Map<string, BaseLink> = new Map();
-  private comments: Map<string, BaseComment> = new Map();
+export class CommentsService {
+  private commentsStorage: Map<string, BaseComment> = new Map();
+  private websocketService?: any; // WebSocket service for real-time updates
 
-  async createRequirement(data: any): Promise<any> {
-    const id = await generateUniqueId('REQ');
-    const requirement = {
-      id,
-      ...data,
-      version: 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    this.requirements.set(id, requirement);
-    return requirement;
+  constructor(websocketService?: any) {
+    this.websocketService = websocketService;
   }
 
-  async getRequirementById(id: string): Promise<any> {
-    return this.requirements.get(id) || null;
-  }
-
-  async updateRequirement(id: string, data: any): Promise<any> {
-    const existing = this.requirements.get(id);
-    if (!existing) return null;
-
-    // Save version
-    if (!this.versions.has(id)) {
-      this.versions.set(id, []);
-    }
-    this.versions.get(id)!.push({ ...existing });
-
-    const updated = {
-      ...existing,
-      ...data,
-      id,
-      version: existing.version + 1,
-      updated_at: new Date().toISOString()
-    };
-    this.requirements.set(id, updated);
-    return updated;
-  }
-
-  async deleteRequirement(id: string): Promise<boolean> {
-    const requirement = this.requirements.get(id);
-    if (!requirement) return false;
-    requirement.status = 'archived';
-    return true;
-  }
-
-  async listRequirements(options: any): Promise<any> {
-    const page = options.page || 1;
-    const limit = options.limit || 10;
-    const offset = (page - 1) * limit;
-
-    const all = Array.from(this.requirements.values());
-    const paginated = all.slice(offset, offset + limit);
-
-    return {
-      data: paginated,
-      total: all.length,
-      page,
-      limit
-    };
-  }
-
-  async getRequirementVersions(id: string): Promise<any[]> {
-    return this.versions.get(id) || [];
-  }
-
-  async getSummary(): Promise<any> {
-    const all = Array.from(this.requirements.values());
-    return {
-      total: all.length,
-      by_status: {
-        draft: all.filter(r => r.status === 'draft').length,
-        in_review: all.filter(r => r.status === 'in_review').length,
-        approved: all.filter(r => r.status === 'approved').length,
-        in_progress: all.filter(r => r.status === 'in_progress').length,
-        completed: all.filter(r => r.status === 'completed').length,
-        archived: all.filter(r => r.status === 'archived').length
-      }
-    };
-  }
-
-  // Alias for compatibility with RequirementsService
-  async getRequirements(filters: any, pagination: any): Promise<any> {
-    const result = await this.listRequirements({ ...filters, ...pagination });
-    return {
-      data: result.data,
-      pagination: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: Math.ceil(result.total / result.limit)
-      }
-    };
-  }
-
-  // Link management methods
-  async createLink(link: BaseLink): Promise<BaseLink> {
-    this.links.set(link.id, { ...link });
-    return link;
-  }
-
-  async getLinkById(id: string): Promise<BaseLink | null> {
-    return this.links.get(id) || null;
-  }
-
-  async updateLink(id: string, data: Partial<BaseLink>): Promise<BaseLink | null> {
-    const existing = this.links.get(id);
-    if (!existing) return null;
-
-    const updated = { ...existing, ...data, updatedAt: new Date() };
-    this.links.set(id, updated);
-    return updated;
-  }
-
-  async deleteLink(id: string): Promise<boolean> {
-    return this.links.delete(id);
-  }
-
-  async getLinks(filters: LinkFilters = {}): Promise<BaseLink[]> {
-    let links = Array.from(this.links.values());
-
-    // Apply filters
-    if (filters.linkType && filters.linkType.length > 0) {
-      links = links.filter(link => filters.linkType!.includes(link.linkType));
-    }
-
-    if (filters.sourceId) {
-      links = links.filter(link => link.sourceId === filters.sourceId);
-    }
-
-    if (filters.targetId) {
-      links = links.filter(link => link.targetId === filters.targetId);
-    }
-
-    if (filters.isSuspect !== undefined) {
-      links = links.filter(link => link.isSuspect === filters.isSuspect);
-    }
-
-    if (filters.createdBy) {
-      links = links.filter(link => link.createdBy === filters.createdBy);
-    }
-
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      links = links.filter(link =>
-        link.description?.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    return links;
-  }
-
-  async getIncomingLinks(requirementId: string): Promise<BaseLink[]> {
-    return Array.from(this.links.values()).filter(link => link.targetId === requirementId);
-  }
-
-  async getOutgoingLinks(requirementId: string): Promise<BaseLink[]> {
-    return Array.from(this.links.values()).filter(link => link.sourceId === requirementId);
-  }
-
-  async getAllRequirements(): Promise<any[]> {
-    return Array.from(this.requirements.values());
-  }
-
-  async getAllLinks(): Promise<BaseLink[]> {
-    return Array.from(this.links.values());
-  }
-
-  // ========================================
-  // COMMENT MANAGEMENT METHODS
-  // ========================================
-
+  /**
+   * Create a new comment
+   */
   async createComment(
     requirementId: string,
     userId: string,
@@ -209,21 +44,36 @@ class SimpleMockService {
       isDeleted: false,
     };
 
-    this.comments.set(commentId, comment);
+    this.commentsStorage.set(commentId, comment);
 
     // Convert to Comment with additional fields
     const enrichedComment = await this.enrichComment(comment);
+
+    // Emit real-time event
+    if (this.websocketService) {
+      const eventData: CommentEventData = {
+        requirementId,
+        comment: enrichedComment,
+        action: 'created',
+        userId,
+      };
+      this.websocketService.broadcastToRequirement(requirementId, COMMENT_EVENTS.CREATED, eventData);
+    }
+
     return enrichedComment;
   }
 
+  /**
+   * Get comments for a requirement
+   */
   async getCommentsByRequirement(
     requirementId: string,
     filters: CommentFilters = {}
   ): Promise<Comment[]> {
-    const allComments = Array.from(this.comments.values())
+    const allComments = Array.from(this.commentsStorage.values())
       .filter(comment => comment.requirementId === requirementId);
 
-    let filteredComments = this.applyCommentFilters(allComments, filters);
+    let filteredComments = this.applyFilters(allComments, filters);
 
     // Enrich comments with additional data
     const enrichedComments = await Promise.all(
@@ -239,8 +89,11 @@ class SimpleMockService {
     return enrichedComments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
+  /**
+   * Get a comment thread (parent + all replies)
+   */
   async getCommentThread(commentId: string): Promise<CommentThread | null> {
-    const rootComment = this.comments.get(commentId);
+    const rootComment = this.commentsStorage.get(commentId);
     if (!rootComment || rootComment.isDeleted) {
       return null;
     }
@@ -248,14 +101,14 @@ class SimpleMockService {
     // If this is a reply, find the root comment
     let actualRoot = rootComment;
     if (rootComment.parentCommentId) {
-      const parentComment = this.comments.get(rootComment.parentCommentId);
+      const parentComment = this.commentsStorage.get(rootComment.parentCommentId);
       if (parentComment && !parentComment.isDeleted) {
         actualRoot = parentComment;
       }
     }
 
     // Get all replies to the root comment
-    const replies = Array.from(this.comments.values())
+    const replies = Array.from(this.commentsStorage.values())
       .filter(comment =>
         comment.parentCommentId === actualRoot.id &&
         !comment.isDeleted
@@ -278,12 +131,15 @@ class SimpleMockService {
     };
   }
 
+  /**
+   * Update a comment
+   */
   async updateComment(
     commentId: string,
     userId: string,
     data: UpdateCommentRequest
   ): Promise<Comment | null> {
-    const existingComment = this.comments.get(commentId);
+    const existingComment = this.commentsStorage.get(commentId);
     if (!existingComment || existingComment.isDeleted) {
       return null;
     }
@@ -300,14 +156,29 @@ class SimpleMockService {
       editedAt: new Date(),
     };
 
-    this.comments.set(commentId, updatedComment);
+    this.commentsStorage.set(commentId, updatedComment);
 
     const enrichedComment = await this.enrichComment(updatedComment);
+
+    // Emit real-time event
+    if (this.websocketService) {
+      const eventData: CommentEventData = {
+        requirementId: enrichedComment.requirementId,
+        comment: enrichedComment,
+        action: 'updated',
+        userId,
+      };
+      this.websocketService.broadcastToRequirement(enrichedComment.requirementId, COMMENT_EVENTS.UPDATED, eventData);
+    }
+
     return enrichedComment;
   }
 
+  /**
+   * Delete a comment (soft delete)
+   */
   async deleteComment(commentId: string, userId: string): Promise<boolean> {
-    const existingComment = this.comments.get(commentId);
+    const existingComment = this.commentsStorage.get(commentId);
     if (!existingComment || existingComment.isDeleted) {
       return false;
     }
@@ -324,12 +195,30 @@ class SimpleMockService {
       updatedAt: new Date(),
     };
 
-    this.comments.set(commentId, deletedComment);
+    this.commentsStorage.set(commentId, deletedComment);
+
+    // Create enriched comment for event
+    const enrichedComment = await this.enrichComment(deletedComment);
+
+    // Emit real-time event
+    if (this.websocketService) {
+      const eventData: CommentEventData = {
+        requirementId: enrichedComment.requirementId,
+        comment: enrichedComment,
+        action: 'deleted',
+        userId,
+      };
+      this.websocketService.broadcastToRequirement(enrichedComment.requirementId, COMMENT_EVENTS.DELETED, eventData);
+    }
+
     return true;
   }
 
+  /**
+   * Get comment by ID
+   */
   async getCommentById(commentId: string): Promise<Comment | null> {
-    const comment = this.comments.get(commentId);
+    const comment = this.commentsStorage.get(commentId);
     if (!comment || comment.isDeleted) {
       return null;
     }
@@ -337,8 +226,11 @@ class SimpleMockService {
     return this.enrichComment(comment);
   }
 
+  /**
+   * Get comments summary for a requirement
+   */
   async getCommentsSummary(requirementId: string): Promise<CommentSummary> {
-    const requirementComments = Array.from(this.comments.values())
+    const requirementComments = Array.from(this.commentsStorage.values())
       .filter(comment => comment.requirementId === requirementId && !comment.isDeleted);
 
     const rootComments = requirementComments.filter(comment => !comment.parentCommentId);
@@ -359,10 +251,6 @@ class SimpleMockService {
     };
   }
 
-  // ========================================
-  // COMMENT HELPER METHODS
-  // ========================================
-
   /**
    * Private helper to enrich comment with additional data
    */
@@ -377,7 +265,7 @@ class SimpleMockService {
     };
 
     // Count direct replies
-    const replyCount = Array.from(this.comments.values())
+    const replyCount = Array.from(this.commentsStorage.values())
       .filter(c => c.parentCommentId === comment.id && !c.isDeleted)
       .length;
 
@@ -391,7 +279,7 @@ class SimpleMockService {
   /**
    * Private helper to apply filters to comments
    */
-  private applyCommentFilters(comments: BaseComment[], filters: CommentFilters): BaseComment[] {
+  private applyFilters(comments: BaseComment[], filters: CommentFilters): BaseComment[] {
     let filtered = comments;
 
     // Basic filters
@@ -461,5 +349,4 @@ class SimpleMockService {
   }
 }
 
-export const simpleMockService = new SimpleMockService();
-export default SimpleMockService;
+export default CommentsService;
