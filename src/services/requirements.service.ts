@@ -1,0 +1,564 @@
+/**
+ * Requirements Service - Business logic for requirements management
+ */
+
+import { PoolClient } from 'pg';
+import { db } from '../config/database';
+import {
+  Requirement,
+  RequirementVersion,
+  CreateRequirementRequest,
+  UpdateRequirementRequest,
+  RequirementFilters,
+  PaginationParams,
+  PaginatedResponse,
+  RequirementSummary,
+  REQUIREMENT_STATUS,
+} from '../models/requirement.model';
+import IdGenerator from '../utils/id-generator';
+
+export class RequirementsService {
+  /**
+   * Create a new requirement
+   */
+  async createRequirement(
+    data: CreateRequirementRequest,
+    createdBy: string
+  ): Promise<Requirement> {
+    const requirementId = IdGenerator.generateRequirementId();
+
+    const query = `
+      INSERT INTO requirements (
+        id, title, description, priority, assigned_to, created_by,
+        due_date, estimated_effort, tags, metadata
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `;
+
+    const values = [
+      requirementId,
+      data.title,
+      data.description || null,
+      data.priority || 'medium',
+      data.assignedTo || null,
+      createdBy,
+      data.dueDate ? new Date(data.dueDate) : null,
+      data.estimatedEffort || null,
+      data.tags || [],
+      data.metadata || null,
+    ];
+
+    try {
+      const result = await db.query(query, values);
+      const requirement = result.rows[0];
+
+      // Create initial version
+      await this.createVersion(requirement, createdBy, 'Initial creation');
+
+      // Return with user details
+      return await this.getRequirementById(requirement.id);
+    } catch (error) {
+      console.error('Error creating requirement:', error);
+      throw new Error('Failed to create requirement');
+    }
+  }
+
+  /**
+   * Get requirement by ID with user details
+   */
+  async getRequirementById(id: string): Promise<Requirement> {
+    const query = `
+      SELECT
+        r.*,
+        u1.username as created_by_username,
+        u1.first_name as created_by_first_name,
+        u1.last_name as created_by_last_name,
+        u2.username as assigned_to_username,
+        u2.first_name as assigned_to_first_name,
+        u2.last_name as assigned_to_last_name
+      FROM requirements r
+      LEFT JOIN users u1 ON r.created_by = u1.id
+      LEFT JOIN users u2 ON r.assigned_to = u2.id
+      WHERE r.id = $1 AND r.status != 'archived'
+    `;
+
+    try {
+      const result = await db.query(query, [id]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Requirement not found');
+      }
+
+      return this.mapRowToRequirement(result.rows[0]);
+    } catch (error) {
+      console.error('Error getting requirement by ID:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get paginated list of requirements with filters
+   */
+  async getRequirements(
+    filters: RequirementFilters = {},
+    pagination: PaginationParams = { page: 1, limit: 20 }
+  ): Promise<PaginatedResponse<Requirement>> {
+    const { whereClause, queryParams, paramCount } = this.buildWhereClause(filters);
+    const offset = (pagination.page - 1) * pagination.limit;
+
+    // Build ORDER BY clause
+    const sortBy = pagination.sortBy || 'created_at';
+    const sortOrder = pagination.sortOrder || 'DESC';
+    const orderBy = `ORDER BY r.${sortBy} ${sortOrder}`;
+
+    // Count query
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM requirements r
+      LEFT JOIN users u1 ON r.created_by = u1.id
+      LEFT JOIN users u2 ON r.assigned_to = u2.id
+      ${whereClause}
+    `;
+
+    // Data query
+    const dataQuery = `
+      SELECT
+        r.*,
+        u1.username as created_by_username,
+        u1.first_name as created_by_first_name,
+        u1.last_name as created_by_last_name,
+        u2.username as assigned_to_username,
+        u2.first_name as assigned_to_first_name,
+        u2.last_name as assigned_to_last_name
+      FROM requirements r
+      LEFT JOIN users u1 ON r.created_by = u1.id
+      LEFT JOIN users u2 ON r.assigned_to = u2.id
+      ${whereClause}
+      ${orderBy}
+      LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+    `;
+
+    try {
+      const [countResult, dataResult] = await Promise.all([
+        db.query(countQuery, queryParams),
+        db.query(dataQuery, [...queryParams, pagination.limit, offset])
+      ]);
+
+      const total = parseInt(countResult.rows[0].total);
+      const totalPages = Math.ceil(total / pagination.limit);
+
+      const requirements = dataResult.rows.map((row: any) => this.mapRowToRequirement(row));
+
+      return {
+        data: requirements,
+        pagination: {
+          page: pagination.page,
+          limit: pagination.limit,
+          total,
+          totalPages,
+          hasNext: pagination.page < totalPages,
+          hasPrev: pagination.page > 1,
+        }
+      };
+    } catch (error) {
+      console.error('Error getting requirements:', error);
+      throw new Error('Failed to get requirements');
+    }
+  }
+
+  /**
+   * Update a requirement
+   */
+  async updateRequirement(
+    id: string,
+    data: UpdateRequirementRequest,
+    updatedBy: string,
+    changeReason?: string
+  ): Promise<Requirement> {
+    // Get current requirement for versioning (unused but kept for potential future use)
+    // const currentRequirement = await this.getRequirementById(id);
+
+    return await db.withTransaction(async (client: PoolClient) => {
+      // Build update query dynamically
+      const updateFields: string[] = [];
+      const updateValues: any[] = [];
+      let paramCount = 0;
+
+      if (data.title !== undefined) {
+        updateFields.push(`title = $${++paramCount}`);
+        updateValues.push(data.title);
+      }
+      if (data.description !== undefined) {
+        updateFields.push(`description = $${++paramCount}`);
+        updateValues.push(data.description);
+      }
+      if (data.status !== undefined) {
+        updateFields.push(`status = $${++paramCount}`);
+        updateValues.push(data.status);
+
+        // Set completed_at if status is completed
+        if (data.status === REQUIREMENT_STATUS.COMPLETED) {
+          updateFields.push(`completed_at = CURRENT_TIMESTAMP`);
+        }
+      }
+      if (data.priority !== undefined) {
+        updateFields.push(`priority = $${++paramCount}`);
+        updateValues.push(data.priority);
+      }
+      if (data.assignedTo !== undefined) {
+        updateFields.push(`assigned_to = $${++paramCount}`);
+        updateValues.push(data.assignedTo);
+      }
+      if (data.dueDate !== undefined) {
+        updateFields.push(`due_date = $${++paramCount}`);
+        updateValues.push(data.dueDate ? new Date(data.dueDate) : null);
+      }
+      if (data.estimatedEffort !== undefined) {
+        updateFields.push(`estimated_effort = $${++paramCount}`);
+        updateValues.push(data.estimatedEffort);
+      }
+      if (data.actualEffort !== undefined) {
+        updateFields.push(`actual_effort = $${++paramCount}`);
+        updateValues.push(data.actualEffort);
+      }
+      if (data.completionPercentage !== undefined) {
+        updateFields.push(`completion_percentage = $${++paramCount}`);
+        updateValues.push(data.completionPercentage);
+      }
+      if (data.tags !== undefined) {
+        updateFields.push(`tags = $${++paramCount}`);
+        updateValues.push(data.tags);
+      }
+      if (data.metadata !== undefined) {
+        updateFields.push(`metadata = $${++paramCount}`);
+        updateValues.push(data.metadata);
+      }
+
+      if (updateFields.length === 0) {
+        throw new Error('No fields to update');
+      }
+
+      const updateQuery = `
+        UPDATE requirements
+        SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $${++paramCount}
+        RETURNING *
+      `;
+
+      updateValues.push(id);
+
+      const result = await client.query(updateQuery, updateValues);
+
+      if (result.rows.length === 0) {
+        throw new Error('Requirement not found');
+      }
+
+      const updatedRequirement = result.rows[0];
+
+      // Create version record
+      await this.createVersionWithClient(
+        client,
+        updatedRequirement,
+        updatedBy,
+        changeReason || 'Requirement updated'
+      );
+
+      // Return updated requirement with user details
+      return await this.getRequirementById(id);
+    });
+  }
+
+  /**
+   * Soft delete a requirement
+   */
+  async deleteRequirement(id: string, deletedBy: string): Promise<void> {
+    const query = `
+      UPDATE requirements
+      SET status = 'archived', updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 AND status != 'archived'
+      RETURNING *
+    `;
+
+    try {
+      const result = await db.query(query, [id]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Requirement not found or already archived');
+      }
+
+      // Create version record for deletion
+      await this.createVersion(result.rows[0], deletedBy, 'Requirement archived');
+    } catch (error) {
+      console.error('Error deleting requirement:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get version history for a requirement
+   */
+  async getRequirementVersions(requirementId: string): Promise<RequirementVersion[]> {
+    const query = `
+      SELECT
+        rv.*,
+        u.username as changed_by_username,
+        u.first_name as changed_by_first_name,
+        u.last_name as changed_by_last_name
+      FROM requirements_versions rv
+      LEFT JOIN users u ON rv.changed_by = u.id
+      WHERE rv.requirement_id = $1
+      ORDER BY rv.version_number DESC
+    `;
+
+    try {
+      const result = await db.query(query, [requirementId]);
+      return result.rows.map((row: any) => this.mapRowToVersion(row));
+    } catch (error) {
+      console.error('Error getting requirement versions:', error);
+      throw new Error('Failed to get requirement versions');
+    }
+  }
+
+  /**
+   * Get requirements summary statistics
+   */
+  async getRequirementsSummary(filters: RequirementFilters = {}): Promise<RequirementSummary> {
+    const { whereClause, queryParams } = this.buildWhereClause(filters);
+
+    const query = `
+      SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_count,
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_count,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+        COUNT(CASE WHEN status = 'archived' THEN 1 END) as archived_count,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_count,
+        COUNT(CASE WHEN priority = 'low' THEN 1 END) as low_priority_count,
+        COUNT(CASE WHEN priority = 'medium' THEN 1 END) as medium_priority_count,
+        COUNT(CASE WHEN priority = 'high' THEN 1 END) as high_priority_count,
+        COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_priority_count,
+        COUNT(CASE WHEN due_date < CURRENT_DATE AND status NOT IN ('completed', 'archived', 'cancelled') THEN 1 END) as overdue_count,
+        COUNT(CASE WHEN completed_at >= date_trunc('month', CURRENT_DATE) AND status = 'completed' THEN 1 END) as completed_this_month
+      FROM requirements r
+      LEFT JOIN users u1 ON r.created_by = u1.id
+      LEFT JOIN users u2 ON r.assigned_to = u2.id
+      ${whereClause}
+    `;
+
+    try {
+      const result = await db.query(query, queryParams);
+      const row = result.rows[0];
+
+      return {
+        total: parseInt(row.total),
+        byStatus: {
+          draft: parseInt(row.draft_count),
+          active: parseInt(row.active_count),
+          completed: parseInt(row.completed_count),
+          archived: parseInt(row.archived_count),
+          cancelled: parseInt(row.cancelled_count),
+        },
+        byPriority: {
+          low: parseInt(row.low_priority_count),
+          medium: parseInt(row.medium_priority_count),
+          high: parseInt(row.high_priority_count),
+          critical: parseInt(row.critical_priority_count),
+        },
+        overdue: parseInt(row.overdue_count),
+        completedThisMonth: parseInt(row.completed_this_month),
+      };
+    } catch (error) {
+      console.error('Error getting requirements summary:', error);
+      throw new Error('Failed to get requirements summary');
+    }
+  }
+
+  /**
+   * Create a version record for a requirement
+   */
+  private async createVersion(
+    requirement: any,
+    changedBy: string,
+    changeReason: string
+  ): Promise<void> {
+    const client = await db.getClient();
+    try {
+      await this.createVersionWithClient(client, requirement, changedBy, changeReason);
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Create a version record using an existing client
+   */
+  private async createVersionWithClient(
+    client: PoolClient,
+    requirement: any,
+    changedBy: string,
+    changeReason: string
+  ): Promise<void> {
+    // Get next version number
+    const versionQuery = `
+      SELECT COALESCE(MAX(version_number), 0) + 1 as next_version
+      FROM requirements_versions
+      WHERE requirement_id = $1
+    `;
+
+    const versionResult = await client.query(versionQuery, [requirement.id]);
+    const nextVersion = versionResult.rows[0].next_version;
+
+    const insertQuery = `
+      INSERT INTO requirements_versions (
+        requirement_id, version_number, title, description, status, priority,
+        assigned_to, due_date, estimated_effort, actual_effort, completion_percentage,
+        tags, metadata, changed_by, change_reason
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    `;
+
+    const values = [
+      requirement.id,
+      nextVersion,
+      requirement.title,
+      requirement.description,
+      requirement.status,
+      requirement.priority,
+      requirement.assigned_to,
+      requirement.due_date,
+      requirement.estimated_effort,
+      requirement.actual_effort,
+      requirement.completion_percentage,
+      requirement.tags,
+      requirement.metadata,
+      changedBy,
+      changeReason,
+    ];
+
+    await client.query(insertQuery, values);
+  }
+
+  /**
+   * Build WHERE clause for filtering requirements
+   */
+  private buildWhereClause(filters: RequirementFilters): {
+    whereClause: string;
+    queryParams: any[];
+    paramCount: number;
+  } {
+    const conditions: string[] = ['r.status != \'archived\'']; // Always exclude archived by default
+    const queryParams: any[] = [];
+    let paramCount = 0;
+
+    if (filters.status && filters.status.length > 0) {
+      conditions.pop(); // Remove default archived exclusion if status is explicitly filtered
+      conditions.push(`r.status = ANY($${++paramCount})`);
+      queryParams.push(filters.status);
+    }
+
+    if (filters.priority && filters.priority.length > 0) {
+      conditions.push(`r.priority = ANY($${++paramCount})`);
+      queryParams.push(filters.priority);
+    }
+
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      conditions.push(`r.assigned_to = ANY($${++paramCount})`);
+      queryParams.push(filters.assignedTo);
+    }
+
+    if (filters.createdBy && filters.createdBy.length > 0) {
+      conditions.push(`r.created_by = ANY($${++paramCount})`);
+      queryParams.push(filters.createdBy);
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      conditions.push(`r.tags && $${++paramCount}`);
+      queryParams.push(filters.tags);
+    }
+
+    if (filters.dueDateFrom) {
+      conditions.push(`r.due_date >= $${++paramCount}`);
+      queryParams.push(new Date(filters.dueDateFrom));
+    }
+
+    if (filters.dueDateTo) {
+      conditions.push(`r.due_date <= $${++paramCount}`);
+      queryParams.push(new Date(filters.dueDateTo));
+    }
+
+    if (filters.search) {
+      conditions.push(`(r.title ILIKE $${++paramCount} OR r.description ILIKE $${++paramCount})`);
+      queryParams.push(`%${filters.search}%`);
+      queryParams.push(`%${filters.search}%`);
+      paramCount++; // Account for the second parameter
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    return { whereClause, queryParams, paramCount };
+  }
+
+  /**
+   * Map database row to Requirement interface
+   */
+  private mapRowToRequirement(row: any): Requirement {
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      assignedTo: row.assigned_to,
+      createdBy: row.created_by,
+      dueDate: row.due_date,
+      estimatedEffort: row.estimated_effort,
+      actualEffort: row.actual_effort,
+      completionPercentage: row.completion_percentage,
+      tags: row.tags || [],
+      metadata: row.metadata,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      completedAt: row.completed_at,
+      assignedToUser: row.assigned_to_username ? {
+        id: row.assigned_to,
+        username: row.assigned_to_username,
+        firstName: row.assigned_to_first_name,
+        lastName: row.assigned_to_last_name,
+      } as any : undefined,
+      createdByUser: {
+        id: row.created_by,
+        username: row.created_by_username,
+        firstName: row.created_by_first_name,
+        lastName: row.created_by_last_name,
+      },
+    };
+  }
+
+  /**
+   * Map database row to RequirementVersion interface
+   */
+  private mapRowToVersion(row: any): RequirementVersion {
+    return {
+      id: row.id,
+      requirementId: row.requirement_id,
+      versionNumber: row.version_number,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      assignedTo: row.assigned_to,
+      dueDate: row.due_date,
+      estimatedEffort: row.estimated_effort,
+      actualEffort: row.actual_effort,
+      completionPercentage: row.completion_percentage,
+      tags: row.tags || [],
+      metadata: row.metadata,
+      changedBy: row.changed_by,
+      changeReason: row.change_reason,
+      createdAt: row.created_at,
+    };
+  }
+}
+
+export default RequirementsService;

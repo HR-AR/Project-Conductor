@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: conductor_postgres
+    environment:
+      POSTGRES_DB: conductor
+      POSTGRES_USER: conductor
+      POSTGRES_PASSWORD: conductor_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U conductor -d conductor"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - conductor_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: conductor_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - conductor_network
+
+  app:
+    build: .
+    container_name: conductor_app
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://conductor:conductor_password@postgres:5432/conductor
+      REDIS_URL: redis://redis:6379
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - conductor_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  conductor_network:
+    driver: bridge
