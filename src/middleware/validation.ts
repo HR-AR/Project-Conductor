@@ -22,6 +22,11 @@ export const handleValidationErrors = (
 };
 
 /**
+ * Alias for handleValidationErrors (for compatibility)
+ */
+export const validateRequest = handleValidationErrors;
+
+/**
  * Common validation rules
  */
 export const validationRules = {

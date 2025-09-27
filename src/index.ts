@@ -24,6 +24,9 @@ import requirementsRoutes from './routes/requirements.routes';
 import linksRoutes from './routes/links.routes';
 import traceabilityRoutes from './routes/traceability.routes';
 import { createCommentsRoutes } from './routes/comments.routes';
+import qualityRoutes from './routes/quality.routes';
+import reviewRoutes from './routes/review.routes';
+import metricsRoutes from './routes/metrics.routes';
 
 // Import database
 import { db } from './config/database';
@@ -66,6 +69,9 @@ app.use('/api/v1/requirements', requirementsRoutes);
 app.use('/api/v1', linksRoutes);
 app.use('/api/v1', traceabilityRoutes);
 app.use('/api/v1', createCommentsRoutes(webSocketService));
+app.use('/api/v1', qualityRoutes);
+app.use('/api/v1', reviewRoutes);
+app.use('/api/v1', metricsRoutes);
 
 // Basic health check endpoint
 app.get('/health', async (_req, res) => {
@@ -151,6 +157,7 @@ app.get('/', (_req, res) => {
       links: '/api/v1/links',
       traceability: '/api/v1/requirements/:id/links',
       comments: '/api/v1/requirements/:id/comments',
+      quality: '/api/v1/requirements/:id/analyze',
       documentation: '/api/v1/requirements (for API documentation)',
     },
     features: [

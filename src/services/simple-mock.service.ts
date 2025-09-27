@@ -13,12 +13,19 @@ import {
   CommentThread,
   CommentSummary,
 } from '../models/comment.model';
+import {
+  QualityAnalysis,
+  QualityReport,
+  QualityIssueType,
+  QualityIssueSeverity,
+} from '../models/quality.model';
 
 class SimpleMockService {
   private requirements: Map<string, any> = new Map();
   private versions: Map<string, any[]> = new Map();
   private links: Map<string, BaseLink> = new Map();
   private comments: Map<string, BaseComment> = new Map();
+  private qualityAnalyses: Map<string, QualityAnalysis> = new Map();
 
   async createRequirement(data: any): Promise<any> {
     const id = await generateUniqueId('REQ');
@@ -458,6 +465,236 @@ class SimpleMockService {
     });
 
     return rootComments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  // ========================================
+  // QUALITY ANALYSIS METHODS
+  // ========================================
+
+  /**
+   * Store a quality analysis for a requirement
+   */
+  async storeQualityAnalysis(requirementId: string, analysis: QualityAnalysis): Promise<void> {
+    this.qualityAnalyses.set(requirementId, analysis);
+  }
+
+  /**
+   * Get quality analysis for a requirement
+   */
+  async getQualityAnalysis(requirementId: string): Promise<QualityAnalysis | null> {
+    return this.qualityAnalyses.get(requirementId) || null;
+  }
+
+  /**
+   * Get quality report with metrics
+   */
+  async getQualityReport(filters: {
+    startDate?: Date;
+    endDate?: Date;
+    minScore?: number;
+    maxScore?: number;
+  } = {}): Promise<QualityReport> {
+    const allAnalyses = Array.from(this.qualityAnalyses.values());
+    let filteredAnalyses = allAnalyses;
+
+    // Apply date filters
+    if (filters.startDate) {
+      filteredAnalyses = filteredAnalyses.filter(analysis =>
+        analysis.analyzedAt >= filters.startDate!
+      );
+    }
+
+    if (filters.endDate) {
+      filteredAnalyses = filteredAnalyses.filter(analysis =>
+        analysis.analyzedAt <= filters.endDate!
+      );
+    }
+
+    // Apply score filters
+    if (filters.minScore !== undefined) {
+      filteredAnalyses = filteredAnalyses.filter(analysis =>
+        analysis.qualityScore >= filters.minScore!
+      );
+    }
+
+    if (filters.maxScore !== undefined) {
+      filteredAnalyses = filteredAnalyses.filter(analysis =>
+        analysis.qualityScore <= filters.maxScore!
+      );
+    }
+
+    // Calculate metrics
+    const totalRequirements = this.requirements.size;
+    const requirementsAnalyzed = filteredAnalyses.length;
+    const averageQualityScore = requirementsAnalyzed > 0
+      ? filteredAnalyses.reduce((sum, analysis) => sum + analysis.qualityScore, 0) / requirementsAnalyzed
+      : 0;
+
+    // Issue distribution
+    const issueDistribution: Record<QualityIssueType, number> = {
+      weak_word: 0,
+      vague_term: 0,
+      ambiguous_pronoun: 0,
+      missing_specific: 0,
+      passive_voice: 0,
+    };
+
+    // Severity distribution
+    const severityDistribution: Record<QualityIssueSeverity, number> = {
+      low: 0,
+      medium: 0,
+      high: 0,
+    };
+
+    filteredAnalyses.forEach(analysis => {
+      analysis.issues.forEach(issue => {
+        issueDistribution[issue.type]++;
+        severityDistribution[issue.severity]++;
+      });
+    });
+
+    // Top issues
+    const topIssues = Object.entries(issueDistribution)
+      .map(([type, count]) => ({
+        type: type as QualityIssueType,
+        count,
+        affectedRequirements: filteredAnalyses.filter(analysis =>
+          analysis.issues.some(issue => issue.type === type)
+        ).length,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Quality trends (simplified - group by day for last 30 days)
+    const qualityTrends = this.generateQualityTrends(filteredAnalyses, 30);
+
+    return {
+      totalRequirements,
+      averageQualityScore: Math.round(averageQualityScore),
+      requirementsAnalyzed,
+      issueDistribution,
+      severityDistribution,
+      topIssues,
+      qualityTrends,
+      generatedAt: new Date(),
+    };
+  }
+
+  /**
+   * Get recent quality analyses
+   */
+  async getRecentQualityAnalyses(limit: number = 10): Promise<QualityAnalysis[]> {
+    return Array.from(this.qualityAnalyses.values())
+      .sort((a, b) => b.analyzedAt.getTime() - a.analyzedAt.getTime())
+      .slice(0, limit);
+  }
+
+  /**
+   * Get quality trends over time
+   */
+  async getQualityTrends(days: number, groupBy: 'day' | 'week' | 'month'): Promise<Array<{
+    date: string;
+    averageScore: number;
+    totalAnalyzed: number;
+  }>> {
+    const analyses = Array.from(this.qualityAnalyses.values());
+    return this.generateQualityTrends(analyses, days, groupBy);
+  }
+
+  /**
+   * Get requirements with low quality scores
+   */
+  async getLowQualityRequirements(threshold: number, limit: number): Promise<Array<{
+    requirementId: string;
+    title: string;
+    qualityScore: number;
+    issueCount: number;
+    lastAnalyzed: Date;
+  }>> {
+    const lowQualityAnalyses = Array.from(this.qualityAnalyses.values())
+      .filter(analysis => analysis.qualityScore < threshold)
+      .sort((a, b) => a.qualityScore - b.qualityScore)
+      .slice(0, limit);
+
+    const results = [];
+    for (const analysis of lowQualityAnalyses) {
+      const requirement = this.requirements.get(analysis.requirementId);
+      if (requirement) {
+        results.push({
+          requirementId: analysis.requirementId,
+          title: requirement.title,
+          qualityScore: analysis.qualityScore,
+          issueCount: analysis.issues.length,
+          lastAnalyzed: analysis.analyzedAt,
+        });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Helper method to generate quality trends
+   */
+  private generateQualityTrends(
+    analyses: QualityAnalysis[],
+    days: number,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Array<{
+    date: string;
+    averageScore: number;
+    totalAnalyzed: number;
+  }> {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+
+    const trends = [];
+    const relevantAnalyses = analyses.filter(analysis =>
+      analysis.analyzedAt >= startDate && analysis.analyzedAt <= endDate
+    );
+
+    // Group analyses by date period
+    const groupedAnalyses = new Map<string, QualityAnalysis[]>();
+
+    relevantAnalyses.forEach(analysis => {
+      const date = analysis.analyzedAt;
+      let key: string;
+
+      switch (groupBy) {
+        case 'week':
+          // Start of week (Monday)
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay() + 1);
+          key = weekStart.toISOString().split('T')[0] || '';
+          break;
+        case 'month':
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          break;
+        default: // day
+          key = date.toISOString().split('T')[0] || '';
+      }
+
+      if (!groupedAnalyses.has(key)) {
+        groupedAnalyses.set(key, []);
+      }
+      groupedAnalyses.get(key)!.push(analysis);
+    });
+
+    // Generate trend data
+    for (const [date, periodAnalyses] of groupedAnalyses.entries()) {
+      const averageScore = periodAnalyses.length > 0
+        ? periodAnalyses.reduce((sum, analysis) => sum + analysis.qualityScore, 0) / periodAnalyses.length
+        : 0;
+
+      trends.push({
+        date,
+        averageScore: Math.round(averageScore),
+        totalAnalyzed: periodAnalyses.length,
+      });
+    }
+
+    return trends.sort((a, b) => a.date.localeCompare(b.date));
   }
 }
 

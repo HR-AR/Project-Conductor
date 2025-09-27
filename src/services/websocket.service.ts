@@ -234,6 +234,34 @@ export class WebSocketService {
   }
 
   /**
+   * Broadcast review updates to all clients in the requirement room
+   */
+  broadcastReviewUpdate(
+    review: any,
+    changeType: 'created' | 'updated' | 'deleted',
+    userId?: string
+  ): void {
+    const eventData = {
+      review,
+      reviewId: review.id,
+      requirementId: review.requirementId,
+      userId,
+      timestamp: new Date(),
+      changeType
+    };
+
+    const roomName = `requirement:${review.requirementId}`;
+    this.io.to(roomName).emit('review:updated', eventData);
+    this.io.to('general-updates').emit('review:updated', eventData);
+
+    console.log(`Broadcasting review ${changeType} to room: ${roomName}`, {
+      reviewId: review.id,
+      requirementId: review.requirementId,
+      changeType
+    });
+  }
+
+  /**
    * Broadcast a custom event to a specific requirement room
    */
   broadcastToRequirement(requirementId: string, eventName: string, data: any): void {

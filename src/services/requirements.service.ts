@@ -18,6 +18,11 @@ import {
 import IdGenerator from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 
+interface GetRequirementOptions {
+  includeArchived?: boolean;
+  client?: PoolClient;
+}
+
 class RequirementsService {
   private webSocketService?: WebSocketService | undefined;
 
@@ -85,7 +90,9 @@ class RequirementsService {
   /**
    * Get requirement by ID with user details
    */
-  async getRequirementById(id: string): Promise<Requirement> {
+  async getRequirementById(id: string, options: GetRequirementOptions = {}): Promise<Requirement> {
+    const { includeArchived = false, client } = options;
+
     const query = `
       SELECT
         r.*,
@@ -98,11 +105,12 @@ class RequirementsService {
       FROM requirements r
       LEFT JOIN users u1 ON r.created_by = u1.id
       LEFT JOIN users u2 ON r.assigned_to = u2.id
-      WHERE r.id = $1 AND r.status != 'archived'
+      WHERE r.id = $1${includeArchived ? '' : " AND r.status != 'archived'"}
     `;
 
     try {
-      const result = await db.query(query, [id]);
+      const executor = client ? client.query.bind(client) : db.query.bind(db);
+      const result = await executor(query, [id]);
 
       if (result.rows.length === 0) {
         throw new Error('Requirement not found');
@@ -283,7 +291,10 @@ class RequirementsService {
       );
 
       // Get updated requirement with user details
-      const updatedRequirementWithDetails = await this.getRequirementById(id);
+      const updatedRequirementWithDetails = await this.getRequirementById(id, {
+        includeArchived: true,
+        client,
+      });
 
       // Emit WebSocket event for requirement update
       if (this.webSocketService) {
@@ -323,7 +334,7 @@ class RequirementsService {
       await this.createVersion(archivedRequirement, deletedBy, 'Requirement archived');
 
       // Get the complete requirement for WebSocket broadcast
-      const fullRequirement = await this.getRequirementById(id);
+      const fullRequirement = await this.getRequirementById(id, { includeArchived: true });
 
       // Emit WebSocket event for requirement deletion/archival
       if (this.webSocketService) {
@@ -403,6 +414,10 @@ class RequirementsService {
           completed: parseInt(row.completed_count),
           archived: parseInt(row.archived_count),
           cancelled: parseInt(row.cancelled_count),
+          under_review: 0,
+          approved: 0,
+          rejected: 0,
+          changes_requested: 0,
         },
         byPriority: {
           low: parseInt(row.low_priority_count),
@@ -533,10 +548,11 @@ class RequirementsService {
     }
 
     if (filters.search) {
-      conditions.push(`(r.title ILIKE $${++paramCount} OR r.description ILIKE $${++paramCount})`);
+      const titleParamIndex = ++paramCount;
+      const descriptionParamIndex = ++paramCount;
+      conditions.push(`(r.title ILIKE $${titleParamIndex} OR r.description ILIKE $${descriptionParamIndex})`);
       queryParams.push(`%${filters.search}%`);
       queryParams.push(`%${filters.search}%`);
-      paramCount++; // Account for the second parameter
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

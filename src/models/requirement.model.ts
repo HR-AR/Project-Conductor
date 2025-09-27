@@ -4,6 +4,10 @@
 
 export interface RequirementStatus {
   DRAFT: 'draft';
+  UNDER_REVIEW: 'under_review';
+  APPROVED: 'approved';
+  REJECTED: 'rejected';
+  CHANGES_REQUESTED: 'changes_requested';
   ACTIVE: 'active';
   COMPLETED: 'completed';
   ARCHIVED: 'archived';
@@ -12,6 +16,10 @@ export interface RequirementStatus {
 
 export const REQUIREMENT_STATUS: RequirementStatus = {
   DRAFT: 'draft',
+  UNDER_REVIEW: 'under_review',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  CHANGES_REQUESTED: 'changes_requested',
   ACTIVE: 'active',
   COMPLETED: 'completed',
   ARCHIVED: 'archived',

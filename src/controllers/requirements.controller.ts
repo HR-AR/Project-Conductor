@@ -11,16 +11,17 @@ import {
   RequirementFilters,
   PaginationParams,
 } from '../models/requirement.model';
-import { asyncHandler, NotFoundError } from '../middleware/error-handler';
+import { asyncHandler, NotFoundError, BadRequestError } from '../middleware/error-handler';
 
 export class RequirementsController {
   private requirementsService: any;
+  private useMock: boolean;
 
   constructor() {
     // Use mock service when database is not available
-    const useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.requirementsService = useMock ? simpleMockService : new RequirementsService();
-    if (useMock) {
+    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
+    this.requirementsService = this.useMock ? simpleMockService : new RequirementsService();
+    if (this.useMock) {
       console.log('Using mock requirements service (database unavailable)');
     }
   }
@@ -32,7 +33,8 @@ export class RequirementsController {
   createRequirement = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const data: CreateRequirementRequest = req.body;
-      const createdBy = (req.headers['x-user-id'] as string) || 'system'; // In real app, get from auth middleware
+
+      const createdBy = this.resolveRequestUserId(req);
 
       const requirement = await this.requirementsService.createRequirement(data, createdBy);
 
@@ -92,6 +94,10 @@ export class RequirementsController {
       try {
         const requirement = await this.requirementsService.getRequirementById(id as string);
 
+        if (!requirement) {
+          throw new NotFoundError('Requirement not found');
+        }
+
         res.json({
           success: true,
           data: requirement,
@@ -114,7 +120,7 @@ export class RequirementsController {
     async (req: Request, res: Response): Promise<void> => {
       const { id } = req.params;
       const data: UpdateRequirementRequest = req.body;
-      const updatedBy = (req.headers['x-user-id'] as string) || 'system'; // In real app, get from auth middleware
+      const updatedBy = this.resolveRequestUserId(req);
       const changeReason = req.headers['x-change-reason'] as string | undefined;
 
       try {
@@ -146,7 +152,7 @@ export class RequirementsController {
   deleteRequirement = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { id } = req.params;
-      const deletedBy = (req.headers['x-user-id'] as string) || 'system'; // In real app, get from auth middleware
+      const deletedBy = this.resolveRequestUserId(req);
 
       try {
         await this.requirementsService.deleteRequirement(id as string, deletedBy);
@@ -216,7 +222,7 @@ export class RequirementsController {
   bulkUpdateRequirements = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { ids, updates } = req.body;
-      const updatedBy = (req.headers['x-user-id'] as string) || 'system';
+      const updatedBy = this.resolveRequestUserId(req);
       const changeReason = (req.headers['x-change-reason'] as string) || 'Bulk update';
 
       if (!Array.isArray(ids) || ids.length === 0) {
@@ -306,6 +312,27 @@ export class RequirementsController {
   private parseArrayParam(param: any): string[] | undefined {
     if (!param) return undefined;
     return Array.isArray(param) ? param : [param];
+  }
+
+  /**
+   * Resolve user identifier from request headers or fallback configuration.
+   */
+  private resolveRequestUserId(req: Request): string {
+    const headerUserId = req.headers['x-user-id'] as string | undefined;
+    if (headerUserId) {
+      return headerUserId;
+    }
+
+    if (this.useMock) {
+      return 'mock-user';
+    }
+
+    const defaultUserId = process.env['SYSTEM_USER_ID'];
+    if (defaultUserId) {
+      return defaultUserId;
+    }
+
+    throw new BadRequestError('x-user-id header is required (or configure SYSTEM_USER_ID for service-originated requests)');
   }
 
   /**
