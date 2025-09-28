@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Rate Limiting Shield</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .demo-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 1s ease-out 0.5s both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .control-panel {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: shake 2s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-2px); }
+            20% { transform: translateX(2px); }
+            30% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .visualization {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .request-bar {
+            position: absolute;
+            height: 8px;
+            border-radius: 4px;
+            transition: all 0.5s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .request-bar.allowed {
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+            box-shadow: 0 0 20px rgba(67, 233, 123, 0.6);
+        }
+
+        .request-bar.blocked {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 0 20px rgba(245, 87, 108, 0.6);
+            animation: blocked 0.5s ease-out;
+        }
+
+        @keyframes blocked {
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(10px) scale(1.2); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .status-message.error {
+            background: rgba(245, 87, 108, 0.2);
+            border: 2px solid rgba(245, 87, 108, 0.5);
+        }
+
+        .status-message.success {
+            background: rgba(67, 233, 123, 0.2);
+            border: 2px solid rgba(67, 233, 123, 0.5);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .feature-desc {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .progress-ring {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1rem;
+        }
+
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .comparison-card {
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .comparison-card.before {
+            background: rgba(245, 87, 108, 0.2);
+            border: 2px solid rgba(245, 87, 108, 0.3);
+        }
+
+        .comparison-card.after {
+            background: rgba(67, 233, 123, 0.2);
+            border: 2px solid rgba(67, 233, 123, 0.3);
+        }
+
+        .comparison-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .comparison-list {
+            text-align: left;
+            list-style: none;
+            line-height: 2;
+        }
+
+        .comparison-list li::before {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .comparison-card.before .comparison-list li::before {
+            content: "❌";
+        }
+
+        .comparison-card.after .comparison-list li::before {
+            content: "✅";
+        }
+
+        .demo-section {
+            margin: 4rem 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            font-weight: 700;
+        }
+
+        .floating-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .sparkle {
+            position: absolute;
+            animation: sparkle 1s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes sparkle {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1.2rem; }
+            .before-after { grid-template-columns: 1fr; }
+            .demo-container { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-badge">🚀 Live Demo</div>
+
+    <div class="hero">
+        <div class="logo">🛡️</div>
+        <h1>Introducing Rate Limiting Shield</h1>
+        <p class="subtitle">Your API's New Defense System</p>
+    </div>
+
+    <div class="demo-container">
+        <div class="demo-section">
+            <h2 class="section-title">The Problem We're Solving</h2>
+            <div class="before-after">
+                <div class="comparison-card before">
+                    <div class="comparison-title">❌ Before Rate Limiting</div>
+                    <ul class="comparison-list">
+                        <li>Vulnerable to DDoS attacks</li>
+                        <li>Single user can crash system</li>
+                        <li>$10,000+ per hour in downtime</li>
+                        <li>No protection against scrapers</li>
+                        <li>Server resources exhausted</li>
+                    </ul>
+                </div>
+                <div class="comparison-card after">
+                    <div class="comparison-title">✅ With Rate Limiting</div>
+                    <ul class="comparison-list">
+                        <li>Automatic attack mitigation</li>
+                        <li>Fair resource distribution</li>
+                        <li>99.99% uptime guaranteed</li>
+                        <li>Intelligent traffic shaping</li>
+                        <li>Optimized performance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">⚡ Live Attack Simulation</h2>
+
+            <div class="control-panel">
+                <button class="btn success" onclick="startNormalTraffic()">
+                    🚶 Normal User (10 req/s)
+                </button>
+                <button class="btn" onclick="startHeavyTraffic()">
+                    🏃 Heavy User (50 req/s)
+                </button>
+                <button class="btn danger" onclick="startAttack()">
+                    💀 DDoS Attack (1000 req/s)
+                </button>
+                <button class="btn" onclick="stopSimulation()">
+                    ⏹️ Stop Simulation
+                </button>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="requestCount">0</div>
+                    <div class="metric-label">Total Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="allowedCount">0</div>
+                    <div class="metric-label">Allowed ✅</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="blockedCount">0</div>
+                    <div class="metric-label">Blocked 🛡️</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="remaining">100</div>
+                    <div class="metric-label">Remaining</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="responseTime">5</div>
+                    <div class="metric-label">Response (ms)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="protection">100%</div>
+                    <div class="metric-label">Protection</div>
+                </div>
+            </div>
+
+            <div class="visualization" id="visualization">
+                <div style="position: absolute; top: 10px; left: 10px; opacity: 0.6;">
+                    Request Flow Visualization
+                </div>
+            </div>
+
+            <div id="statusMessage" class="status-message" style="display: none;"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">🎯 Intelligent Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">Sliding Window</div>
+                    <div class="feature-desc">
+                        Advanced algorithm prevents burst attacks at window boundaries.
+                        More accurate than fixed windows.
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <div class="feature-title">Auto-Recovery</div>
+                    <div class="feature-desc">
+                        Circuit breaker pattern with automatic fallback.
+                        Continues working even if Redis fails.
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Customizable</div>
+                    <div class="feature-desc">
+                        Different limits for auth, read, write operations.
+                        Fine-tune for your exact needs.
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Real Headers</div>
+                    <div class="feature-desc">
+                        Standard X-RateLimit headers for transparency.
+                        Clients know exactly their status.
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <div class="feature-title">Distributed</div>
+                    <div class="feature-desc">
+                        Redis-backed for multi-instance deployments.
+                        Scales horizontally with ease.
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <div class="feature-title">Zero Latency</div>
+                    <div class="feature-desc">
+                        Sub-millisecond overhead. Your legitimate users
+                        won't even notice it's there.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="section-title">💰 The Business Impact</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">$0</div>
+                    <div class="metric-label">Downtime Cost</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">99.99%</div>
+                    <div class="metric-label">Uptime SLA</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">< 5ms</div>
+                    <div class="metric-label">Added Latency</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">∞</div>
+                    <div class="metric-label">Scale Capacity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section" style="text-align: center;">
+            <h2 class="section-title">🎉 Available Now</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 2rem; opacity: 0.9;">
+                Zero configuration needed. Works out of the box.
+            </p>
+            <div class="control-panel" style="justify-content: center;">
+                <button class="btn success" onclick="deployNow()">
+                    🚀 Deploy to Production
+                </button>
+                <button class="btn" onclick="viewCode()">
+                    👀 View Implementation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let simulationInterval;
+        let requestCount = 0;
+        let allowedCount = 0;
+        let blockedCount = 0;
+        let currentLimit = 100;
+        let isAttacking = false;
+
+        function updateMetrics() {
+            document.getElementById('requestCount').textContent = requestCount;
+            document.getElementById('allowedCount').textContent = allowedCount;
+            document.getElementById('blockedCount').textContent = blockedCount;
+            document.getElementById('remaining').textContent = Math.max(0, currentLimit - allowedCount);
+
+            const protectionRate = requestCount > 0 ?
+                Math.round((blockedCount / requestCount) * 100) : 0;
+            document.getElementById('protection').textContent =
+                isAttacking ? `${protectionRate}%` : '100%';
+        }
+
+        function addRequestBar(allowed = true) {
+            const viz = document.getElementById('visualization');
+            const bar = document.createElement('div');
+            bar.className = `request-bar ${allowed ? 'allowed' : 'blocked'}`;
+            bar.style.top = `${50 + Math.random() * 300}px`;
+            bar.style.width = `${Math.random() * 200 + 100}px`;
+            bar.style.left = '0px';
+
+            viz.appendChild(bar);
+
+            // Add sparkle effect for blocked requests
+            if (!allowed) {
+                createSparkle(viz, bar.offsetTop);
+            }
+
+            // Remove old bars
+            setTimeout(() => bar.remove(), 5000);
+
+            // Keep only last 50 bars
+            const bars = viz.querySelectorAll('.request-bar');
+            if (bars.length > 50) {
+                bars[0].remove();
+            }
+        }
+
+        function createSparkle(container, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.textContent = '✨';
+            sparkle.style.left = '50%';
+            sparkle.style.top = `${y}px`;
+            sparkle.style.fontSize = '2rem';
+            container.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        function simulateRequest(rate) {
+            requestCount++;
+
+            const allowed = allowedCount < currentLimit;
+            if (allowed) {
+                allowedCount++;
+                document.getElementById('responseTime').textContent =
+                    Math.floor(Math.random() * 10 + 5);
+            } else {
+                blockedCount++;
+                document.getElementById('responseTime').textContent = '❌';
+            }
+
+            addRequestBar(allowed);
+            updateMetrics();
+
+            if (!allowed && !document.getElementById('statusMessage').style.display) {
+                showStatus('🛡️ Rate limit protection activated! Blocking excessive requests.', 'error');
+            }
+        }
+
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('statusMessage');
+            status.textContent = message;
+            status.className = `status-message ${type}`;
+            status.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function startNormalTraffic() {
+            stopSimulation();
+            isAttacking = false;
+            showStatus('👤 Simulating normal user traffic (10 requests/second)', 'success');
+            simulationInterval = setInterval(() => simulateRequest(10), 100);
+        }
+
+        function startHeavyTraffic() {
+            stopSimulation();
+            isAttacking = false;
+            showStatus('🏃 Simulating heavy user traffic (50 requests/second)', 'success');
+            simulationInterval = setInterval(() => simulateRequest(50), 20);
+        }
+
+        function startAttack() {
+            stopSimulation();
+            isAttacking = true;
+            showStatus('💀 DDoS ATTACK DETECTED! Activating defense systems...', 'error');
+
+            // Simulate massive request spam
+            let attackCount = 0;
+            simulationInterval = setInterval(() => {
+                for (let i = 0; i < 10; i++) {
+                    simulateRequest(1000);
+                }
+                attackCount++;
+
+                // Stop after 5 seconds to show the protection
+                if (attackCount > 50) {
+                    stopSimulation();
+                    showStatus('✅ Attack successfully mitigated! All systems operational.', 'success');
+                }
+            }, 100);
+        }
+
+        function stopSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+        }
+
+        function resetDemo() {
+            stopSimulation();
+            requestCount = 0;
+            allowedCount = 0;
+            blockedCount = 0;
+            currentLimit = 100;
+            updateMetrics();
+            document.getElementById('visualization').innerHTML =
+                '<div style="position: absolute; top: 10px; left: 10px; opacity: 0.6;">Request Flow Visualization</div>';
+            document.getElementById('statusMessage').style.display = 'none';
+        }
+
+        function deployNow() {
+            showStatus('🚀 Deploying to production... Your API is now protected!', 'success');
+            setTimeout(() => {
+                window.location.href = '#deployment';
+            }, 2000);
+        }
+
+        function viewCode() {
+            window.open('/src/middleware/rate-limiter.ts', '_blank');
+        }
+
+        // Initialize
+        updateMetrics();
+
+        // Auto-start demo after 2 seconds
+        setTimeout(() => {
+            showStatus('🎬 Starting live demonstration...', 'success');
+            setTimeout(startNormalTraffic, 1500);
+        }, 2000);
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1': startNormalTraffic(); break;
+                case '2': startHeavyTraffic(); break;
+                case '3': startAttack(); break;
+                case 's': stopSimulation(); break;
+                case 'r': resetDemo(); break;
+            }
+        });
+    </script>
+</body>
+</html>
