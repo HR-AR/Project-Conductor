@@ -122,3 +122,10 @@ Thumbs.db
 build/
 temp/
 tmp/
+
+# Notes (keep README, ignore markdown notes)
+notes/*.md
+!notes/README.md
+
+# Keep INITIAL.md private (contains work-in-progress ideas)
+INITIAL.md

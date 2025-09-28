@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Complete Requirements Management System</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Connection Status */
+        #connectionStatus {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-connected { background: #10b981; }
+        .status-disconnected { background: #ef4444; }
+        .status-connecting { background: #f59e0b; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .grid-4 { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            color: #4b5563;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Requirements List */
+        .requirement-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .requirement-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .requirement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .requirement-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-id {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-draft { background: #fef3c7; color: #92400e; }
+        .badge-review { background: #fed7aa; color: #9a3412; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-implemented { background: #dbeafe; color: #1e40af; }
+
+        .badge-high { background: #fee2e2; color: #991b1b; }
+        .badge-medium { background: #fed7aa; color: #9a3412; }
+        .badge-low { background: #dbeafe; color: #1e40af; }
+
+        /* Statistics Cards */
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Traceability Matrix */
+        .matrix-container {
+            overflow: auto;
+            max-height: 600px;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .matrix-table th, .matrix-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+
+        .matrix-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .matrix-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: #667eea;
+            color: white;
+        }
+
+        .matrix-cell {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .matrix-cell.linked {
+            background: #10b981;
+            color: white;
+            font-weight: 600;
+        }
+
+        .matrix-cell.suspect {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .matrix-cell:hover {
+            transform: scale(1.2);
+        }
+
+        /* Comments Section */
+        .comment {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .comment-body {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .comment-reply {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+
+        /* Quality Analysis */
+        .quality-score {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .score-high { background: #10b981; }
+        .score-medium { background: #f59e0b; }
+        .score-low { background: #ef4444; }
+
+        .quality-details {
+            flex: 1;
+        }
+
+        .quality-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* User Presence */
+        .user-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .user-status-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: #10b981;
+        }
+
+        .user-status-dot.editing {
+            background: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #4b5563;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <span>🎯</span>
+                <span>Project Conductor</span>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="nav-tab" onclick="switchTab('requirements')">Requirements</button>
+                <button class="nav-tab" onclick="switchTab('traceability')">Traceability</button>
+                <button class="nav-tab" onclick="switchTab('reviews')">Reviews</button>
+                <button class="nav-tab" onclick="switchTab('quality')">Quality</button>
+                <button class="nav-tab" onclick="switchTab('analytics')">Analytics</button>
+            </div>
+            <div id="connectionStatus">
+                <div class="status-indicator status-connecting"></div>
+                <span>Connecting...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts Container -->
+    <div id="alertsContainer" style="position: fixed; top: 80px; right: 20px; z-index: 1000; max-width: 400px;"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <h2 style="margin-bottom: 25px; color: #1f2937;">📊 Project Dashboard</h2>
+
+            <!-- Statistics -->
+            <div class="grid-4" style="margin-bottom: 25px;">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Total Requirements</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div class="stat-value" id="stat-approved">0</div>
+                    <div class="stat-label">Approved</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <div class="stat-value" id="stat-review">0</div>
+                    <div class="stat-label">In Review</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <div class="stat-value" id="stat-links">0</div>
+                    <div class="stat-label">Total Links</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🔄 Recent Activity</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="refreshActivity()">Refresh</button>
+                    </div>
+                    <div id="activityFeed" style="max-height: 400px; overflow-y: auto;">
+                        <div style="text-align: center; color: #9ca3af; padding: 40px;">
+                            No activity yet...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Users -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">👥 Active Users</h3>
+                        <span id="userCount" class="badge badge-id">0 Online</span>
+                    </div>
+                    <div id="activeUsers" class="user-list">
+                        <div style="text-align: center; color: #9ca3af; padding: 40px; width: 100%;">
+                            No users online...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coverage Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Requirements Coverage</h3>
+                </div>
+                <canvas id="coverageChart" width="400" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Requirements Tab -->
+        <div id="requirements-tab" class="tab-content">
+            <div class="grid-2">
+                <!-- Create/Edit Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">✏️ Create/Edit Requirement</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="resetRequirementForm()">Reset</button>
+                    </div>
+                    <form id="requirementForm">
+                        <input type="hidden" id="requirementId" name="id">
+
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" id="title" name="title" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" required></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="type">Type</label>
+                                <select id="type" name="type">
+                                    <option value="functional">Functional</option>
+                                    <option value="non-functional">Non-Functional</option>
+                                    <option value="business">Business</option>
+                                    <option value="technical">Technical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="priority">Priority</label>
+                                <select id="priority" name="priority">
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" name="status">
+                                    <option value="draft">Draft</option>
+                                    <option value="review">In Review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="implemented">Implemented</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="assignee">Assignee</label>
+                                <input type="text" id="assignee" name="assignee" placeholder="User ID">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tags">Tags (comma-separated)</label>
+                            <input type="text" id="tags" name="tags" placeholder="auth, security, backend">
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary">Save Requirement</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetRequirementForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Requirements List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📋 Requirements List</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="searchRequirements" placeholder="Search..." style="width: 200px; padding: 6px 12px;">
+                            <button class="btn btn-sm btn-primary" onclick="loadRequirements()">Search</button>
+                        </div>
+                    </div>
+                    <div id="requirementsList" style="max-height: 600px; overflow-y: auto;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💬 Comments</h3>
+                    <button class="btn btn-sm btn-primary" onclick="showAddCommentModal()">Add Comment</button>
+                </div>
+                <div id="requirementComments">
+                    <div style="text-align: center; color: #9ca3af; padding: 40px;">
+                        Select a requirement to view comments...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traceability Tab -->
+        <div id="traceability-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🔗 Traceability Matrix</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-sm btn-primary" onclick="loadTraceabilityMatrix()">Refresh</button>
+                        <button class="btn btn-sm btn-secondary" onclick="exportMatrix()">Export CSV</button>
+                    </div>
+                </div>
+                <div id="matrixContainer" class="matrix-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Link Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">➕ Create Link</h3>
+                    </div>
+                    <form id="linkForm">
+                        <div class="form-group">
+                            <label for="linkFrom">From Requirement</label>
+                            <select id="linkFrom" name="from" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="linkTo">To Requirement</label>
+                            <select id="linkTo" name="to" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="linkType">Link Type</label>
+                            <select id="linkType" name="type">
+                                <option value="depends_on">Depends On</option>
+                                <option value="implements">Implements</option>
+                                <option value="validates">Validates</option>
+                                <option value="conflicts_with">Conflicts With</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Create Link</button>
+                    </form>
+                </div>
+
+                <!-- Coverage Analysis -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Coverage Analysis</h3>
+                    </div>
+                    <div id="coverageAnalysis">
+                        <div class="quality-item">
+                            <span>Requirements with Links</span>
+                            <span id="linkedCount">0 / 0</span>
+                        </div>
+                        <div class="quality-item">
+                            <span>Orphaned Requirements</span>
+                            <span id="orphanedCount">0</span>
+                        </div>
+                        <div class="quality-item">
+                            <span>Suspect Links</span>
+                            <span id="suspectCount">0</span>
+                        </div>
+                        <div class="quality-item">
+                            <span>Average Links per Requirement</span>
+                            <span id="avgLinks">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💥 Impact Analysis</h3>
+                </div>
+                <div class="form-row" style="margin-bottom: 20px;">
+                    <select id="impactRequirement" class="form-control">
+                        <option value="">Select requirement for impact analysis...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="runImpactAnalysis()">Analyze Impact</button>
+                </div>
+                <div id="impactResults"></div>
+            </div>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews-tab" class="tab-content">
+            <div class="grid-2">
+                <!-- Assign Review -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">👁️ Assign Review</h3>
+                    </div>
+                    <form id="reviewForm">
+                        <div class="form-group">
+                            <label for="reviewRequirement">Requirement</label>
+                            <select id="reviewRequirement" required></select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reviewer">Reviewer</label>
+                            <input type="text" id="reviewer" placeholder="Reviewer user ID" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reviewComments">Comments</label>
+                            <textarea id="reviewComments" placeholder="Review instructions..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Assign Review</button>
+                    </form>
+                </div>
+
+                <!-- Pending Reviews -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">⏳ Pending Reviews</h3>
+                    </div>
+                    <div id="pendingReviews">
+                        <div style="text-align: center; color: #9ca3af; padding: 40px;">
+                            No pending reviews...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review History -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📜 Review History</h3>
+                </div>
+                <div id="reviewHistory">
+                    <div style="text-align: center; color: #9ca3af; padding: 40px;">
+                        No review history available...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality Tab -->
+        <div id="quality-tab" class="tab-content">
+            <div class="grid-2">
+                <!-- Quality Analysis -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🎯 Quality Analysis</h3>
+                    </div>
+                    <div class="form-group">
+                        <label for="qualityRequirement">Select Requirement</label>
+                        <select id="qualityRequirement"></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="analyzeQuality()">Analyze Quality</button>
+
+                    <div id="qualityResults" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Ambiguity Detection -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🔍 Ambiguity Detection</h3>
+                    </div>
+                    <div id="ambiguityResults">
+                        <div class="quality-score">
+                            <div class="score-circle score-high" id="ambiguityScore">N/A</div>
+                            <div class="quality-details">
+                                <h4 style="margin-bottom: 10px;">No Analysis Yet</h4>
+                                <p style="color: #6b7280; font-size: 14px;">Select a requirement and analyze to see ambiguity detection results.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Quality Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Bulk Quality Report</h3>
+                    <button class="btn btn-sm btn-primary" onclick="runBulkQualityAnalysis()">Run Analysis</button>
+                </div>
+                <div id="bulkQualityResults">
+                    <canvas id="qualityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="grid-2">
+                <!-- Metrics Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📈 Metrics Overview</h3>
+                    </div>
+                    <canvas id="metricsChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Velocity Tracking -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🚀 Velocity Tracking</h3>
+                    </div>
+                    <canvas id="velocityChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📤 Export Data</h3>
+                </div>
+                <div class="grid-3">
+                    <button class="btn btn-primary" onclick="exportRequirements()">
+                        📄 Export Requirements (CSV)
+                    </button>
+                    <button class="btn btn-primary" onclick="exportTraceability()">
+                        🔗 Export Traceability (CSV)
+                    </button>
+                    <button class="btn btn-primary" onclick="exportMetrics()">
+                        📊 Export Metrics (JSON)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Comments -->
+    <div id="commentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">💬 Add Comment</h2>
+                <button class="modal-close" onclick="closeModal('commentModal')">×</button>
+            </div>
+            <form id="commentForm">
+                <div class="form-group">
+                    <label for="commentText">Comment</label>
+                    <textarea id="commentText" required rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="parentComment">Reply to Comment ID (optional)</label>
+                    <input type="text" id="parentComment" placeholder="Leave empty for new thread">
+                </div>
+                <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000/api/v1';
+        const WS_URL = 'http://localhost:3000';
+
+        // Global State
+        let socket = null;
+        let currentUser = {
+            id: 'user-' + Math.random().toString(36).substr(2, 9),
+            name: 'User ' + Math.floor(Math.random() * 1000)
+        };
+        let requirements = [];
+        let selectedRequirement = null;
+        let links = [];
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeWebSocket();
+            loadDashboard();
+            setupEventListeners();
+            initializeCharts();
+        });
+
+        // WebSocket Connection
+        function initializeWebSocket() {
+            socket = io(WS_URL);
+
+            socket.on('connect', () => {
+                console.log('Connected to WebSocket');
+                updateConnectionStatus('connected');
+
+                socket.emit('user:initialize', {
+                    userId: currentUser.id,
+                    username: currentUser.name
+                });
+            });
+
+            socket.on('disconnect', () => {
+                updateConnectionStatus('disconnected');
+            });
+
+            socket.on('requirement:created', (data) => {
+                addActivity('New requirement created: ' + data.title);
+                if (document.querySelector('#requirements-tab').classList.contains('active')) {
+                    loadRequirements();
+                }
+            });
+
+            socket.on('requirement:updated', (data) => {
+                addActivity('Requirement updated: ' + data.id);
+                if (document.querySelector('#requirements-tab').classList.contains('active')) {
+                    loadRequirements();
+                }
+            });
+
+            socket.on('comment:created', (data) => {
+                addActivity('New comment on ' + data.requirementId);
+                if (selectedRequirement && selectedRequirement.id === data.requirementId) {
+                    loadComments(data.requirementId);
+                }
+            });
+
+            socket.on('presence:user-joined', (data) => {
+                updateActiveUsers(data.users);
+            });
+
+            socket.on('presence:user-left', (data) => {
+                updateActiveUsers(data.users);
+            });
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Update nav tab
+            event.target.classList.add('active');
+
+            // Load tab-specific data
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'requirements':
+                    loadRequirements();
+                    break;
+                case 'traceability':
+                    loadTraceabilityMatrix();
+                    loadRequirementsForDropdowns();
+                    break;
+                case 'reviews':
+                    loadPendingReviews();
+                    loadRequirementsForDropdowns();
+                    break;
+                case 'quality':
+                    loadRequirementsForDropdowns();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+            }
+        }
+
+        // Dashboard Functions
+        async function loadDashboard() {
+            try {
+                // Load statistics
+                const statsResponse = await fetch(`${API_BASE_URL}/requirements/summary`);
+                const stats = await statsResponse.json();
+
+                document.getElementById('stat-total').textContent = stats.total || 0;
+                document.getElementById('stat-approved').textContent = stats.byStatus?.approved || 0;
+                document.getElementById('stat-review').textContent = stats.byStatus?.review || 0;
+
+                // Load links statistics
+                const linksResponse = await fetch(`${API_BASE_URL}/links/statistics`);
+                const linksStats = await linksResponse.json();
+                document.getElementById('stat-links').textContent = linksStats.totalLinks || 0;
+
+                // Load presence
+                const presenceResponse = await fetch(`${API_BASE_URL}/presence/stats`);
+                const presence = await presenceResponse.json();
+                updateActiveUsers(presence.activeUsers || []);
+
+                // Update coverage chart
+                updateCoverageChart(stats);
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // Requirements Functions
+        async function loadRequirements() {
+            const search = document.getElementById('searchRequirements')?.value || '';
+            const url = search ?
+                `${API_BASE_URL}/requirements?search=${encodeURIComponent(search)}` :
+                `${API_BASE_URL}/requirements`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                requirements = data.requirements || [];
+                displayRequirements(requirements);
+            } catch (error) {
+                console.error('Error loading requirements:', error);
+                showAlert('Failed to load requirements', 'error');
+            }
+        }
+
+        function displayRequirements(reqs) {
+            const container = document.getElementById('requirementsList');
+
+            if (!reqs || reqs.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px;">No requirements found</div>';
+                return;
+            }
+
+            container.innerHTML = reqs.map(req => `
+                <div class="requirement-item" onclick="selectRequirement('${req.id}')">
+                    <div class="requirement-header">
+                        <div class="requirement-badges">
+                            <span class="badge badge-id">${req.id}</span>
+                            <span class="badge badge-${req.status}">${req.status}</span>
+                            <span class="badge badge-${req.priority}">${req.priority}</span>
+                        </div>
+                    </div>
+                    <h4 style="margin: 10px 0; color: #1f2937;">${req.title}</h4>
+                    <p style="color: #6b7280; font-size: 14px; line-height: 1.5;">${req.description}</p>
+                    <div style="margin-top: 10px; display: flex; gap: 15px; font-size: 12px; color: #9ca3af;">
+                        <span>Type: ${req.type}</span>
+                        <span>Version: ${req.version || '1.0'}</span>
+                        <span>Created: ${new Date(req.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectRequirement(reqId) {
+            const req = requirements.find(r => r.id === reqId);
+            if (!req) return;
+
+            selectedRequirement = req;
+
+            // Populate form
+            document.getElementById('requirementId').value = req.id;
+            document.getElementById('title').value = req.title;
+            document.getElementById('description').value = req.description;
+            document.getElementById('type').value = req.type;
+            document.getElementById('priority').value = req.priority;
+            document.getElementById('status').value = req.status;
+            document.getElementById('assignee').value = req.assignee || '';
+            document.getElementById('tags').value = req.tags ? req.tags.join(', ') : '';
+
+            // Load comments
+            loadComments(reqId);
+
+            // Join requirement room for real-time updates
+            if (socket && socket.connected) {
+                socket.emit('join-requirement', {
+                    requirementId: reqId,
+                    userId: currentUser.id,
+                    username: currentUser.name
+                });
+            }
+        }
+
+        // Form Handling
+        document.getElementById('requirementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const reqId = formData.get('id');
+
+            const requirement = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                type: formData.get('type'),
+                priority: formData.get('priority'),
+                status: formData.get('status'),
+                assignee: formData.get('assignee') || null,
+                tags: formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()) : []
+            };
+
+            try {
+                const response = await fetch(
+                    reqId ? `${API_BASE_URL}/requirements/${reqId}` : `${API_BASE_URL}/requirements`,
+                    {
+                        method: reqId ? 'PUT' : 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-Id': currentUser.id
+                        },
+                        body: JSON.stringify(requirement)
+                    }
+                );
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(`Requirement ${reqId ? 'updated' : 'created'} successfully`, 'success');
+                    resetRequirementForm();
+                    loadRequirements();
+
+                    // Emit WebSocket event
+                    if (socket && socket.connected) {
+                        socket.emit(reqId ? 'requirement:updated' : 'requirement:created', result);
+                    }
+                } else {
+                    throw new Error('Failed to save requirement');
+                }
+            } catch (error) {
+                console.error('Error saving requirement:', error);
+                showAlert('Failed to save requirement', 'error');
+            }
+        });
+
+        function resetRequirementForm() {
+            document.getElementById('requirementForm').reset();
+            document.getElementById('requirementId').value = '';
+            selectedRequirement = null;
+        }
+
+        // Comments Functions
+        async function loadComments(requirementId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${requirementId}/comments`);
+                const data = await response.json();
+                displayComments(data.comments || []);
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+
+        function displayComments(comments) {
+            const container = document.getElementById('requirementComments');
+
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px;">No comments yet</div>';
+                return;
+            }
+
+            container.innerHTML = comments.map(comment => `
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">${comment.author || 'Anonymous'}</span>
+                        <span class="comment-time">${new Date(comment.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="comment-body">${comment.text}</div>
+                    ${comment.replies ? comment.replies.map(reply => `
+                        <div class="comment comment-reply">
+                            <div class="comment-header">
+                                <span class="comment-author">${reply.author || 'Anonymous'}</span>
+                                <span class="comment-time">${new Date(reply.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="comment-body">${reply.text}</div>
+                        </div>
+                    `).join('') : ''}
+                </div>
+            `).join('');
+        }
+
+        function showAddCommentModal() {
+            if (!selectedRequirement) {
+                showAlert('Please select a requirement first', 'warning');
+                return;
+            }
+            document.getElementById('commentModal').classList.add('active');
+        }
+
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedRequirement) return;
+
+            const comment = {
+                text: document.getElementById('commentText').value,
+                parentId: document.getElementById('parentComment').value || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${selectedRequirement.id}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id
+                    },
+                    body: JSON.stringify(comment)
+                });
+
+                if (response.ok) {
+                    showAlert('Comment posted successfully', 'success');
+                    closeModal('commentModal');
+                    document.getElementById('commentForm').reset();
+                    loadComments(selectedRequirement.id);
+                }
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                showAlert('Failed to post comment', 'error');
+            }
+        });
+
+        // Traceability Functions
+        async function loadTraceabilityMatrix() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/traceability/matrix`);
+                const data = await response.json();
+                displayMatrix(data.matrix);
+
+                // Update coverage statistics
+                const coverage = await fetch(`${API_BASE_URL}/traceability/coverage`);
+                const coverageData = await coverage.json();
+                updateCoverageAnalysis(coverageData);
+            } catch (error) {
+                console.error('Error loading traceability matrix:', error);
+                showAlert('Failed to load traceability matrix', 'error');
+            }
+        }
+
+        function displayMatrix(matrix) {
+            const container = document.getElementById('matrixContainer');
+
+            if (!matrix || !matrix.requirements || matrix.requirements.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px;">No requirements available for matrix</div>';
+                return;
+            }
+
+            const reqs = matrix.requirements;
+            let html = '<table class="matrix-table"><thead><tr><th>From \\ To</th>';
+
+            // Headers
+            reqs.forEach(req => {
+                html += `<th title="${req.title}">${req.id}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // Rows
+            reqs.forEach(fromReq => {
+                html += `<tr><th title="${fromReq.title}">${fromReq.id}</th>`;
+                reqs.forEach(toReq => {
+                    const link = matrix.links?.find(l =>
+                        l.from_requirement_id === fromReq.id &&
+                        l.to_requirement_id === toReq.id
+                    );
+
+                    if (fromReq.id === toReq.id) {
+                        html += '<td style="background: #e5e7eb;">-</td>';
+                    } else if (link) {
+                        html += `<td class="matrix-cell ${link.is_suspect ? 'suspect' : 'linked'}"
+                                    title="${link.link_type}"
+                                    onclick="viewLink('${link.id}')">
+                                    ${link.is_suspect ? '⚠️' : '✓'}
+                                </td>`;
+                    } else {
+                        html += '<td class="matrix-cell" onclick="createQuickLink(\'' + fromReq.id + '\', \'' + toReq.id + '\')"></td>';
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function updateCoverageAnalysis(data) {
+            document.getElementById('linkedCount').textContent =
+                `${data.requirementsWithLinks || 0} / ${data.totalRequirements || 0}`;
+            document.getElementById('orphanedCount').textContent = data.orphanedRequirements || 0;
+            document.getElementById('suspectCount').textContent = data.suspectLinks || 0;
+            document.getElementById('avgLinks').textContent =
+                (data.averageLinksPerRequirement || 0).toFixed(2);
+        }
+
+        async function createQuickLink(fromId, toId) {
+            const linkType = prompt('Enter link type (depends_on, implements, validates, conflicts_with):');
+            if (!linkType) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${fromId}/links`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id
+                    },
+                    body: JSON.stringify({
+                        to_requirement_id: toId,
+                        link_type: linkType
+                    })
+                });
+
+                if (response.ok) {
+                    showAlert('Link created successfully', 'success');
+                    loadTraceabilityMatrix();
+                }
+            } catch (error) {
+                console.error('Error creating link:', error);
+                showAlert('Failed to create link', 'error');
+            }
+        }
+
+        document.getElementById('linkForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const fromId = formData.get('from');
+            const toId = formData.get('to');
+            const linkType = formData.get('type');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${fromId}/links`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id
+                    },
+                    body: JSON.stringify({
+                        to_requirement_id: toId,
+                        link_type: linkType
+                    })
+                });
+
+                if (response.ok) {
+                    showAlert('Link created successfully', 'success');
+                    e.target.reset();
+                    loadTraceabilityMatrix();
+                }
+            } catch (error) {
+                console.error('Error creating link:', error);
+                showAlert('Failed to create link', 'error');
+            }
+        });
+
+        async function runImpactAnalysis() {
+            const reqId = document.getElementById('impactRequirement').value;
+            if (!reqId) {
+                showAlert('Please select a requirement', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/traceability/impact/${reqId}`);
+                const data = await response.json();
+                displayImpactAnalysis(data);
+            } catch (error) {
+                console.error('Error running impact analysis:', error);
+                showAlert('Failed to run impact analysis', 'error');
+            }
+        }
+
+        function displayImpactAnalysis(data) {
+            const container = document.getElementById('impactResults');
+
+            container.innerHTML = `
+                <div class="quality-score">
+                    <div class="score-circle score-${data.totalImpactedRequirements > 5 ? 'low' : data.totalImpactedRequirements > 2 ? 'medium' : 'high'}">
+                        ${data.totalImpactedRequirements || 0}
+                    </div>
+                    <div class="quality-details">
+                        <h4>Impacted Requirements</h4>
+                        <p style="color: #6b7280; font-size: 14px;">
+                            Direct: ${data.directImpact?.length || 0} |
+                            Indirect: ${data.indirectImpact?.length || 0}
+                        </p>
+                    </div>
+                </div>
+
+                ${data.directImpact && data.directImpact.length > 0 ? `
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 10px;">Direct Impact:</h4>
+                        ${data.directImpact.map(req => `
+                            <div class="requirement-item" style="padding: 10px; margin-bottom: 8px;">
+                                <span class="badge badge-id">${req.id}</span>
+                                <span style="margin-left: 10px;">${req.title}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Quality Functions
+        async function analyzeQuality() {
+            const reqId = document.getElementById('qualityRequirement').value;
+            if (!reqId) {
+                showAlert('Please select a requirement', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${reqId}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'X-User-Id': currentUser.id
+                    }
+                });
+
+                const data = await response.json();
+                displayQualityResults(data.data);
+            } catch (error) {
+                console.error('Error analyzing quality:', error);
+                showAlert('Failed to analyze quality', 'error');
+            }
+        }
+
+        function displayQualityResults(analysis) {
+            const container = document.getElementById('qualityResults');
+            const ambiguityContainer = document.getElementById('ambiguityResults');
+
+            const score = analysis.qualityScore || 0;
+            const scoreClass = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+
+            container.innerHTML = `
+                <div class="quality-score">
+                    <div class="score-circle score-${scoreClass}">${score}</div>
+                    <div class="quality-details">
+                        <h4>Quality Score</h4>
+                        <div class="quality-item">
+                            <span>Completeness</span>
+                            <span>${analysis.completeness || 0}%</span>
+                        </div>
+                        <div class="quality-item">
+                            <span>Clarity</span>
+                            <span>${analysis.clarity || 0}%</span>
+                        </div>
+                        <div class="quality-item">
+                            <span>Consistency</span>
+                            <span>${analysis.consistency || 0}%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Update ambiguity detection
+            if (analysis.ambiguities && analysis.ambiguities.length > 0) {
+                ambiguityContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Ambiguities Detected:</strong>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            ${analysis.ambiguities.map(a => `<li>${a}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                ambiguityContainer.innerHTML = `
+                    <div class="alert alert-success">
+                        ✓ No ambiguities detected
+                    </div>
+                `;
+            }
+        }
+
+        async function runBulkQualityAnalysis() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements`);
+                const data = await response.json();
+
+                // Simulate quality scores for demo
+                const scores = data.requirements.map(req => ({
+                    id: req.id,
+                    score: Math.floor(Math.random() * 40) + 60
+                }));
+
+                updateQualityChart(scores);
+            } catch (error) {
+                console.error('Error running bulk analysis:', error);
+                showAlert('Failed to run bulk quality analysis', 'error');
+            }
+        }
+
+        // Review Functions
+        async function loadPendingReviews() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements?status=review`);
+                const data = await response.json();
+                displayPendingReviews(data.requirements || []);
+            } catch (error) {
+                console.error('Error loading pending reviews:', error);
+            }
+        }
+
+        function displayPendingReviews(reviews) {
+            const container = document.getElementById('pendingReviews');
+
+            if (!reviews || reviews.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px;">No pending reviews</div>';
+                return;
+            }
+
+            container.innerHTML = reviews.map(req => `
+                <div class="requirement-item">
+                    <div class="requirement-badges">
+                        <span class="badge badge-id">${req.id}</span>
+                        <span class="badge badge-review">In Review</span>
+                    </div>
+                    <h4 style="margin: 10px 0;">${req.title}</h4>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-sm btn-success" onclick="approveRequirement('${req.id}')">Approve</button>
+                        <button class="btn btn-sm btn-danger" onclick="rejectRequirement('${req.id}')">Reject</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('reviewForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const reqId = formData.get('requirement');
+
+            try {
+                // Simulate review assignment
+                showAlert('Review assigned successfully', 'success');
+                e.target.reset();
+                loadPendingReviews();
+            } catch (error) {
+                console.error('Error assigning review:', error);
+                showAlert('Failed to assign review', 'error');
+            }
+        });
+
+        async function approveRequirement(reqId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${reqId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id
+                    },
+                    body: JSON.stringify({ status: 'approved' })
+                });
+
+                if (response.ok) {
+                    showAlert('Requirement approved', 'success');
+                    loadPendingReviews();
+                }
+            } catch (error) {
+                console.error('Error approving requirement:', error);
+                showAlert('Failed to approve requirement', 'error');
+            }
+        }
+
+        async function rejectRequirement(reqId) {
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/${reqId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Id': currentUser.id,
+                        'X-Change-Reason': reason
+                    },
+                    body: JSON.stringify({ status: 'draft' })
+                });
+
+                if (response.ok) {
+                    showAlert('Requirement rejected', 'success');
+                    loadPendingReviews();
+                }
+            } catch (error) {
+                console.error('Error rejecting requirement:', error);
+                showAlert('Failed to reject requirement', 'error');
+            }
+        }
+
+        // Analytics Functions
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/summary`);
+                const data = await response.json();
+                updateMetricsChart(data);
+                updateVelocityChart();
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Export Functions
+        async function exportRequirements() {
+            try {
+                window.open(`${API_BASE_URL}/requirements/export`, '_blank');
+                showAlert('Export started', 'success');
+            } catch (error) {
+                console.error('Error exporting requirements:', error);
+                showAlert('Failed to export requirements', 'error');
+            }
+        }
+
+        async function exportTraceability() {
+            try {
+                // Simulate export
+                showAlert('Traceability matrix exported', 'success');
+            } catch (error) {
+                console.error('Error exporting traceability:', error);
+                showAlert('Failed to export traceability', 'error');
+            }
+        }
+
+        async function exportMetrics() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements/summary`);
+                const data = await response.json();
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'metrics.json';
+                a.click();
+
+                showAlert('Metrics exported', 'success');
+            } catch (error) {
+                console.error('Error exporting metrics:', error);
+                showAlert('Failed to export metrics', 'error');
+            }
+        }
+
+        // Utility Functions
+        function updateConnectionStatus(status) {
+            const container = document.getElementById('connectionStatus');
+            const indicator = container.querySelector('.status-indicator');
+            const text = container.querySelector('span');
+
+            indicator.className = 'status-indicator';
+
+            switch(status) {
+                case 'connected':
+                    indicator.classList.add('status-connected');
+                    text.textContent = 'Connected';
+                    break;
+                case 'disconnected':
+                    indicator.classList.add('status-disconnected');
+                    text.textContent = 'Disconnected';
+                    break;
+                default:
+                    indicator.classList.add('status-connecting');
+                    text.textContent = 'Connecting...';
+            }
+        }
+
+        function addActivity(message) {
+            const feed = document.getElementById('activityFeed');
+            const time = new Date().toLocaleTimeString();
+
+            // Remove placeholder if exists
+            const placeholder = feed.querySelector('[style*="No activity"]');
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            item.innerHTML = `
+                <div class="activity-icon">📝</div>
+                <div class="activity-content">
+                    <div class="activity-title">${message}</div>
+                    <div class="activity-time">${time}</div>
+                </div>
+            `;
+
+            feed.insertBefore(item, feed.firstChild);
+
+            // Keep only last 20 items
+            while (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function updateActiveUsers(users) {
+            const container = document.getElementById('activeUsers');
+            const count = document.getElementById('userCount');
+
+            count.textContent = `${users.length} Online`;
+
+            if (users.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px; width: 100%;">No users online...</div>';
+                return;
+            }
+
+            container.innerHTML = users.map(user => {
+                const initials = user.username.split(' ').map(n => n[0]).join('').toUpperCase();
+                return `
+                    <div class="user-avatar" title="${user.username}">
+                        ${initials}
+                        <div class="user-status-dot ${user.isEditing ? 'editing' : ''}"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showAlert(message, type = 'info') {
+            const container = document.getElementById('alertsContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function refreshActivity() {
+            loadDashboard();
+        }
+
+        async function loadRequirementsForDropdowns() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/requirements`);
+                const data = await response.json();
+                const reqs = data.requirements || [];
+
+                // Update all requirement dropdowns
+                const dropdowns = [
+                    'linkFrom', 'linkTo', 'impactRequirement',
+                    'reviewRequirement', 'qualityRequirement'
+                ];
+
+                dropdowns.forEach(id => {
+                    const select = document.getElementById(id);
+                    if (select) {
+                        select.innerHTML = '<option value="">Select requirement...</option>' +
+                            reqs.map(req => `<option value="${req.id}">${req.id} - ${req.title}</option>`).join('');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading requirements for dropdowns:', error);
+            }
+        }
+
+        // Charts
+        let coverageChart, metricsChart, velocityChart, qualityChart;
+
+        function initializeCharts() {
+            // Coverage Chart
+            const coverageCtx = document.getElementById('coverageChart')?.getContext('2d');
+            if (coverageCtx) {
+                coverageChart = new Chart(coverageCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Linked', 'Orphaned'],
+                        datasets: [{
+                            data: [0, 0],
+                            backgroundColor: ['#10b981', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Metrics Chart
+            const metricsCtx = document.getElementById('metricsChart')?.getContext('2d');
+            if (metricsCtx) {
+                metricsChart = new Chart(metricsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Draft', 'Review', 'Approved', 'Implemented'],
+                        datasets: [{
+                            label: 'Requirements by Status',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: ['#fef3c7', '#fed7aa', '#d1fae5', '#dbeafe']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Velocity Chart
+            const velocityCtx = document.getElementById('velocityChart')?.getContext('2d');
+            if (velocityCtx) {
+                velocityChart = new Chart(velocityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Requirements Completed',
+                            data: [5, 8, 12, 10],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Quality Chart
+            const qualityCtx = document.getElementById('qualityChart')?.getContext('2d');
+            if (qualityCtx) {
+                qualityChart = new Chart(qualityCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Completeness', 'Clarity', 'Consistency', 'Testability', 'Traceability'],
+                        datasets: [{
+                            label: 'Quality Metrics',
+                            data: [0, 0, 0, 0, 0],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateCoverageChart(stats) {
+            if (!coverageChart) return;
+
+            const linked = stats.requirementsWithLinks || 0;
+            const orphaned = (stats.total || 0) - linked;
+
+            coverageChart.data.datasets[0].data = [linked, orphaned];
+            coverageChart.update();
+        }
+
+        function updateMetricsChart(stats) {
+            if (!metricsChart) return;
+
+            metricsChart.data.datasets[0].data = [
+                stats.byStatus?.draft || 0,
+                stats.byStatus?.review || 0,
+                stats.byStatus?.approved || 0,
+                stats.byStatus?.implemented || 0
+            ];
+            metricsChart.update();
+        }
+
+        function updateVelocityChart() {
+            // Velocity chart uses demo data
+            if (velocityChart) {
+                velocityChart.update();
+            }
+        }
+
+        function updateQualityChart(scores) {
+            if (!qualityChart) return;
+
+            // Calculate average metrics
+            const avgScore = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
+
+            qualityChart.data.datasets[0].data = [
+                avgScore + Math.random() * 10,
+                avgScore - Math.random() * 5,
+                avgScore + Math.random() * 5,
+                avgScore - Math.random() * 10,
+                avgScore
+            ];
+            qualityChart.update();
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Search on enter
+            document.getElementById('searchRequirements')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loadRequirements();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

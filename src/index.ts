@@ -17,6 +17,10 @@ import {
   corsHandler,
 } from './middleware/error-handler';
 
+// Import rate limiting
+import { rateLimiters } from './middleware/rate-limiter';
+import { redisClient } from './config/redis';
+
 // Import services will be accessed through service factory
 
 // Import routes
@@ -64,16 +68,10 @@ app.use(requestLogger);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API routes
-app.use('/api/v1/requirements', requirementsRoutes);
-app.use('/api/v1', linksRoutes);
-app.use('/api/v1', traceabilityRoutes);
-app.use('/api/v1', createCommentsRoutes(webSocketService));
-app.use('/api/v1', qualityRoutes);
-app.use('/api/v1', reviewRoutes);
-app.use('/api/v1', metricsRoutes);
+// Trust proxy for accurate IP addresses
+app.set('trust proxy', 1);
 
-// Basic health check endpoint
+// Health check endpoint (no rate limiting)
 app.get('/health', async (_req, res) => {
   try {
     // Test database connection
@@ -103,6 +101,18 @@ app.get('/health', async (_req, res) => {
     });
   }
 });
+
+// Apply general API rate limiting
+app.use('/api', rateLimiters.api(redisClient));
+
+// API routes
+app.use('/api/v1/requirements', requirementsRoutes);
+app.use('/api/v1', linksRoutes);
+app.use('/api/v1', traceabilityRoutes);
+app.use('/api/v1', createCommentsRoutes(webSocketService));
+app.use('/api/v1', qualityRoutes);
+app.use('/api/v1', reviewRoutes);
+app.use('/api/v1', metricsRoutes);
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {

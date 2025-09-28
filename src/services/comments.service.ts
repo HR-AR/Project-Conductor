@@ -73,7 +73,7 @@ export class CommentsService {
     const allComments = Array.from(this.commentsStorage.values())
       .filter(comment => comment.requirementId === requirementId);
 
-    let filteredComments = this.applyFilters(allComments, filters);
+    const filteredComments = this.applyFilters(allComments, filters);
 
     // Enrich comments with additional data
     const enrichedComments = await Promise.all(

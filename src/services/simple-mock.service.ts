@@ -230,7 +230,7 @@ class SimpleMockService {
     const allComments = Array.from(this.comments.values())
       .filter(comment => comment.requirementId === requirementId);
 
-    let filteredComments = this.applyCommentFilters(allComments, filters);
+    const filteredComments = this.applyCommentFilters(allComments, filters);
 
     // Enrich comments with additional data
     const enrichedComments = await Promise.all(

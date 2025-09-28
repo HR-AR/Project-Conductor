@@ -68,7 +68,7 @@ export class MetricsService {
    */
   async calculateQualityMetrics(filters?: QualityFilters): Promise<QualityMetrics> {
     const qualityResults = Array.from(this.mockQualityData.values());
-    let filteredResults = this.applyFilters(qualityResults, filters);
+    const filteredResults = this.applyFilters(qualityResults, filters);
 
     if (filteredResults.length === 0) {
       return this.getEmptyMetrics();
