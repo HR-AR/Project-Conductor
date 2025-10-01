@@ -5,6 +5,7 @@
 import { Server } from 'socket.io';
 import { Requirement } from '../models/requirement.model';
 import { Link } from '../models/link.model';
+import logger from '../utils/logger';
 
 export interface WebSocketEventData {
   requirement?: Requirement;
@@ -65,11 +66,7 @@ export class WebSocketService {
     // Also broadcast to general updates room
     this.io.to('general-updates').emit('requirement:updated', eventData);
 
-    console.log(`Broadcasting requirement ${changeType} to room: ${roomName}`, {
-      requirementId,
-      title: requirement.title,
-      changeType
-    });
+    logger.debug({ requirementId, title: requirement.title, changeType, room: roomName }, 'Broadcasting requirement update');
   }
 
   /**
@@ -96,11 +93,7 @@ export class WebSocketService {
     this.io.to(targetRoom).emit('link:updated', eventData);
     this.io.to('general-updates').emit('link:updated', eventData);
 
-    console.log(`Broadcasting link ${changeType} to rooms: ${sourceRoom}, ${targetRoom}`, {
-      linkId: link.id,
-      linkType: link.linkType,
-      changeType
-    });
+    logger.debug({ linkId: link.id, linkType: link.linkType, changeType, sourceRoom, targetRoom }, 'Broadcasting link update');
   }
 
   /**
@@ -110,12 +103,14 @@ export class WebSocketService {
     const roomName = `requirement:${commentData.requirementId}`;
     this.io.to(roomName).emit(eventName, commentData);
 
-    console.log(`Broadcasting ${eventName} to room: ${roomName}`, {
+    logger.debug({
+      eventName,
+      room: roomName,
       requirementId: commentData.requirementId,
       commentId: commentData.commentId,
       userId: commentData.userId,
       action: commentData.action
-    });
+    }, 'Broadcasting comment event');
   }
 
   /**
@@ -148,7 +143,7 @@ export class WebSocketService {
     // Notify other users in the room about the new participant
     socket.to(roomName).emit('user:joined', presenceData);
 
-    console.log(`User ${userData.username} (${userData.userId}) joined requirement room: ${requirementId}`);
+    logger.info({ username: userData.username, userId: userData.userId, requirementId }, 'User joined requirement room');
   }
 
   /**
@@ -173,7 +168,7 @@ export class WebSocketService {
     // Notify other users in the room about the departure
     socket.to(roomName).emit('user:left', presenceData);
 
-    console.log(`User ${userData.username} (${userData.userId}) left requirement room: ${requirementId}`);
+    logger.info({ username: userData.username, userId: userData.userId, requirementId }, 'User left requirement room');
   }
 
   /**
@@ -181,7 +176,7 @@ export class WebSocketService {
    */
   handleUserJoinGeneralUpdates(socket: any, userData: { userId: string; username: string }): void {
     socket.join('general-updates');
-    console.log(`User ${userData.username} (${userData.userId}) joined general updates`);
+    logger.info({ username: userData.username, userId: userData.userId }, 'User joined general updates');
   }
 
   /**
@@ -204,9 +199,9 @@ export class WebSocketService {
           socket.to(room).emit('user:left', presenceData);
         }
       }
-      console.log(`User ${userData.username} (${userData.userId}) disconnected from all rooms`);
+      logger.info({ username: userData.username, userId: userData.userId }, 'User disconnected from all rooms');
     } else {
-      console.log(`Anonymous user disconnected from socket: ${socket.id}`);
+      logger.info({ socketId: socket.id }, 'Anonymous user disconnected');
     }
   }
 
@@ -254,11 +249,12 @@ export class WebSocketService {
     this.io.to(roomName).emit('review:updated', eventData);
     this.io.to('general-updates').emit('review:updated', eventData);
 
-    console.log(`Broadcasting review ${changeType} to room: ${roomName}`, {
+    logger.debug({
       reviewId: review.id,
       requirementId: review.requirementId,
-      changeType
-    });
+      changeType,
+      room: roomName
+    }, 'Broadcasting review update');
   }
 
   /**
@@ -267,7 +263,7 @@ export class WebSocketService {
   broadcastToRequirement(requirementId: string, eventName: string, data: any): void {
     const roomName = `requirement:${requirementId}`;
     this.io.to(roomName).emit(eventName, data);
-    console.log(`Broadcasting custom event ${eventName} to room: ${roomName}`);
+    logger.debug({ eventName, room: roomName }, 'Broadcasting custom event to requirement');
   }
 
   /**
@@ -279,7 +275,7 @@ export class WebSocketService {
       type,
       timestamp: new Date()
     });
-    console.log(`Broadcasting system notification: ${message} (${type})`);
+    logger.info({ message, type }, 'Broadcasting system notification');
   }
 }
 

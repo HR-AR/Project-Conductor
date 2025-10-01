@@ -14,13 +14,64 @@ import {
   PaginatedResponse,
   RequirementSummary,
   REQUIREMENT_STATUS,
+  RequirementStatusType,
+  RequirementPriorityType,
 } from '../models/requirement.model';
 import IdGenerator from '../utils/id-generator';
 import WebSocketService from './websocket.service';
+import logger from '../utils/logger';
 
 interface GetRequirementOptions {
   includeArchived?: boolean;
   client?: PoolClient;
+}
+
+interface RequirementRow {
+  id: string;
+  title: string;
+  description: string | null;
+  status: RequirementStatusType;
+  priority: RequirementPriorityType;
+  assigned_to: string | null;
+  created_by: string;
+  due_date: Date | null;
+  estimated_effort: number | null;
+  actual_effort: number | null;
+  completion_percentage: number;
+  tags: string[] | null;
+  metadata: Record<string, any> | null;
+  created_at: Date;
+  updated_at: Date;
+  completed_at: Date | null;
+  created_by_username: string;
+  created_by_first_name: string | null;
+  created_by_last_name: string | null;
+  assigned_to_username?: string | null;
+  assigned_to_first_name?: string | null;
+  assigned_to_last_name?: string | null;
+}
+
+interface RequirementVersionRow {
+  id: string;
+  requirement_id: string;
+  version_number: number;
+  title: string;
+  description: string | null;
+  status: RequirementStatusType;
+  priority: RequirementPriorityType;
+  assigned_to: string | null;
+  due_date: Date | null;
+  estimated_effort: number | null;
+  actual_effort: number | null;
+  completion_percentage: number;
+  tags: string[] | null;
+  metadata: Record<string, any> | null;
+  changed_by: string;
+  change_reason: string | null;
+  created_at: Date;
+  changed_by_username?: string;
+  changed_by_first_name?: string | null;
+  changed_by_last_name?: string | null;
 }
 
 class RequirementsService {
@@ -82,7 +133,7 @@ class RequirementsService {
 
       return fullRequirement;
     } catch (error) {
-      console.error('Error creating requirement:', error);
+      logger.error({ error }, 'Error creating requirement');
       throw new Error('Failed to create requirement');
     }
   }
@@ -118,7 +169,7 @@ class RequirementsService {
 
       return this.mapRowToRequirement(result.rows[0]);
     } catch (error) {
-      console.error('Error getting requirement by ID:', error);
+      logger.error({ error, id }, 'Error getting requirement by ID');
       throw error;
     }
   }
@@ -174,7 +225,7 @@ class RequirementsService {
       const total = parseInt(countResult.rows[0].total);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      const requirements = dataResult.rows.map((row: any) => this.mapRowToRequirement(row));
+      const requirements = dataResult.rows.map((row: RequirementRow) => this.mapRowToRequirement(row));
 
       return {
         data: requirements,
@@ -188,7 +239,7 @@ class RequirementsService {
         }
       };
     } catch (error) {
-      console.error('Error getting requirements:', error);
+      logger.error({ error }, 'Error getting requirements');
       throw new Error('Failed to get requirements');
     }
   }
@@ -208,7 +259,7 @@ class RequirementsService {
     return await db.withTransaction(async (client: PoolClient) => {
       // Build update query dynamically
       const updateFields: string[] = [];
-      const updateValues: any[] = [];
+      const updateValues: (string | number | string[] | Date | Record<string, any> | null)[] = [];
       let paramCount = 0;
 
       if (data.title !== undefined) {
@@ -346,7 +397,7 @@ class RequirementsService {
         );
       }
     } catch (error) {
-      console.error('Error deleting requirement:', error);
+      logger.error({ error, id }, 'Error deleting requirement');
       throw error;
     }
   }
@@ -369,9 +420,9 @@ class RequirementsService {
 
     try {
       const result = await db.query(query, [requirementId]);
-      return result.rows.map((row: any) => this.mapRowToVersion(row));
+      return result.rows.map((row: RequirementVersionRow) => this.mapRowToVersion(row));
     } catch (error) {
-      console.error('Error getting requirement versions:', error);
+      logger.error({ error, requirementId }, 'Error getting requirement versions');
       throw new Error('Failed to get requirement versions');
     }
   }
@@ -429,7 +480,7 @@ class RequirementsService {
         completedThisMonth: parseInt(row.completed_this_month),
       };
     } catch (error) {
-      console.error('Error getting requirements summary:', error);
+      logger.error({ error }, 'Error getting requirements summary');
       throw new Error('Failed to get requirements summary');
     }
   }
@@ -438,7 +489,7 @@ class RequirementsService {
    * Create a version record for a requirement
    */
   private async createVersion(
-    requirement: any,
+    requirement: Requirement,
     changedBy: string,
     changeReason: string
   ): Promise<void> {
@@ -455,7 +506,7 @@ class RequirementsService {
    */
   private async createVersionWithClient(
     client: PoolClient,
-    requirement: any,
+    requirement: Requirement,
     changedBy: string,
     changeReason: string
   ): Promise<void> {
@@ -485,11 +536,11 @@ class RequirementsService {
       requirement.description,
       requirement.status,
       requirement.priority,
-      requirement.assigned_to,
-      requirement.due_date,
-      requirement.estimated_effort,
-      requirement.actual_effort,
-      requirement.completion_percentage,
+      requirement.assignedTo,
+      requirement.dueDate,
+      requirement.estimatedEffort,
+      requirement.actualEffort,
+      requirement.completionPercentage,
       requirement.tags,
       requirement.metadata,
       changedBy,
@@ -504,11 +555,11 @@ class RequirementsService {
    */
   private buildWhereClause(filters: RequirementFilters): {
     whereClause: string;
-    queryParams: any[];
+    queryParams: (string | string[] | Date)[];
     paramCount: number;
   } {
     const conditions: string[] = ['r.status != \'archived\'']; // Always exclude archived by default
-    const queryParams: any[] = [];
+    const queryParams: (string | string[] | Date)[] = [];
     let paramCount = 0;
 
     if (filters.status && filters.status.length > 0) {
@@ -563,62 +614,72 @@ class RequirementsService {
   /**
    * Map database row to Requirement interface
    */
-  private mapRowToRequirement(row: any): Requirement {
-    return {
+  private mapRowToRequirement(row: RequirementRow): Requirement {
+    const requirement: Requirement = {
       id: row.id,
       title: row.title,
-      description: row.description,
       status: row.status,
       priority: row.priority,
-      assignedTo: row.assigned_to,
       createdBy: row.created_by,
-      dueDate: row.due_date,
-      estimatedEffort: row.estimated_effort,
-      actualEffort: row.actual_effort,
       completionPercentage: row.completion_percentage,
-      tags: row.tags || [],
-      metadata: row.metadata,
+      tags: row.tags ?? [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-      completedAt: row.completed_at,
-      assignedToUser: row.assigned_to_username ? {
-        id: row.assigned_to,
-        username: row.assigned_to_username,
-        firstName: row.assigned_to_first_name,
-        lastName: row.assigned_to_last_name,
-      } as any : undefined,
       createdByUser: {
         id: row.created_by,
         username: row.created_by_username,
-        firstName: row.created_by_first_name,
-        lastName: row.created_by_last_name,
+        ...(row.created_by_first_name !== null && { firstName: row.created_by_first_name }),
+        ...(row.created_by_last_name !== null && { lastName: row.created_by_last_name }),
       },
     };
+
+    // Add optional properties only if they exist
+    if (row.description !== null) requirement.description = row.description;
+    if (row.assigned_to !== null) requirement.assignedTo = row.assigned_to;
+    if (row.due_date !== null) requirement.dueDate = row.due_date;
+    if (row.estimated_effort !== null) requirement.estimatedEffort = row.estimated_effort;
+    if (row.actual_effort !== null) requirement.actualEffort = row.actual_effort;
+    if (row.metadata !== null) requirement.metadata = row.metadata;
+    if (row.completed_at !== null) requirement.completedAt = row.completed_at;
+    if (row.assigned_to_username) {
+      requirement.assignedToUser = {
+        id: row.assigned_to!,
+        username: row.assigned_to_username,
+        ...(row.assigned_to_first_name !== null && { firstName: row.assigned_to_first_name }),
+        ...(row.assigned_to_last_name !== null && { lastName: row.assigned_to_last_name }),
+      };
+    }
+
+    return requirement;
   }
 
   /**
    * Map database row to RequirementVersion interface
    */
-  private mapRowToVersion(row: any): RequirementVersion {
-    return {
+  private mapRowToVersion(row: RequirementVersionRow): RequirementVersion {
+    const version: RequirementVersion = {
       id: row.id,
       requirementId: row.requirement_id,
       versionNumber: row.version_number,
       title: row.title,
-      description: row.description,
       status: row.status,
       priority: row.priority,
-      assignedTo: row.assigned_to,
-      dueDate: row.due_date,
-      estimatedEffort: row.estimated_effort,
-      actualEffort: row.actual_effort,
       completionPercentage: row.completion_percentage,
-      tags: row.tags || [],
-      metadata: row.metadata,
+      tags: row.tags ?? [],
       changedBy: row.changed_by,
-      changeReason: row.change_reason,
       createdAt: row.created_at,
     };
+
+    // Add optional properties only if they exist
+    if (row.description !== null) version.description = row.description;
+    if (row.assigned_to !== null) version.assignedTo = row.assigned_to;
+    if (row.due_date !== null) version.dueDate = row.due_date;
+    if (row.estimated_effort !== null) version.estimatedEffort = row.estimated_effort;
+    if (row.actual_effort !== null) version.actualEffort = row.actual_effort;
+    if (row.metadata !== null) version.metadata = row.metadata;
+    if (row.change_reason !== null) version.changeReason = row.change_reason;
+
+    return version;
   }
 }
 

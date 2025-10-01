@@ -4,7 +4,7 @@
  * Tests the real-time user presence tracking functionality
  */
 
-import { presenceService, PresenceService } from '../../src/services/presence.service';
+import { PresenceService } from '../../src/services/presence.service';
 
 describe('PresenceService Integration Tests', () => {
   let service: PresenceService;
@@ -163,7 +163,7 @@ describe('PresenceService Integration Tests', () => {
       const activeUsers = service.getAllActiveUsers();
 
       expect(activeUsers).toHaveLength(1); // only alice is online
-      expect(activeUsers[0].username).toBe('alice');
+      expect(activeUsers[0]?.username).toBe('alice');
     });
   });
 
@@ -174,9 +174,14 @@ describe('PresenceService Integration Tests', () => {
 
       // Mock old timestamp (more than 15 minutes ago)
       const oldDate = new Date(Date.now() - 20 * 60 * 1000); // 20 minutes ago
-      const presence = service.getUserPresence('user1');
+
+      // Access the internal presence store to modify the lastSeen timestamp
+      // @ts-ignore - Accessing private property for testing purposes
+      const presenceStore = service.presenceStore;
+      const presence = presenceStore.get('socket1');
       if (presence) {
         presence.lastSeen = oldDate;
+        presenceStore.set('socket1', presence);
       }
 
       // Run cleanup with 15 minute timeout

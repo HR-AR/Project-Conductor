@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { RedisClientType } from 'redis';
+import logger from '../utils/logger';
 
 // Rate limit store interface
 export interface IRateLimitStore {
@@ -185,7 +186,7 @@ export class ResilientStore implements IRateLimitStore {
 
       if (this.failureCount >= this.failureThreshold) {
         this.circuitState = 'open';
-        console.error('Rate limiter circuit opened, using fallback store');
+        logger.warn('Rate limiter circuit opened, using fallback store');
       }
 
       return this.fallbackStore.increment(key);
@@ -248,7 +249,7 @@ export function createRateLimiter(options: RateLimiterOptions): RequestHandler {
       next();
     } catch (error) {
       // Log error and fail open to maintain availability
-      console.error('Rate limiter error:', error);
+      logger.error({ error }, 'Rate limiter error');
       next();
     }
   };

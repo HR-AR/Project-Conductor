@@ -8,6 +8,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import logger from './utils/logger';
 
 // Import middleware
 import {
@@ -256,7 +257,7 @@ app.get('/api/v1', (_req, res) => {
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  logger.info({ socketId: socket.id }, 'Client connected');
 
   // Initialize user presence on connection
   socket.on('user:initialize', (data: { userId: string; username: string }) => {
@@ -266,7 +267,7 @@ io.on('connection', (socket) => {
     // Emit user initialization confirmation
     socket.emit('presence:initialized', presence);
 
-    console.log(`User ${username} (${userId}) initialized with socket ${socket.id}`);
+    logger.info({ username, userId, socketId: socket.id }, 'User initialized with socket');
   });
 
   // Join requirement rooms for real-time updates
@@ -290,7 +291,7 @@ io.on('connection', (socket) => {
     // Send current presence list to the joining user
     socket.emit('presence:list', requirementPresence);
 
-    console.log(`Client ${socket.id} (${username}) joined requirement room: ${requirementId}`);
+    logger.info({ socketId: socket.id, username, requirementId }, 'Client joined requirement room');
   });
 
   // Leave requirement room
@@ -304,7 +305,7 @@ io.on('connection', (socket) => {
         requirementId,
       });
 
-      console.log(`Client ${socket.id} (${presence.username}) left requirement room: ${requirementId}`);
+      logger.info({ socketId: socket.id, username: presence.username, requirementId }, 'Client left requirement room');
     }
 
     socket.leave(`requirement:${requirementId}`);
@@ -322,7 +323,7 @@ io.on('connection', (socket) => {
         requirementId,
       });
 
-      console.log(`User ${presence.username} started editing requirement ${requirementId}`);
+      logger.info({ username: presence.username, requirementId }, 'User started editing requirement');
     }
   });
 
@@ -338,7 +339,7 @@ io.on('connection', (socket) => {
         requirementId,
       });
 
-      console.log(`User ${presence.username} stopped editing requirement ${requirementId}`);
+      logger.info({ username: presence.username, requirementId }, 'User stopped editing requirement');
     }
   });
 
@@ -435,9 +436,9 @@ io.on('connection', (socket) => {
         });
       }
 
-      console.log(`Client disconnected: ${socket.id} (${presence.username})`);
+      logger.info({ socketId: socket.id, username: presence.username }, 'Client disconnected');
     } else {
-      console.log('Client disconnected:', socket.id);
+      logger.info({ socketId: socket.id }, 'Client disconnected');
     }
   });
 });
@@ -456,20 +457,20 @@ const startServer = async () => {
   try {
     // Initialize database
     await db.initialize();
-    console.log('Database initialized successfully');
+    logger.info('Database initialized successfully');
 
     // Set up periodic presence cleanup (every 5 minutes)
     const cleanupInterval = setInterval(() => {
       const cleanedCount = presenceService.cleanupStalePresence(15); // 15 minutes timeout
       if (cleanedCount > 0) {
-        console.log(`Cleaned up ${cleanedCount} stale presence records`);
+        logger.info({ cleanedCount }, 'Cleaned up stale presence records');
       }
     }, 5 * 60 * 1000); // 5 minutes
 
     // Clean up interval on process termination
     const cleanup = () => {
       clearInterval(cleanupInterval);
-      console.log('Server cleanup completed');
+      logger.info('Server cleanup completed');
     };
 
     process.on('SIGINT', cleanup);
@@ -478,16 +479,16 @@ const startServer = async () => {
     // Only start the server if this file is run directly (not imported for testing)
     if (require.main === module) {
       server.listen(PORT, () => {
-        console.log(`Project Conductor server running on port ${PORT}`);
-        console.log(`Health check available at: http://localhost:${PORT}/health`);
-        console.log(`API documentation available at: http://localhost:${PORT}/api/v1`);
-        console.log(`Requirements API available at: http://localhost:${PORT}/api/v1/requirements`);
-        console.log(`Environment: ${process.env['NODE_ENV'] || 'development'}`);
-        console.log('Real-time presence tracking enabled');
+        logger.info({ port: PORT }, 'Project Conductor server running');
+        logger.info({ url: `http://localhost:${PORT}/health` }, 'Health check available');
+        logger.info({ url: `http://localhost:${PORT}/api/v1` }, 'API documentation available');
+        logger.info({ url: `http://localhost:${PORT}/api/v1/requirements` }, 'Requirements API available');
+        logger.info({ environment: process.env['NODE_ENV'] || 'development' }, 'Environment');
+        logger.info('Real-time presence tracking enabled');
       });
     }
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error({ error }, 'Failed to start server');
     process.exit(1);
   }
 };

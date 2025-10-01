@@ -11,6 +11,7 @@ import {
   CommentFilters,
 } from '../models/comment.model';
 import { asyncHandler, NotFoundError, BadRequestError, UnauthorizedError } from '../middleware/error-handler';
+import logger from '../utils/logger';
 
 export class CommentsController {
   private commentsService: CommentsService;
@@ -22,7 +23,7 @@ export class CommentsController {
     if (useMock) {
       // Use the mock service which has comments functionality built in
       this.commentsService = simpleMockService as any;
-      console.log('Using mock comments service (database unavailable)');
+      logger.info('Using mock comments service (database unavailable)');
     } else {
       // Use real service with WebSocket support
       this.commentsService = new CommentsService(websocketService);

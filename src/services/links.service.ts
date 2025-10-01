@@ -277,12 +277,13 @@ class LinksService {
     }
 
     // Business rule validations
-    if (linkType === LINK_TYPES.IMPLEMENTS && sourceExists && targetExists) {
-      // Warn if implementing a non-functional requirement
-      if (sourceExists.type === 'functional' && targetExists.type === 'non-functional') {
-        warnings.push('Implementing a non-functional requirement with a functional one - verify this is intended');
-      }
-    }
+    // TODO: Add requirement type field to model before implementing this validation
+    // if (linkType === LINK_TYPES.IMPLEMENTS && sourceExists && targetExists) {
+    //   // Warn if implementing a non-functional requirement
+    //   if (sourceExists.type === 'functional' && targetExists.type === 'non-functional') {
+    //     warnings.push('Implementing a non-functional requirement with a functional one - verify this is intended');
+    //   }
+    // }
 
     return {
       isValid: errors.length === 0,

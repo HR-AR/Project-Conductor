@@ -4,6 +4,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError as ExpressValidationError } from 'express-validator';
+import logger from '../utils/logger';
 
 export interface ApiError extends Error {
   statusCode?: number;
@@ -82,15 +83,14 @@ export const errorHandler = (
   const isProduction = process.env['NODE_ENV'] === 'production';
 
   // Log error details
-  console.error('Error occurred:', {
-    message: err.message,
+  logger.error({
+    err,
     statusCode,
-    stack: err.stack,
     url: req.url,
     method: req.method,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-  });
+  }, 'Error occurred');
 
   // Prepare error response
   const errorResponse: any = {
@@ -171,7 +171,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     };
 
     if (process.env['NODE_ENV'] === 'development') {
-      console.log('Request:', logData);
+      logger.debug(logData, 'Request');
     }
   });
 

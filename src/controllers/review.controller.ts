@@ -11,6 +11,7 @@ import {
   ReviewFilters,
 } from '../models/review.model';
 import { asyncHandler, NotFoundError, BadRequestError, ForbiddenError } from '../middleware/error-handler';
+import logger from '../utils/logger';
 
 export class ReviewController {
   private reviewService: any;
@@ -20,7 +21,7 @@ export class ReviewController {
     const useMock = process.env['USE_MOCK_DB'] !== 'false';
     this.reviewService = useMock ? simpleMockService : new ReviewService();
     if (useMock) {
-      console.log('Using mock review service (database unavailable)');
+      logger.info('Using mock review service (database unavailable)');
     }
   }
 
@@ -161,17 +162,13 @@ export class ReviewController {
         throw new BadRequestError('User authentication required');
       }
 
-      try {
-        const reviews = await this.reviewService.getPendingReviews(reviewerId);
+      const reviews = await this.reviewService.getPendingReviews(reviewerId);
 
-        res.json({
-          success: true,
-          data: reviews,
-          message: 'Pending reviews retrieved successfully',
-        });
-      } catch (error) {
-        throw error;
-      }
+      res.json({
+        success: true,
+        data: reviews,
+        message: 'Pending reviews retrieved successfully',
+      });
     }
   );
 
@@ -233,26 +230,22 @@ export class ReviewController {
     async (req: Request, res: Response): Promise<void> => {
       const { id: requirementId, status: newStatus } = req.params;
 
-      try {
-        const canTransition = await this.reviewService.canTransitionStatus(
-          requirementId as string,
-          newStatus as string
-        );
+      const canTransition = await this.reviewService.canTransitionStatus(
+        requirementId as string,
+        newStatus as string
+      );
 
-        res.json({
-          success: true,
-          data: {
-            requirementId: requirementId as string,
-            newStatus: newStatus as string,
-            canTransition,
-          },
-          message: canTransition
-            ? 'Status transition is allowed'
-            : 'Status transition is not allowed',
-        });
-      } catch (error) {
-        throw error;
-      }
+      res.json({
+        success: true,
+        data: {
+          requirementId: requirementId as string,
+          newStatus: newStatus as string,
+          canTransition,
+        },
+        message: canTransition
+          ? 'Status transition is allowed'
+          : 'Status transition is not allowed',
+      });
     }
   );
 
@@ -324,17 +317,13 @@ export class ReviewController {
     async (req: Request, res: Response): Promise<void> => {
       const { userId: assignedBy } = req.params;
 
-      try {
-        const reviews = await this.reviewService.getReviewsAssignedBy(assignedBy as string);
+      const reviews = await this.reviewService.getReviewsAssignedBy(assignedBy as string);
 
-        res.json({
-          success: true,
-          data: reviews,
-          message: 'Reviews assigned by user retrieved successfully',
-        });
-      } catch (error) {
-        throw error;
-      }
+      res.json({
+        success: true,
+        data: reviews,
+        message: 'Reviews assigned by user retrieved successfully',
+      });
     }
   );
 

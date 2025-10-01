@@ -18,6 +18,24 @@ import {
 } from '../models/review.model';
 import IdGenerator from '../utils/id-generator';
 import WebSocketService from './websocket.service';
+import logger from '../utils/logger';
+
+interface ReviewRow {
+  id: string;
+  requirement_id: string;
+  reviewer_id: string;
+  status: ReviewStatusType;
+  decision: ReviewDecisionType | null;
+  comments: string;
+  reviewed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  reviewer_username?: string;
+  reviewer_first_name?: string | null;
+  reviewer_last_name?: string | null;
+  requirement_title?: string;
+  requirement_status?: string;
+}
 
 class ReviewService {
   private webSocketService?: WebSocketService | undefined;
@@ -75,7 +93,7 @@ class ReviewService {
 
       return fullReview;
     } catch (error) {
-      console.error('Error creating review:', error);
+      logger.error({ error, requirementId, reviewerId }, 'Error creating review');
       throw new Error('Failed to create review');
     }
   }
@@ -163,7 +181,7 @@ class ReviewService {
 
       return this.mapRowToReview(result.rows[0]);
     } catch (error) {
-      console.error('Error getting review by ID:', error);
+      logger.error({ error, reviewId: id }, 'Error getting review by ID');
       throw error;
     }
   }
@@ -173,7 +191,7 @@ class ReviewService {
    */
   async getReviewsByRequirement(requirementId: string, filters: ReviewFilters = {}): Promise<Review[]> {
     const conditions = ['r.requirement_id = $1'];
-    const queryParams: any[] = [requirementId];
+    const queryParams: (string | string[])[] = [requirementId];
     let paramCount = 1;
 
     if (filters.status && filters.status.length > 0) {
@@ -210,9 +228,9 @@ class ReviewService {
 
     try {
       const result = await db.query(query, queryParams);
-      return result.rows.map((row: any) => this.mapRowToReview(row));
+      return result.rows.map((row: ReviewRow) => this.mapRowToReview(row));
     } catch (error) {
-      console.error('Error getting reviews by requirement:', error);
+      logger.error({ error, requirementId }, 'Error getting reviews by requirement');
       throw new Error('Failed to get reviews');
     }
   }
@@ -238,9 +256,9 @@ class ReviewService {
 
     try {
       const result = await db.query(query, [reviewerId, REVIEW_STATUS.PENDING]);
-      return result.rows.map((row: any) => this.mapRowToReview(row));
+      return result.rows.map((row: ReviewRow) => this.mapRowToReview(row));
     } catch (error) {
-      console.error('Error getting pending reviews:', error);
+      logger.error({ error, reviewerId }, 'Error getting pending reviews');
       throw new Error('Failed to get pending reviews');
     }
   }
@@ -302,7 +320,7 @@ class ReviewService {
 
       return true;
     } catch (error) {
-      console.error('Error checking status transition:', error);
+      logger.error({ error, requirementId, newStatus }, 'Error checking status transition');
       return false;
     }
   }
@@ -400,7 +418,7 @@ class ReviewService {
     try {
       await db.query(query, [newStatus, requirementId]);
     } catch (error) {
-      console.error('Error updating requirement status:', error);
+      logger.error({ error, requirementId, newStatus }, 'Error updating requirement status');
       // Don't throw - this is a side effect, not critical
     }
   }
@@ -437,7 +455,7 @@ class ReviewService {
       try {
         await client.query(query, [newRequirementStatus, requirementId]);
       } catch (error) {
-        console.error('Error updating requirement status based on reviews:', error);
+        logger.error({ error, requirementId, newRequirementStatus }, 'Error updating requirement status based on reviews');
       }
     }
   }
@@ -449,12 +467,12 @@ class ReviewService {
       const result = await db.query(query, [requirementId]);
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (error) {
-      console.error('Error getting requirement status:', error);
+      logger.error({ error, requirementId }, 'Error getting requirement status');
       return null;
     }
   }
 
-  private mapRowToReview(row: any): Review {
+  private mapRowToReview(row: ReviewRow): Review {
     const review: Review = {
       id: row.id,
       requirementId: row.requirement_id,
@@ -462,21 +480,25 @@ class ReviewService {
       status: row.status,
       decision: row.decision,
       comments: row.comments || '',
-      reviewedAt: row.reviewed_at,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
+
+    // Add optional properties only if they exist
+    if (row.reviewed_at !== null) {
+      review.reviewedAt = row.reviewed_at;
+    }
 
     if (row.reviewer_username) {
       review.reviewer = {
         id: row.reviewer_id,
         username: row.reviewer_username,
-        firstName: row.reviewer_first_name,
-        lastName: row.reviewer_last_name,
+        ...(row.reviewer_first_name !== null && { firstName: row.reviewer_first_name }),
+        ...(row.reviewer_last_name !== null && { lastName: row.reviewer_last_name }),
       };
     }
 
-    if (row.requirement_title) {
+    if (row.requirement_title && row.requirement_status) {
       review.requirement = {
         id: row.requirement_id,
         title: row.requirement_title,

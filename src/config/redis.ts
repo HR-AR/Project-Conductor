@@ -3,6 +3,7 @@
  */
 
 import { createClient, RedisClientType } from 'redis';
+import logger from '../utils/logger';
 
 let redisClient: RedisClientType | undefined;
 
@@ -19,20 +20,20 @@ if (process.env['REDIS_URL']) {
   });
 
   redisClient.on('connect', () => {
-    console.log('Redis client connected');
+    logger.info('Redis client connected');
   });
 
   redisClient.on('error', (err) => {
-    console.error('Redis client error:', err);
+    logger.error({ err }, 'Redis client error');
   });
 
   // Connect to Redis
   redisClient.connect().catch((err) => {
-    console.error('Failed to connect to Redis:', err);
+    logger.error({ err }, 'Failed to connect to Redis');
     redisClient = undefined;
   });
 } else {
-  console.log('Redis URL not configured, rate limiting will use in-memory fallback');
+  logger.info('Redis URL not configured, rate limiting will use in-memory fallback');
 }
 
 export { redisClient };

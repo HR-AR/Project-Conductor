@@ -12,6 +12,7 @@ import {
   PaginationParams,
 } from '../models/requirement.model';
 import { asyncHandler, NotFoundError, BadRequestError } from '../middleware/error-handler';
+import logger from '../utils/logger';
 
 export class RequirementsController {
   private requirementsService: any;
@@ -22,7 +23,7 @@ export class RequirementsController {
     this.useMock = process.env['USE_MOCK_DB'] !== 'false';
     this.requirementsService = this.useMock ? simpleMockService : new RequirementsService();
     if (this.useMock) {
-      console.log('Using mock requirements service (database unavailable)');
+      logger.info('Using mock requirements service (database unavailable)');
     }
   }
 

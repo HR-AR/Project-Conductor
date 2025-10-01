@@ -5,6 +5,7 @@
 import { Request, Response } from 'express';
 import { metricsService } from '../services/metrics.service';
 import { QualityFilters, QualityReportOptions } from '../models/metrics.model';
+import logger from '../utils/logger';
 
 export class MetricsController {
   /**
@@ -31,7 +32,7 @@ export class MetricsController {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error getting quality metrics:', error);
+      logger.error({ error }, 'Error getting quality metrics');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve quality metrics',
@@ -68,7 +69,7 @@ export class MetricsController {
         }
       });
     } catch (error) {
-      console.error('Error getting quality trends:', error);
+      logger.error({ error }, 'Error getting quality trends');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve quality trends',
@@ -113,7 +114,7 @@ export class MetricsController {
         }
       });
     } catch (error) {
-      console.error('Error getting issue distribution:', error);
+      logger.error({ error }, 'Error getting issue distribution');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve issue distribution',
@@ -167,7 +168,7 @@ export class MetricsController {
         }
       });
     } catch (error) {
-      console.error('Error getting low quality requirements:', error);
+      logger.error({ error }, 'Error getting low quality requirements');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve low quality requirements',
@@ -199,7 +200,7 @@ export class MetricsController {
         data: leaderboard
       });
     } catch (error) {
-      console.error('Error getting quality leaderboard:', error);
+      logger.error({ error }, 'Error getting quality leaderboard');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve quality leaderboard',
@@ -231,7 +232,7 @@ export class MetricsController {
         generatedAt: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error getting quality dashboard:', error);
+      logger.error({ error }, 'Error getting quality dashboard');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve quality dashboard',
@@ -265,7 +266,7 @@ export class MetricsController {
         data: report
       });
     } catch (error) {
-      console.error('Error getting detailed quality report:', error);
+      logger.error({ error }, 'Error getting detailed quality report');
       res.status(500).json({
         success: false,
         error: 'Failed to generate quality report',
@@ -306,7 +307,7 @@ export class MetricsController {
         }
       });
     } catch (error) {
-      console.error('Error getting requirements by quality:', error);
+      logger.error({ error }, 'Error getting requirements by quality');
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve requirements by quality',

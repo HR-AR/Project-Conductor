@@ -7,6 +7,7 @@ import {
   SlackNotificationResponse,
   SlackNotificationSettings,
 } from '../models/slack.model';
+import logger from '../utils/logger';
 
 export class SlackService {
   private settings: SlackNotificationSettings;
@@ -33,12 +34,12 @@ export class SlackService {
       };
     }
 
-    console.log('[SlackService] Sending notification', {
+    logger.info({
       eventType: request.eventType,
       requirementId: request.requirementId,
       userId: request.userId,
       priority: request.priority,
-    });
+    }, 'Sending Slack notification');
 
     const response: SlackNotificationResponse = {
       success: true,

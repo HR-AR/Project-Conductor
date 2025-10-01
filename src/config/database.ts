@@ -3,6 +3,7 @@
  */
 
 import { Pool, PoolConfig, PoolClient } from 'pg';
+import logger from '../utils/logger';
 
 interface DatabaseConfig extends PoolConfig {
   host: string;
@@ -34,18 +35,18 @@ class Database {
 
     // Handle pool errors
     this.pool.on('error', (err) => {
-      console.error('Unexpected error on idle client', err);
+      logger.error({ err }, 'Unexpected error on idle client');
       process.exit(-1);
     });
 
     // Handle pool connect events
     this.pool.on('connect', () => {
-      console.log('Database connection established');
+      logger.info('Database connection established');
     });
 
     // Handle pool remove events
     this.pool.on('remove', () => {
-      console.log('Database connection removed');
+      logger.debug('Database connection removed');
     });
   }
 
@@ -75,12 +76,12 @@ class Database {
       const duration = Date.now() - start;
 
       if (process.env['NODE_ENV'] === 'development') {
-        console.log('Executed query', { text, duration, rows: result.rowCount });
+        logger.debug({ text, duration, rows: result.rowCount }, 'Executed query');
       }
 
       return result;
     } catch (error) {
-      console.error('Database query error:', error);
+      logger.error({ error }, 'Database query error');
       throw error;
     } finally {
       client.release();
@@ -106,7 +107,7 @@ class Database {
       return results;
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('Transaction error:', error);
+      logger.error({ error }, 'Transaction error');
       throw error;
     } finally {
       client.release();
@@ -126,7 +127,7 @@ class Database {
       return result;
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('Transaction callback error:', error);
+      logger.error({ error }, 'Transaction callback error');
       throw error;
     } finally {
       client.release();
@@ -139,10 +140,10 @@ class Database {
   async testConnection(): Promise<boolean> {
     try {
       const result = await this.query('SELECT NOW() as current_time');
-      console.log('Database connection test successful:', result.rows[0]);
+      logger.info({ currentTime: result.rows[0] }, 'Database connection test successful');
       return true;
     } catch (error) {
-      console.error('Database connection test failed:', error);
+      logger.error({ error }, 'Database connection test failed');
       return false;
     }
   }
@@ -163,7 +164,7 @@ class Database {
    */
   async close(): Promise<void> {
     await this.pool.end();
-    console.log('Database pool closed');
+    logger.info('Database pool closed');
   }
 
   /**
@@ -174,16 +175,16 @@ class Database {
       // Test connection
       const isConnected = await this.testConnection();
       if (!isConnected) {
-        console.warn('Database connection not available - running without database');
+        logger.warn('Database connection not available - running without database');
         return;
       }
 
       // Check if requirements_versions table exists, create if not
       await this.createRequirementVersionsTable();
 
-      console.log('Database initialized successfully');
+      logger.info('Database initialized successfully');
     } catch (error) {
-      console.error('Database initialization failed - continuing without database:', error);
+      logger.error({ error }, 'Database initialization failed - continuing without database');
       // Continue without database for testing purposes
     }
   }
@@ -227,9 +228,9 @@ class Database {
     try {
       await this.query(createTableQuery);
       await this.query(createIndexesQuery);
-      console.log('Requirements versions table created/verified successfully');
+      logger.info('Requirements versions table created/verified successfully');
     } catch (error) {
-      console.error('Failed to create requirements_versions table:', error);
+      logger.error({ error }, 'Failed to create requirements_versions table');
       throw error;
     }
   }

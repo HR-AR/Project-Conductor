@@ -19,32 +19,49 @@ import {
   QualityIssueType,
   QualityIssueSeverity,
 } from '../models/quality.model';
+import {
+  Requirement,
+  CreateRequirementRequest,
+  UpdateRequirementRequest,
+  RequirementFilters,
+  PaginationParams,
+  PaginatedResponse,
+} from '../models/requirement.model';
 
 class SimpleMockService {
-  private requirements: Map<string, any> = new Map();
-  private versions: Map<string, any[]> = new Map();
+  private requirements: Map<string, Requirement> = new Map();
+  private versions: Map<string, Requirement[]> = new Map();
   private links: Map<string, BaseLink> = new Map();
   private comments: Map<string, BaseComment> = new Map();
   private qualityAnalyses: Map<string, QualityAnalysis> = new Map();
 
-  async createRequirement(data: any): Promise<any> {
+  async createRequirement(data: CreateRequirementRequest): Promise<Requirement> {
     const id = await generateUniqueId('REQ');
-    const requirement = {
+    const requirement: Requirement = {
       id,
-      ...data,
-      version: 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      title: data.title,
+      ...(data.description && { description: data.description }),
+      status: 'draft',
+      priority: data.priority || 'medium',
+      ...(data.assignedTo && { assignedTo: data.assignedTo }),
+      createdBy: 'system', // In real implementation, this would come from auth context
+      ...(data.dueDate && { dueDate: new Date(data.dueDate) }),
+      ...(data.estimatedEffort !== undefined && { estimatedEffort: data.estimatedEffort }),
+      completionPercentage: 0,
+      ...(data.tags && data.tags.length > 0 && { tags: data.tags }),
+      ...(data.metadata && { metadata: data.metadata }),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.requirements.set(id, requirement);
     return requirement;
   }
 
-  async getRequirementById(id: string): Promise<any> {
+  async getRequirementById(id: string): Promise<Requirement | null> {
     return this.requirements.get(id) || null;
   }
 
-  async updateRequirement(id: string, data: any): Promise<any> {
+  async updateRequirement(id: string, data: UpdateRequirementRequest): Promise<Requirement | null> {
     const existing = this.requirements.get(id);
     if (!existing) return null;
 
@@ -54,12 +71,20 @@ class SimpleMockService {
     }
     this.versions.get(id)!.push({ ...existing });
 
-    const updated = {
+    const updated: Requirement = {
       ...existing,
-      ...data,
-      id,
-      version: existing.version + 1,
-      updated_at: new Date().toISOString()
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.description !== undefined && data.description ? { description: data.description } : {}),
+      ...(data.status !== undefined && { status: data.status }),
+      ...(data.priority !== undefined && { priority: data.priority }),
+      ...(data.assignedTo !== undefined && data.assignedTo ? { assignedTo: data.assignedTo } : {}),
+      ...(data.dueDate !== undefined && data.dueDate ? { dueDate: new Date(data.dueDate) } : {}),
+      ...(data.estimatedEffort !== undefined && { estimatedEffort: data.estimatedEffort }),
+      ...(data.actualEffort !== undefined && { actualEffort: data.actualEffort }),
+      ...(data.completionPercentage !== undefined && { completionPercentage: data.completionPercentage }),
+      ...(data.tags !== undefined && data.tags.length > 0 ? { tags: data.tags } : {}),
+      ...(data.metadata !== undefined && { metadata: data.metadata }),
+      updatedAt: new Date(),
     };
     this.requirements.set(id, updated);
     return updated;
@@ -72,35 +97,45 @@ class SimpleMockService {
     return true;
   }
 
-  async listRequirements(options: any): Promise<any> {
+  async listRequirements(options: PaginationParams): Promise<PaginatedResponse<Requirement>> {
     const page = options.page || 1;
     const limit = options.limit || 10;
     const offset = (page - 1) * limit;
 
     const all = Array.from(this.requirements.values());
     const paginated = all.slice(offset, offset + limit);
+    const total = all.length;
+    const totalPages = Math.ceil(total / limit);
 
     return {
       data: paginated,
-      total: all.length,
-      page,
-      limit
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      }
     };
   }
 
-  async getRequirementVersions(id: string): Promise<any[]> {
+  async getRequirementVersions(id: string): Promise<Requirement[]> {
     return this.versions.get(id) || [];
   }
 
-  async getSummary(): Promise<any> {
+  async getSummary(): Promise<{
+    total: number;
+    by_status: Record<string, number>;
+  }> {
     const all = Array.from(this.requirements.values());
     return {
       total: all.length,
       by_status: {
         draft: all.filter(r => r.status === 'draft').length,
-        in_review: all.filter(r => r.status === 'in_review').length,
+        under_review: all.filter(r => r.status === 'under_review').length,
         approved: all.filter(r => r.status === 'approved').length,
-        in_progress: all.filter(r => r.status === 'in_progress').length,
+        active: all.filter(r => r.status === 'active').length,
         completed: all.filter(r => r.status === 'completed').length,
         archived: all.filter(r => r.status === 'archived').length
       }
@@ -108,15 +143,57 @@ class SimpleMockService {
   }
 
   // Alias for compatibility with RequirementsService
-  async getRequirements(filters: any, pagination: any): Promise<any> {
-    const result = await this.listRequirements({ ...filters, ...pagination });
+  async getRequirements(filters: RequirementFilters, pagination: PaginationParams): Promise<PaginatedResponse<Requirement>> {
+    // Apply filters
+    let requirements = Array.from(this.requirements.values());
+
+    if (filters.status && filters.status.length > 0) {
+      requirements = requirements.filter(r => filters.status!.includes(r.status));
+    }
+
+    if (filters.priority && filters.priority.length > 0) {
+      requirements = requirements.filter(r => filters.priority!.includes(r.priority));
+    }
+
+    if (filters.assignedTo && filters.assignedTo.length > 0) {
+      requirements = requirements.filter(r => r.assignedTo && filters.assignedTo!.includes(r.assignedTo));
+    }
+
+    if (filters.createdBy && filters.createdBy.length > 0) {
+      requirements = requirements.filter(r => filters.createdBy!.includes(r.createdBy));
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      requirements = requirements.filter(r =>
+        r.tags && r.tags.some(tag => filters.tags!.includes(tag))
+      );
+    }
+
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      requirements = requirements.filter(r =>
+        r.title.toLowerCase().includes(searchLower) ||
+        (r.description && r.description.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Paginate
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 10;
+    const offset = (page - 1) * limit;
+    const total = requirements.length;
+    const totalPages = Math.ceil(total / limit);
+    const paginated = requirements.slice(offset, offset + limit);
+
     return {
-      data: result.data,
+      data: paginated,
       pagination: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: Math.ceil(result.total / result.limit)
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
       }
     };
   }
@@ -186,7 +263,7 @@ class SimpleMockService {
     return Array.from(this.links.values()).filter(link => link.sourceId === requirementId);
   }
 
-  async getAllRequirements(): Promise<any[]> {
+  async getAllRequirements(): Promise<Requirement[]> {
     return Array.from(this.requirements.values());
   }
 
@@ -662,12 +739,13 @@ class SimpleMockService {
       let key: string;
 
       switch (groupBy) {
-        case 'week':
+        case 'week': {
           // Start of week (Monday)
           const weekStart = new Date(date);
           weekStart.setDate(date.getDate() - date.getDay() + 1);
           key = weekStart.toISOString().split('T')[0] || '';
           break;
+        }
         case 'month':
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
