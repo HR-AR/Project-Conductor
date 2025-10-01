@@ -255,28 +255,18 @@ app.get('/api/v1/presence/requirement/:requirementId', (req, res) => {
   }
 });
 
-// Demo dashboard route - serves the unified dashboard
-app.get('/demo', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'PROJECT_CONDUCTOR_DEMO.html'));
-});
-
-// Individual demo routes
-app.get('/demo/live', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'live-demo.html'));
-});
-
-app.get('/demo/orchestration', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'orchestration-demo.html'));
-});
-
-app.get('/demo/prd', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'prd-orchestration-demo.html'));
-});
-
 // Root endpoint - Serve unified dashboard
 app.get('/', (_req, res) => {
   res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
 });
+
+// Demo routes are handled by static middleware above at line 121
+// Accessing via:
+// - /demo/conductor-unified-dashboard.html
+// - /demo/live-demo.html
+// - /demo/orchestration-demo.html
+// - /demo/prd-orchestration-demo.html
+// - /demo/PROJECT_CONDUCTOR_DEMO.html
 
 // API documentation endpoint
 app.get('/api/v1', (_req, res) => {
