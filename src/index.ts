@@ -84,6 +84,8 @@ app.use(corsHandler);
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for API server
   crossOriginEmbedderPolicy: false, // Allow embedding
+  crossOriginOpenerPolicy: false, // Allow same-origin iframes
+  crossOriginResourcePolicy: false, // Allow resources to be loaded by iframes
   frameguard: false, // Disable X-Frame-Options to allow iframes
 }));
 
