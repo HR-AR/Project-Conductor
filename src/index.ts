@@ -260,7 +260,16 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
 });
 
-// Demo routes are handled by static middleware above at line 121
+// Demo index route - serve unified dashboard
+app.get('/demo', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
+});
+
+app.get('/demo/', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
+});
+
+// Other demo routes are handled by static middleware above at line 121
 // Accessing via:
 // - /demo/conductor-unified-dashboard.html
 // - /demo/live-demo.html
