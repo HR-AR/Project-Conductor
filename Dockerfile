@@ -19,6 +19,9 @@ COPY tsconfig.json ./
 # Copy source code
 COPY src ./src
 
+# Copy demo HTML files to root
+COPY *.html ./
+
 # Install dev dependencies for building
 RUN npm ci
 
