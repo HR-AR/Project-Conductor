@@ -467,34 +467,60 @@
             opacity: 0.9;
         }
 
-        /* Video Player Placeholder */
+        /* Interactive Video Tutorial */
         .video-section {
             margin-top: 60px;
             text-align: center;
         }
 
+        .video-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 30px auto;
+            background: #1a1a1a;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
         .video-player {
             width: 100%;
-            max-width: 800px;
-            height: 450px;
-            margin: 30px auto;
-            background: #000;
-            border-radius: 20px;
+            height: 500px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.5rem;
             position: relative;
             overflow: hidden;
+        }
+
+        .video-player.playing .play-overlay {
+            display: none;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 10;
+            transition: background 0.3s ease;
+        }
+
+        .play-overlay:hover {
+            background: rgba(0, 0, 0, 0.7);
         }
 
         .play-button {
             width: 80px;
             height: 80px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -502,10 +528,617 @@
             font-size: 2rem;
             color: #667eea;
             transition: transform 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
-        .video-player:hover .play-button {
+        .play-overlay:hover .play-button {
+            transform: scale(1.15);
+        }
+
+        .video-content {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            color: white;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .video-content.active {
+            display: flex;
+        }
+
+        .video-slide-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .video-slide-content {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 700px;
+            opacity: 0.95;
+        }
+
+        .video-slide-icon {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            animation: bounceIn 0.8s ease;
+        }
+
+        .video-timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .video-controls {
+            background: #2a2a2a;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .video-progress {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .video-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .video-progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .video-control-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .video-control-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .video-control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
             transform: scale(1.1);
+        }
+
+        .video-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chapter-markers {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chapter-marker {
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .chapter-marker:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .chapter-marker.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .video-action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .video-action-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .video-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .video-action-btn.secondary {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        /* Interactive Walkthrough */
+        .interactive-walkthrough {
+            margin-top: 60px;
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .walkthrough-container {
+            max-width: 800px;
+            margin: 40px auto 0;
+            position: relative;
+        }
+
+        .walkthrough-slide {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .walkthrough-slide.active {
+            display: block;
+        }
+
+        .walkthrough-visual {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 60px 40px;
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .walkthrough-icon {
+            font-size: 6rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .walkthrough-arrow {
+            position: absolute;
+            font-size: 3rem;
+            color: #667eea;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .walkthrough-arrow.top {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-90deg);
+        }
+
+        .walkthrough-arrow.bottom {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) rotate(90deg);
+        }
+
+        .walkthrough-arrow.left {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .walkthrough-arrow.right {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .walkthrough-highlight {
+            position: absolute;
+            background: rgba(102, 126, 234, 0.2);
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .walkthrough-tooltip {
+            position: absolute;
+            background: #667eea;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            max-width: 250px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .walkthrough-tooltip::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+        }
+
+        .walkthrough-tooltip.top::before {
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-top-color: #667eea;
+        }
+
+        .walkthrough-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .walkthrough-description {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .walkthrough-time {
+            display: inline-block;
+            background: #f0f0f0;
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .walkthrough-progress {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .walkthrough-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .walkthrough-dot:hover {
+            background: #bbb;
+            transform: scale(1.2);
+        }
+
+        .walkthrough-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+        }
+
+        .walkthrough-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .walkthrough-control-btn {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .walkthrough-control-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .walkthrough-control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .walkthrough-control-btn:disabled:hover {
+            background: transparent;
+            color: #667eea;
+            transform: none;
+        }
+
+        .auto-advance-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ddd;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Try It Live Demo */
+        .try-it-live {
+            margin-top: 60px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 25px;
+            padding: 50px 40px;
+            color: white;
+        }
+
+        .demo-container {
+            max-width: 700px;
+            margin: 40px auto 0;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .demo-form-group {
+            margin-bottom: 25px;
+        }
+
+        .demo-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .demo-input.valid {
+            border-color: #51cf66;
+        }
+
+        .demo-input.invalid {
+            border-color: #ff6b6b;
+        }
+
+        .demo-validation {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .demo-validation.show {
+            display: block;
+        }
+
+        .demo-validation.success {
+            color: #51cf66;
+        }
+
+        .demo-validation.error {
+            color: #ff6b6b;
+        }
+
+        .demo-hint {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #666;
+            display: none;
+        }
+
+        .demo-hint.show {
+            display: block;
+        }
+
+        .demo-stakeholder-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .demo-stakeholder-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .demo-stakeholder-remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .demo-stakeholder-remove:hover {
+            opacity: 1;
+        }
+
+        .demo-preview {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .demo-preview.show {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .demo-preview-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .demo-preview-content {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .demo-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+        }
+
+        .demo-submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         /* Buttons */
@@ -676,6 +1309,66 @@
             .quick-start-wizard {
                 padding: 30px 20px;
             }
+
+            .video-player {
+                height: 400px;
+            }
+
+            .video-slide-title {
+                font-size: 2rem;
+            }
+
+            .video-slide-content {
+                font-size: 1.1rem;
+            }
+
+            .video-controls {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+            }
+
+            .chapter-markers {
+                gap: 10px;
+            }
+
+            .chapter-marker {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+
+            .walkthrough-visual {
+                padding: 40px 20px;
+                min-height: 250px;
+            }
+
+            .walkthrough-icon {
+                font-size: 4rem;
+            }
+
+            .walkthrough-title {
+                font-size: 1.6rem;
+            }
+
+            .walkthrough-description {
+                font-size: 1rem;
+            }
+
+            .walkthrough-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .walkthrough-control-btn {
+                width: 100%;
+            }
+
+            .demo-container {
+                padding: 30px 20px;
+            }
+
+            .try-it-live {
+                padding: 30px 20px;
+            }
         }
 
         @media (max-width: 640px) {
@@ -694,6 +1387,90 @@
             .btn {
                 padding: 12px 30px;
                 font-size: 1rem;
+            }
+
+            .video-player {
+                height: 350px;
+            }
+
+            .video-slide-icon {
+                font-size: 3.5rem;
+            }
+
+            .video-slide-title {
+                font-size: 1.5rem;
+            }
+
+            .video-slide-content {
+                font-size: 1rem;
+                padding: 0 20px;
+            }
+
+            .video-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .video-progress {
+                order: -1;
+                width: 100%;
+            }
+
+            .chapter-markers {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .chapter-marker {
+                width: 100%;
+            }
+
+            .video-action-buttons {
+                flex-direction: column;
+            }
+
+            .video-action-btn {
+                width: 100%;
+            }
+
+            .walkthrough-visual {
+                padding: 30px 15px;
+                min-height: 200px;
+            }
+
+            .walkthrough-icon {
+                font-size: 3rem;
+            }
+
+            .walkthrough-arrow {
+                font-size: 2rem;
+            }
+
+            .walkthrough-tooltip {
+                max-width: 200px;
+                font-size: 0.85rem;
+                padding: 10px 15px;
+            }
+
+            .walkthrough-title {
+                font-size: 1.4rem;
+            }
+
+            .interactive-walkthrough {
+                padding: 30px 20px;
+            }
+
+            .demo-container {
+                padding: 25px 15px;
+            }
+
+            .demo-stakeholder-list {
+                flex-direction: column;
+            }
+
+            .demo-stakeholder-tag {
+                width: 100%;
+                justify-content: space-between;
             }
         }
 
@@ -918,13 +1695,447 @@
                 </div>
             </section>
 
-            <!-- Video Section -->
+            <!-- Interactive Video Tutorial -->
             <section class="video-section">
                 <h3 class="section-title">See It In Action</h3>
-                <div class="video-player" role="button" tabindex="0" aria-label="Play introduction video">
-                    <div class="play-button">▶</div>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">2-minute overview of the complete workflow</p>
+
+                <div class="video-container">
+                    <div class="video-player" id="videoPlayer">
+                        <div class="play-overlay" onclick="playVideo()" role="button" tabindex="0" aria-label="Play introduction video">
+                            <div class="play-button">▶</div>
+                        </div>
+
+                        <!-- Video Slide 1: Introduction -->
+                        <div class="video-content" id="videoSlide0" data-duration="20">
+                            <div class="video-timer" id="videoTimer">0:00 / 2:00</div>
+                            <div class="video-slide-icon">🎯</div>
+                            <div class="video-slide-title">Welcome to Project Conductor</div>
+                            <div class="video-slide-content">
+                                Transform business problems into aligned PRDs in days, not months.<br>
+                                Let's see how it works in 2 minutes.
+                            </div>
+                        </div>
+
+                        <!-- Video Slide 2: Problem Input -->
+                        <div class="video-content" id="videoSlide1" data-duration="30">
+                            <div class="video-timer" id="videoTimer">0:20 / 2:00</div>
+                            <div class="video-slide-icon">💡</div>
+                            <div class="video-slide-title">Step 1: Input Your Business Problem</div>
+                            <div class="video-slide-content">
+                                Describe your challenge in plain language.<br>
+                                No technical jargon required.<br>
+                                AI helps structure your thoughts into actionable requirements.
+                            </div>
+                        </div>
+
+                        <!-- Video Slide 3: Stakeholder Collaboration -->
+                        <div class="video-content" id="videoSlide2" data-duration="45">
+                            <div class="video-timer" id="videoTimer">0:50 / 2:00</div>
+                            <div class="video-slide-icon">👥</div>
+                            <div class="video-slide-title">Step 2: Real-Time Collaboration</div>
+                            <div class="video-slide-content">
+                                Invite stakeholders with one click.<br>
+                                Everyone sees updates live - no email chains.<br>
+                                Comment, discuss, and align in real-time.
+                            </div>
+                        </div>
+
+                        <!-- Video Slide 4: PRD Generation -->
+                        <div class="video-content" id="videoSlide3" data-duration="30">
+                            <div class="video-timer" id="videoTimer">1:35 / 2:00</div>
+                            <div class="video-slide-icon">📋</div>
+                            <div class="video-slide-title">Step 3: Auto-Generate PRD</div>
+                            <div class="video-slide-content">
+                                Automatically creates 3-tier requirements:<br>
+                                Business → Functional → Technical<br>
+                                Always aligned. Always traceable.
+                            </div>
+                        </div>
+
+                        <!-- Video Slide 5: Implementation & Impact -->
+                        <div class="video-content" id="videoSlide4" data-duration="15">
+                            <div class="video-timer" id="videoTimer">2:05 / 2:00</div>
+                            <div class="video-slide-icon">🚀</div>
+                            <div class="video-slide-title">Step 4: Track & Analyze</div>
+                            <div class="video-slide-content">
+                                Track implementation progress.<br>
+                                See change impact instantly.<br>
+                                Know exactly what affects what.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-controls">
+                        <div class="video-control-buttons">
+                            <button class="video-control-btn" onclick="togglePlayPause()" aria-label="Play/Pause" id="playPauseBtn">
+                                ⏸
+                            </button>
+                            <button class="video-control-btn" onclick="restartVideo()" aria-label="Restart">
+                                ↻
+                            </button>
+                        </div>
+                        <div class="video-progress" onclick="seekVideo(event)" role="progressbar" aria-label="Video progress">
+                            <div class="video-progress-bar" id="videoProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
-                <p style="text-align: center; color: #666; font-style: italic;">2-minute overview of the complete workflow</p>
+
+                <div class="chapter-markers">
+                    <div class="chapter-marker active" onclick="jumpToChapter(0)" role="button" tabindex="0">
+                        Intro (0:00)
+                    </div>
+                    <div class="chapter-marker" onclick="jumpToChapter(1)" role="button" tabindex="0">
+                        Problem Input (0:20)
+                    </div>
+                    <div class="chapter-marker" onclick="jumpToChapter(2)" role="button" tabindex="0">
+                        Collaboration (0:50)
+                    </div>
+                    <div class="chapter-marker" onclick="jumpToChapter(3)" role="button" tabindex="0">
+                        PRD Gen (1:35)
+                    </div>
+                    <div class="chapter-marker" onclick="jumpToChapter(4)" role="button" tabindex="0">
+                        Track (2:05)
+                    </div>
+                </div>
+
+                <div class="video-action-buttons">
+                    <button class="video-action-btn" onclick="skipVideo()" aria-label="Skip tutorial">
+                        Skip Tutorial
+                    </button>
+                    <button class="video-action-btn secondary" onclick="watchAgain()" aria-label="Watch again">
+                        Watch Again
+                    </button>
+                </div>
+            </section>
+
+            <!-- Interactive Walkthrough -->
+            <section class="content-section interactive-walkthrough">
+                <h3 class="section-title">Interactive Walkthrough</h3>
+                <p style="text-align: center; color: #666; max-width: 600px; margin: 0 auto 20px;">
+                    Step-by-step guide showing how to use each module. Navigate at your own pace.
+                </p>
+
+                <div class="walkthrough-container">
+                    <!-- Walkthrough Slide 1 -->
+                    <div class="walkthrough-slide active" data-slide="0">
+                        <div class="walkthrough-time">⏱ 30 seconds</div>
+                        <div class="walkthrough-title">Module 1: Define Your Problem</div>
+                        <div class="walkthrough-description">
+                            Start by clearly articulating the business problem you're trying to solve. Our AI assistant helps you structure your thoughts and identify key stakeholders.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">💡</div>
+                            <div class="walkthrough-arrow top">→</div>
+                            <div class="walkthrough-tooltip top" style="top: 60px; left: 50%; transform: translateX(-50%);">
+                                Click here to start describing your problem
+                            </div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()" disabled>
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="nextWalkthroughSlide()">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Walkthrough Slide 2 -->
+                    <div class="walkthrough-slide" data-slide="1">
+                        <div class="walkthrough-time">⏱ 45 seconds</div>
+                        <div class="walkthrough-title">Module 2: Invite Stakeholders</div>
+                        <div class="walkthrough-description">
+                            Add team members, clients, and stakeholders to collaborate in real-time. They'll receive instant notifications and can contribute immediately.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">👥</div>
+                            <div class="walkthrough-arrow right">→</div>
+                            <div class="walkthrough-tooltip top" style="top: 60px; right: 80px;">
+                                Add stakeholders via email or import from Slack
+                            </div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()">
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="nextWalkthroughSlide()">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Walkthrough Slide 3 -->
+                    <div class="walkthrough-slide" data-slide="2">
+                        <div class="walkthrough-time">⏱ 1 minute</div>
+                        <div class="walkthrough-title">Module 3: Generate PRD</div>
+                        <div class="walkthrough-description">
+                            Watch as your input transforms into a structured PRD with business, functional, and technical requirements—all automatically aligned and traceable.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">📋</div>
+                            <div class="walkthrough-arrow left">→</div>
+                            <div class="walkthrough-tooltip top" style="top: 60px; left: 80px;">
+                                Requirements auto-generate in 3 tiers
+                            </div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()">
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="nextWalkthroughSlide()">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Walkthrough Slide 4 -->
+                    <div class="walkthrough-slide" data-slide="3">
+                        <div class="walkthrough-time">⏱ 45 seconds</div>
+                        <div class="walkthrough-title">Module 4: Track Implementation</div>
+                        <div class="walkthrough-description">
+                            Monitor progress as developers work. See which requirements are complete, in progress, or blocked. Full traceability from idea to deployment.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">🚀</div>
+                            <div class="walkthrough-arrow bottom">→</div>
+                            <div class="walkthrough-tooltip top" style="bottom: 60px; left: 50%; transform: translateX(-50%);">
+                                Real-time status updates for all requirements
+                            </div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()">
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="nextWalkthroughSlide()">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Walkthrough Slide 5 -->
+                    <div class="walkthrough-slide" data-slide="4">
+                        <div class="walkthrough-time">⏱ 30 seconds</div>
+                        <div class="walkthrough-title">Module 5: Analyze Change Impact</div>
+                        <div class="walkthrough-description">
+                            Change a requirement and instantly visualize the ripple effect. See what else needs updating to maintain alignment. No surprises, no rework.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">🔄</div>
+                            <div class="walkthrough-highlight" style="width: 150px; height: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                            <div class="walkthrough-tooltip top" style="top: 60px; left: 50%; transform: translateX(-50%);">
+                                Click any requirement to see impact
+                            </div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()">
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="nextWalkthroughSlide()">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Walkthrough Slide 6 -->
+                    <div class="walkthrough-slide" data-slide="5">
+                        <div class="walkthrough-time">⏱ 15 seconds</div>
+                        <div class="walkthrough-title">You're Ready to Start!</div>
+                        <div class="walkthrough-description">
+                            That's it! You now understand the complete workflow. Ready to create your first PRD? Try our live demo below or jump right into the Quick Start wizard.
+                        </div>
+
+                        <div class="walkthrough-visual">
+                            <div class="walkthrough-icon">✨</div>
+                        </div>
+
+                        <div class="walkthrough-progress">
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(0)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(1)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(2)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(3)"></div>
+                            <div class="walkthrough-dot" onclick="goToWalkthroughSlide(4)"></div>
+                            <div class="walkthrough-dot active" onclick="goToWalkthroughSlide(5)"></div>
+                        </div>
+
+                        <div class="walkthrough-controls">
+                            <button class="walkthrough-control-btn" onclick="prevWalkthroughSlide()">
+                                ← Previous
+                            </button>
+                            <div class="auto-advance-toggle">
+                                <span>Auto-advance</span>
+                                <div class="toggle-switch" onclick="toggleAutoAdvance()" role="switch" aria-checked="false" aria-label="Toggle auto-advance">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                            <button class="walkthrough-control-btn" onclick="restartWalkthrough()">
+                                ↻ Restart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Try It Live Demo -->
+            <section class="content-section try-it-live">
+                <h3 style="text-align: center; font-size: 2.5rem; margin-bottom: 20px;">Try It Live</h3>
+                <p style="text-align: center; font-size: 1.1rem; opacity: 0.95;">
+                    Experience the power of Project Conductor with our interactive demo. All features work in real-time!
+                </p>
+
+                <div class="demo-container">
+                    <div class="demo-form-group">
+                        <label class="demo-label" for="demoProblem">
+                            Describe your business problem
+                        </label>
+                        <textarea
+                            class="demo-input"
+                            id="demoProblem"
+                            rows="4"
+                            placeholder="e.g., Our customers can't track their orders in real-time, leading to 50+ daily support tickets..."
+                            oninput="validateDemoProblem()"
+                            onfocus="showDemoHint('problem')"
+                            aria-describedby="demoProblemHint demoProblemValidation"
+                        ></textarea>
+                        <div class="demo-validation" id="demoProblemValidation" role="alert"></div>
+                        <div class="demo-hint" id="demoProblemHint">
+                            💡 Tip: Be specific about the problem, who it affects, and the business impact.
+                        </div>
+                    </div>
+
+                    <div class="demo-form-group">
+                        <label class="demo-label" for="demoStakeholders">
+                            Add stakeholders (comma-separated emails)
+                        </label>
+                        <input
+                            type="text"
+                            class="demo-input"
+                            id="demoStakeholders"
+                            placeholder="sarah@company.com, john@company.com"
+                            oninput="validateDemoStakeholders()"
+                            onfocus="showDemoHint('stakeholders')"
+                            aria-describedby="demoStakeholdersHint demoStakeholdersValidation"
+                        />
+                        <div class="demo-validation" id="demoStakeholdersValidation" role="alert"></div>
+                        <div class="demo-hint" id="demoStakeholdersHint">
+                            💡 Tip: Include decision makers, technical leads, and anyone who needs visibility.
+                        </div>
+                        <div class="demo-stakeholder-list" id="demoStakeholderList"></div>
+                    </div>
+
+                    <div class="demo-form-group">
+                        <label class="demo-label" for="demoSuccess">
+                            What does success look like?
+                        </label>
+                        <textarea
+                            class="demo-input"
+                            id="demoSuccess"
+                            rows="3"
+                            placeholder="e.g., Customers can self-serve order tracking, reducing support tickets by 60%..."
+                            oninput="validateDemoSuccess()"
+                            onfocus="showDemoHint('success')"
+                            aria-describedby="demoSuccessHint demoSuccessValidation"
+                        ></textarea>
+                        <div class="demo-validation" id="demoSuccessValidation" role="alert"></div>
+                        <div class="demo-hint" id="demoSuccessHint">
+                            💡 Tip: Include measurable outcomes and timelines when possible.
+                        </div>
+                    </div>
+
+                    <div class="demo-preview" id="demoPreview" role="region" aria-label="PRD Preview">
+                        <div class="demo-preview-title">📋 PRD Preview</div>
+                        <div class="demo-preview-content" id="demoPreviewContent"></div>
+                    </div>
+
+                    <button class="demo-submit-btn" id="demoSubmitBtn" onclick="submitDemo()" disabled>
+                        Generate Draft PRD
+                    </button>
+                </div>
             </section>
 
             <!-- Quick Start Wizard -->
@@ -1023,16 +2234,437 @@
             });
         });
 
-        // Video Player
-        document.querySelector('.video-player').addEventListener('click', () => {
-            alert('Video player would launch here.\n\nIn production, this would show a 2-minute walkthrough video demonstrating:\n\n1. Creating a business problem\n2. Stakeholder collaboration\n3. PRD generation\n4. Traceability tracking\n5. Change impact analysis');
-        });
+        // Interactive Video Tutorial
+        let currentVideoSlide = 0;
+        let videoPlaying = false;
+        let videoInterval = null;
+        let videoElapsedTime = 0;
+        const totalVideoDuration = 140; // 2:20 total
+        const videoSlides = [
+            { id: 0, start: 0, duration: 20 },
+            { id: 1, start: 20, duration: 30 },
+            { id: 2, start: 50, duration: 45 },
+            { id: 3, start: 95, duration: 30 },
+            { id: 4, start: 125, duration: 15 }
+        ];
 
-        document.querySelector('.video-player').addEventListener('keypress', (e) => {
+        function playVideo() {
+            const player = document.getElementById('videoPlayer');
+            player.classList.add('playing');
+            videoPlaying = true;
+            document.getElementById('playPauseBtn').textContent = '⏸';
+
+            // Check if user has watched video before
+            const hasWatched = localStorage.getItem('videoWatched');
+            if (!hasWatched) {
+                localStorage.setItem('videoWatched', 'true');
+            }
+
+            showVideoSlide(0);
+            startVideoPlayback();
+        }
+
+        function showVideoSlide(slideIndex) {
+            document.querySelectorAll('.video-content').forEach(slide => {
+                slide.classList.remove('active');
+            });
+            document.getElementById(`videoSlide${slideIndex}`).classList.add('active');
+            currentVideoSlide = slideIndex;
+
+            // Update chapter markers
+            document.querySelectorAll('.chapter-marker').forEach((marker, i) => {
+                marker.classList.toggle('active', i === slideIndex);
+            });
+        }
+
+        function startVideoPlayback() {
+            if (videoInterval) clearInterval(videoInterval);
+
+            videoInterval = setInterval(() => {
+                videoElapsedTime++;
+                updateVideoProgress();
+
+                // Check if we should move to next slide
+                const currentSlide = videoSlides[currentVideoSlide];
+                const nextSlide = videoSlides[currentVideoSlide + 1];
+
+                if (nextSlide && videoElapsedTime >= nextSlide.start) {
+                    showVideoSlide(currentVideoSlide + 1);
+                }
+
+                // End of video
+                if (videoElapsedTime >= totalVideoDuration) {
+                    pauseVideo();
+                    videoElapsedTime = totalVideoDuration;
+                }
+            }, 1000);
+        }
+
+        function togglePlayPause() {
+            if (videoPlaying) {
+                pauseVideo();
+            } else {
+                resumeVideo();
+            }
+        }
+
+        function pauseVideo() {
+            videoPlaying = false;
+            if (videoInterval) clearInterval(videoInterval);
+            document.getElementById('playPauseBtn').textContent = '▶';
+        }
+
+        function resumeVideo() {
+            videoPlaying = true;
+            document.getElementById('playPauseBtn').textContent = '⏸';
+            const player = document.getElementById('videoPlayer');
+            player.classList.add('playing');
+            startVideoPlayback();
+        }
+
+        function restartVideo() {
+            videoElapsedTime = 0;
+            currentVideoSlide = 0;
+            showVideoSlide(0);
+            updateVideoProgress();
+            if (videoPlaying) {
+                startVideoPlayback();
+            }
+        }
+
+        function updateVideoProgress() {
+            const progress = (videoElapsedTime / totalVideoDuration) * 100;
+            document.getElementById('videoProgressBar').style.width = `${progress}%`;
+
+            const minutes = Math.floor(videoElapsedTime / 60);
+            const seconds = videoElapsedTime % 60;
+            const totalMinutes = Math.floor(totalVideoDuration / 60);
+            const totalSeconds = totalVideoDuration % 60;
+
+            document.querySelectorAll('.video-timer').forEach(timer => {
+                timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
+            });
+        }
+
+        function seekVideo(event) {
+            const progressBar = event.currentTarget;
+            const clickX = event.offsetX;
+            const width = progressBar.offsetWidth;
+            const percentage = clickX / width;
+
+            videoElapsedTime = Math.floor(percentage * totalVideoDuration);
+
+            // Find which slide this time corresponds to
+            for (let i = videoSlides.length - 1; i >= 0; i--) {
+                if (videoElapsedTime >= videoSlides[i].start) {
+                    showVideoSlide(i);
+                    break;
+                }
+            }
+
+            updateVideoProgress();
+        }
+
+        function jumpToChapter(chapterIndex) {
+            videoElapsedTime = videoSlides[chapterIndex].start;
+            showVideoSlide(chapterIndex);
+            updateVideoProgress();
+
+            if (!videoPlaying) {
+                resumeVideo();
+            }
+        }
+
+        function skipVideo() {
+            localStorage.setItem('videoSkipped', 'true');
+            document.querySelector('.quick-start-wizard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function watchAgain() {
+            restartVideo();
+            playVideo();
+            document.querySelector('.video-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Interactive Walkthrough
+        let currentWalkthroughSlide = 0;
+        let walkthroughAutoAdvance = false;
+        let walkthroughInterval = null;
+
+        function showWalkthroughSlide(slideIndex) {
+            document.querySelectorAll('.walkthrough-slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            const slide = document.querySelector(`[data-slide="${slideIndex}"]`);
+            if (slide) {
+                slide.classList.add('active');
+                currentWalkthroughSlide = slideIndex;
+
+                // Update button states
+                const prevBtn = slide.querySelector('.walkthrough-control-btn:first-child');
+                const nextBtn = slide.querySelector('.walkthrough-control-btn:last-child');
+
+                if (prevBtn) prevBtn.disabled = slideIndex === 0;
+            }
+        }
+
+        function nextWalkthroughSlide() {
+            const totalSlides = document.querySelectorAll('.walkthrough-slide').length;
+            if (currentWalkthroughSlide < totalSlides - 1) {
+                showWalkthroughSlide(currentWalkthroughSlide + 1);
+
+                if (walkthroughAutoAdvance) {
+                    startWalkthroughAutoAdvance();
+                }
+            }
+        }
+
+        function prevWalkthroughSlide() {
+            if (currentWalkthroughSlide > 0) {
+                showWalkthroughSlide(currentWalkthroughSlide - 1);
+
+                if (walkthroughAutoAdvance) {
+                    startWalkthroughAutoAdvance();
+                }
+            }
+        }
+
+        function goToWalkthroughSlide(slideIndex) {
+            showWalkthroughSlide(slideIndex);
+
+            if (walkthroughAutoAdvance) {
+                startWalkthroughAutoAdvance();
+            }
+        }
+
+        function toggleAutoAdvance() {
+            walkthroughAutoAdvance = !walkthroughAutoAdvance;
+
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.classList.toggle('active', walkthroughAutoAdvance);
+                toggle.setAttribute('aria-checked', walkthroughAutoAdvance);
+            });
+
+            if (walkthroughAutoAdvance) {
+                startWalkthroughAutoAdvance();
+            } else {
+                if (walkthroughInterval) clearInterval(walkthroughInterval);
+            }
+        }
+
+        function startWalkthroughAutoAdvance() {
+            if (walkthroughInterval) clearInterval(walkthroughInterval);
+
+            const currentSlideEl = document.querySelector(`[data-slide="${currentWalkthroughSlide}"]`);
+            const timeText = currentSlideEl.querySelector('.walkthrough-time').textContent;
+            const seconds = parseInt(timeText.match(/\d+/)[0]);
+
+            walkthroughInterval = setTimeout(() => {
+                nextWalkthroughSlide();
+            }, seconds * 1000);
+        }
+
+        function restartWalkthrough() {
+            showWalkthroughSlide(0);
+            document.querySelector('.interactive-walkthrough').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Try It Live Demo
+        const demoData = {
+            problem: '',
+            stakeholders: [],
+            success: ''
+        };
+
+        function validateDemoProblem() {
+            const input = document.getElementById('demoProblem');
+            const value = input.value.trim();
+            const validation = document.getElementById('demoProblemValidation');
+
+            demoData.problem = value;
+
+            if (value.length === 0) {
+                input.classList.remove('valid', 'invalid');
+                validation.classList.remove('show');
+            } else if (value.length < 20) {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                validation.textContent = '⚠ Please provide more detail (at least 20 characters)';
+                validation.classList.add('show', 'error');
+                validation.classList.remove('success');
+            } else {
+                input.classList.add('valid');
+                input.classList.remove('invalid');
+                validation.textContent = '✓ Great! This problem description is clear and actionable.';
+                validation.classList.add('show', 'success');
+                validation.classList.remove('error');
+            }
+
+            updateDemoPreview();
+            checkDemoFormValidity();
+        }
+
+        function validateDemoStakeholders() {
+            const input = document.getElementById('demoStakeholders');
+            const value = input.value.trim();
+            const validation = document.getElementById('demoStakeholdersValidation');
+            const listContainer = document.getElementById('demoStakeholderList');
+
+            // Parse emails
+            const emails = value.split(',').map(e => e.trim()).filter(e => e.length > 0);
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const validEmails = emails.filter(e => emailRegex.test(e));
+            const invalidEmails = emails.filter(e => !emailRegex.test(e));
+
+            demoData.stakeholders = validEmails;
+
+            if (emails.length === 0) {
+                input.classList.remove('valid', 'invalid');
+                validation.classList.remove('show');
+                listContainer.innerHTML = '';
+            } else if (invalidEmails.length > 0) {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                validation.textContent = `⚠ Invalid email(s): ${invalidEmails.join(', ')}`;
+                validation.classList.add('show', 'error');
+                validation.classList.remove('success');
+            } else {
+                input.classList.add('valid');
+                input.classList.remove('invalid');
+                validation.textContent = `✓ ${validEmails.length} stakeholder(s) will be invited`;
+                validation.classList.add('show', 'success');
+                validation.classList.remove('error');
+
+                // Show stakeholder tags
+                listContainer.innerHTML = validEmails.map(email => `
+                    <div class="demo-stakeholder-tag">
+                        ${email}
+                        <span class="demo-stakeholder-remove" onclick="removeStakeholder('${email}')">×</span>
+                    </div>
+                `).join('');
+            }
+
+            updateDemoPreview();
+            checkDemoFormValidity();
+        }
+
+        function removeStakeholder(email) {
+            const input = document.getElementById('demoStakeholders');
+            const currentEmails = input.value.split(',').map(e => e.trim());
+            const newEmails = currentEmails.filter(e => e !== email);
+            input.value = newEmails.join(', ');
+            validateDemoStakeholders();
+        }
+
+        function validateDemoSuccess() {
+            const input = document.getElementById('demoSuccess');
+            const value = input.value.trim();
+            const validation = document.getElementById('demoSuccessValidation');
+
+            demoData.success = value;
+
+            if (value.length === 0) {
+                input.classList.remove('valid', 'invalid');
+                validation.classList.remove('show');
+            } else if (value.length < 15) {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                validation.textContent = '⚠ Please be more specific about success criteria';
+                validation.classList.add('show', 'error');
+                validation.classList.remove('success');
+            } else {
+                input.classList.add('valid');
+                input.classList.remove('invalid');
+                validation.textContent = '✓ Excellent! Clear success criteria help align the team.';
+                validation.classList.add('show', 'success');
+                validation.classList.remove('error');
+            }
+
+            updateDemoPreview();
+            checkDemoFormValidity();
+        }
+
+        function showDemoHint(field) {
+            const hint = document.getElementById(`demo${field.charAt(0).toUpperCase() + field.slice(1)}Hint`);
+            hint.classList.add('show');
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                hint.classList.remove('show');
+            }, 5000);
+        }
+
+        function updateDemoPreview() {
+            const preview = document.getElementById('demoPreview');
+            const content = document.getElementById('demoPreviewContent');
+
+            if (demoData.problem || demoData.stakeholders.length > 0 || demoData.success) {
+                preview.classList.add('show');
+
+                let previewHtml = '';
+
+                if (demoData.problem) {
+                    previewHtml += `<p><strong>Problem:</strong> ${demoData.problem.substring(0, 100)}${demoData.problem.length > 100 ? '...' : ''}</p>`;
+                }
+
+                if (demoData.stakeholders.length > 0) {
+                    previewHtml += `<p><strong>Stakeholders:</strong> ${demoData.stakeholders.length} invited</p>`;
+                }
+
+                if (demoData.success) {
+                    previewHtml += `<p><strong>Success Criteria:</strong> ${demoData.success.substring(0, 100)}${demoData.success.length > 100 ? '...' : ''}</p>`;
+                }
+
+                previewHtml += `<p style="margin-top: 15px; font-style: italic; opacity: 0.8;">This PRD will auto-generate Business, Functional, and Technical requirements based on your input.</p>`;
+
+                content.innerHTML = previewHtml;
+            } else {
+                preview.classList.remove('show');
+            }
+        }
+
+        function checkDemoFormValidity() {
+            const submitBtn = document.getElementById('demoSubmitBtn');
+            const isValid = demoData.problem.length >= 20 &&
+                           demoData.stakeholders.length > 0 &&
+                           demoData.success.length >= 15;
+
+            submitBtn.disabled = !isValid;
+        }
+
+        function submitDemo() {
+            alert(`Demo PRD Created Successfully!\n\n` +
+                  `Problem: ${demoData.problem.substring(0, 60)}...\n` +
+                  `Stakeholders: ${demoData.stakeholders.join(', ')}\n` +
+                  `Success: ${demoData.success.substring(0, 60)}...\n\n` +
+                  `In a live system, this would:\n` +
+                  `✓ Generate 3-tier requirements\n` +
+                  `✓ Send invitations to all stakeholders\n` +
+                  `✓ Create traceability matrix\n` +
+                  `✓ Set up real-time collaboration\n\n` +
+                  `You'd be redirected to the PRD dashboard.`);
+
+            // Store demo data
+            localStorage.setItem('demoCompleted', JSON.stringify(demoData));
+        }
+
+        // Keyboard navigation for video
+        document.querySelector('.play-overlay').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                document.querySelector('.video-player').click();
+                playVideo();
             }
+        });
+
+        // Keyboard navigation for chapter markers
+        document.querySelectorAll('.chapter-marker').forEach((marker, index) => {
+            marker.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    jumpToChapter(index);
+                }
+            });
         });
 
         // Quick Start Wizard

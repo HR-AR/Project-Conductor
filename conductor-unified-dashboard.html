@@ -862,6 +862,9 @@
 
             <div class="nav-actions">
                 <input type="text" class="search-bar" placeholder="Search everything..." id="globalSearch" onkeyup="handleSearch(event)">
+                <button class="icon-button" onclick="window.demoWalkthrough.start()" title="Take Interactive Tour" data-tour-id="take-tour-btn">
+                    <span>🎓</span>
+                </button>
                 <button class="icon-button" onclick="toggleNotifications()">
                     <span>🔔</span>
                     <span class="icon-badge">3</span>
@@ -1192,6 +1195,37 @@
                         <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + ,</code>
                     </div>
                 </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Interactive Tour</div>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.start(); toggleSettings();">
+                    <span>🎓</span>
+                    <span>Start Full Tour</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(0); toggleSettings();">
+                    <span>0️⃣</span>
+                    <span>Replay: Learn Module</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(2); toggleSettings();">
+                    <span>2️⃣</span>
+                    <span>Replay: Problem Input</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(3); toggleSettings();">
+                    <span>3️⃣</span>
+                    <span>Replay: PRD Alignment</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(4); toggleSettings();">
+                    <span>4️⃣</span>
+                    <span>Replay: Implementation</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(5); toggleSettings();">
+                    <span>5️⃣</span>
+                    <span>Replay: Change Impact</span>
+                </a>
+                <button class="quick-start-btn secondary" onclick="if(confirm('Reset tour progress?')) { window.demoWalkthrough.resetProgress(); alert('Tour progress reset!'); }" style="width: 100%; margin-top: 0.5rem;">
+                    <span>🔄 Reset Tour Progress</span>
+                </button>
             </div>
 
             <div class="settings-section">
@@ -1832,5 +1866,8 @@
         console.log('%cOptimizations enabled: Module pre-loading, caching, lazy loading', 'color: #2ecc71; font-size: 12px;');
         console.log('%cType ConductorDebug for developer tools', 'color: #7f8c8d; font-size: 11px;');
     </script>
+
+    <!-- Demo Walkthrough System -->
+    <script src="demo-walkthrough.js"></script>
 </body>
 </html>
