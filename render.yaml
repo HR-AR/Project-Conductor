@@ -1,0 +1,193 @@
+services:
+  # Production Web Service
+  - type: web
+    name: project-conductor-prod
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: npm ci --prefer-offline --no-audit && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+
+    # Performance optimization
+    numInstances: 1
+
+    # Environment variables for production
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: HOST
+        value: 0.0.0.0
+
+      # Database configuration
+      - key: DATABASE_URL
+        fromDatabase:
+          name: conductor-postgres-prod
+          property: connectionString
+      - key: DB_POOL_MAX
+        value: 10
+      - key: DB_IDLE_TIMEOUT
+        value: 30000
+      - key: DB_CONNECTION_TIMEOUT
+        value: 5000
+      - key: DB_SSL
+        value: "true"
+
+      # Redis configuration
+      - key: REDIS_URL
+        fromDatabase:
+          name: conductor-redis-prod
+          property: connectionString
+
+      # Security secrets (auto-generated)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: API_KEY
+        generateValue: true
+
+      # Logging and monitoring
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FORMAT
+        value: json
+
+      # Security configuration
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+
+      # Feature flags
+      - key: ENABLE_METRICS
+        value: "true"
+      - key: ENABLE_HEALTH_CHECKS
+        value: "true"
+      - key: USE_MOCK_DB
+        value: "false"
+      - key: MOCK_EXTERNAL_SERVICES
+        value: "false"
+
+      # WebSocket configuration
+      - key: ALLOWED_ORIGINS
+        value: "*"
+
+  # Staging Web Service
+  - type: web
+    name: project-conductor-staging
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: npm ci --prefer-offline --no-audit && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: false
+
+    # Environment variables for staging
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: PORT
+        value: 3000
+      - key: HOST
+        value: 0.0.0.0
+
+      # Database configuration
+      - key: DATABASE_URL
+        fromDatabase:
+          name: conductor-postgres-staging
+          property: connectionString
+      - key: DB_POOL_MAX
+        value: 5
+      - key: DB_IDLE_TIMEOUT
+        value: 30000
+      - key: DB_CONNECTION_TIMEOUT
+        value: 5000
+      - key: DB_SSL
+        value: "true"
+
+      # Redis configuration
+      - key: REDIS_URL
+        fromDatabase:
+          name: conductor-redis-staging
+          property: connectionString
+
+      # Security secrets (auto-generated)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: API_KEY
+        generateValue: true
+
+      # Logging and monitoring
+      - key: LOG_LEVEL
+        value: debug
+      - key: LOG_FORMAT
+        value: pretty
+
+      # Security configuration
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 200
+
+      # Feature flags
+      - key: ENABLE_METRICS
+        value: "true"
+      - key: ENABLE_HEALTH_CHECKS
+        value: "true"
+      - key: USE_MOCK_DB
+        value: "false"
+      - key: MOCK_EXTERNAL_SERVICES
+        value: "true"
+
+      # WebSocket configuration
+      - key: ALLOWED_ORIGINS
+        value: "*"
+
+  # Production PostgreSQL Database
+  - type: pserv
+    name: conductor-postgres-prod
+    plan: starter
+    region: oregon
+    databaseName: conductor
+    user: conductor_user
+    ipAllowList: []
+
+  # Staging PostgreSQL Database
+  - type: pserv
+    name: conductor-postgres-staging
+    plan: starter
+    region: oregon
+    databaseName: conductor_staging
+    user: conductor_staging_user
+    ipAllowList: []
+
+  # Production Redis Cache
+  - type: redis
+    name: conductor-redis-prod
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  # Staging Redis Cache
+  - type: redis
+    name: conductor-redis-staging
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []

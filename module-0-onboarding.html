@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Project Conductor - Module 0: Onboarding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .value-proposition {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 40px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .metric-card .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .metric-card .value {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .metric-card.failure {
+            color: #ff6b6b;
+        }
+
+        .metric-card.success {
+            color: #51cf66;
+        }
+
+        .arrow {
+            font-size: 3rem;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+
+        /* Content Section */
+        .content-section {
+            background: white;
+            border-radius: 30px;
+            margin: 40px auto;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+            color: #667eea;
+        }
+
+        /* Process Tutorial */
+        .process-tutorial {
+            position: relative;
+            padding: 40px 0;
+        }
+
+        .process-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .process-line {
+            position: absolute;
+            top: 60px;
+            left: 8%;
+            right: 8%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            z-index: 0;
+            animation: expandLine 2s ease-out;
+        }
+
+        .process-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .process-step:hover {
+            transform: scale(1.05);
+        }
+
+        .step-circle {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            animation: bounceIn 1s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        .process-step:nth-child(1) .step-circle { animation-delay: 0.1s; }
+        .process-step:nth-child(2) .step-circle { animation-delay: 0.2s; }
+        .process-step:nth-child(3) .step-circle { animation-delay: 0.3s; }
+        .process-step:nth-child(4) .step-circle { animation-delay: 0.4s; }
+        .process-step:nth-child(5) .step-circle { animation-delay: 0.5s; }
+        .process-step:nth-child(6) .step-circle { animation-delay: 0.6s; }
+
+        .process-step.active .step-circle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #764ba2;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: #666;
+            opacity: 0;
+            max-height: 0;
+            transition: all 0.3s ease;
+        }
+
+        .process-step:hover .step-description {
+            opacity: 1;
+            max-height: 100px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .process-step:hover .tooltip {
+            display: block;
+        }
+
+        /* Role Selection */
+        .role-selection {
+            margin-top: 60px;
+        }
+
+        .role-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .role-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .role-card:hover::before {
+            opacity: 1;
+        }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .role-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .role-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .role-description {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        .role-path {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .role-card:hover .role-path {
+            opacity: 1;
+        }
+
+        /* Quick Start Wizard */
+        .quick-start-wizard {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 25px;
+            padding: 50px;
+            margin-top: 60px;
+            color: white;
+        }
+
+        .wizard-step {
+            margin-bottom: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+        .wizard-question {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .wizard-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .wizard-input:focus {
+            outline: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        textarea.wizard-input {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .wizard-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .wizard-progress {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        /* Before/After Comparison */
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .comparison-card {
+            padding: 40px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card.before {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .comparison-card.after {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .comparison-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .comparison-items {
+            list-style: none;
+            font-size: 1.1rem;
+            line-height: 2;
+        }
+
+        .comparison-items li::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        /* Success Metrics Dashboard */
+        .metrics-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 60px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+            animation-fill-mode: backwards;
+        }
+
+        .metric-box:nth-child(1) { animation-delay: 0.1s; }
+        .metric-box:nth-child(2) { animation-delay: 0.2s; }
+        .metric-box:nth-child(3) { animation-delay: 0.3s; }
+        .metric-box:nth-child(4) { animation-delay: 0.4s; }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* Video Player Placeholder */
+        .video-section {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            margin: 30px auto;
+            background: #000;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .video-player:hover .play-button {
+            transform: scale(1.1);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .btn-wizard {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #f5576c;
+        }
+
+        .btn-wizard:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-wizard:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes expandLine {
+            from {
+                transform: scaleX(0);
+            }
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .tagline {
+                font-size: 1.2rem;
+            }
+
+            .value-proposition {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .process-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .process-line {
+                display: none;
+            }
+
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+
+            .content-section {
+                padding: 40px 20px;
+            }
+
+            .quick-start-wizard {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .metric-card .value {
+                font-size: 2rem;
+            }
+
+            .btn {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Welcome to Project Conductor</h1>
+            <p class="tagline">Transform Business Problems into Aligned PRDs in Days, Not Months</p>
+
+            <div class="value-proposition">
+                <div class="metric-card failure">
+                    <div class="label">Traditional Process</div>
+                    <div class="value">70%</div>
+                    <div class="label">Failure Rate</div>
+                </div>
+                <div class="arrow">→</div>
+                <div class="metric-card success">
+                    <div class="label">With Project Conductor</div>
+                    <div class="value">92%</div>
+                    <div class="label">Success Rate</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="content-section">
+            <h2 class="section-title">Your Journey to Successful Product Development</h2>
+
+            <!-- Process Tutorial -->
+            <div class="process-tutorial">
+                <div class="process-line"></div>
+                <div class="process-steps">
+                    <div class="process-step active" data-step="0">
+                        <div class="step-circle">
+                            <span class="step-number">0</span>
+                            📖
+                        </div>
+                        <div class="step-title">Process Explanation</div>
+                        <div class="step-description">You are here! Learn how the system works</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 0: Onboarding</strong><br>
+                            Understand the 6-step process that transforms your ideas into reality. This takes less than 2 minutes.
+                        </div>
+                    </div>
+
+                    <div class="process-step" data-step="1">
+                        <div class="step-circle">
+                            <span class="step-number">1</span>
+                            💡
+                        </div>
+                        <div class="step-title">Business Problem</div>
+                        <div class="step-description">Define what you're trying to solve</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 1: Problem Input</strong><br>
+                            Describe your business problem in plain language. Our AI helps structure it into actionable requirements.
+                        </div>
+                    </div>
+
+                    <div class="process-step" data-step="2">
+                        <div class="step-circle">
+                            <span class="step-number">2</span>
+                            👥
+                        </div>
+                        <div class="step-title">Collaboration</div>
+                        <div class="step-description">Invite stakeholders and gather input</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 2: Stakeholder Alignment</strong><br>
+                            Real-time collaboration with all stakeholders. Everyone sees the same vision, live updates, no email chains.
+                        </div>
+                    </div>
+
+                    <div class="process-step" data-step="3">
+                        <div class="step-circle">
+                            <span class="step-number">3</span>
+                            📋
+                        </div>
+                        <div class="step-title">PRD Generation</div>
+                        <div class="step-description">Auto-generate aligned requirements</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 3: 3-Tier Alignment</strong><br>
+                            Automatically creates Business, Functional, and Technical requirements that are always in sync.
+                        </div>
+                    </div>
+
+                    <div class="process-step" data-step="4">
+                        <div class="step-circle">
+                            <span class="step-number">4</span>
+                            🚀
+                        </div>
+                        <div class="step-title">Implementation</div>
+                        <div class="step-description">Track progress with traceability</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 4: Orchestration</strong><br>
+                            Track every requirement from conception to deployment. Know exactly what's done, what's blocked, and why.
+                        </div>
+                    </div>
+
+                    <div class="process-step" data-step="5">
+                        <div class="step-circle">
+                            <span class="step-number">5</span>
+                            🔄
+                        </div>
+                        <div class="step-title">Change Impact</div>
+                        <div class="step-description">Visualize ripple effects instantly</div>
+                        <div class="tooltip" role="tooltip">
+                            <strong>Module 5: Impact Analysis</strong><br>
+                            Change one requirement and instantly see what else is affected. No surprises, no rework.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Selection -->
+            <section class="role-selection">
+                <h3 class="section-title">I am a...</h3>
+                <div class="role-cards">
+                    <div class="role-card" role="button" tabindex="0" aria-label="Business Owner role" data-role="business-owner" data-target="module-2">
+                        <div class="role-icon">💼</div>
+                        <div class="role-title">Business Owner</div>
+                        <div class="role-description">I have a problem to solve and need a PRD created</div>
+                        <div class="role-path">→ Direct to Module 2: Problem Input</div>
+                    </div>
+
+                    <div class="role-card" role="button" tabindex="0" aria-label="Product Manager role" data-role="product-manager" data-target="module-3">
+                        <div class="role-icon">📋</div>
+                        <div class="role-title">Product Manager</div>
+                        <div class="role-description">I manage requirements and coordinate stakeholders</div>
+                        <div class="role-path">→ Direct to Module 3: PRD Dashboard</div>
+                    </div>
+
+                    <div class="role-card" role="button" tabindex="0" aria-label="Developer role" data-role="developer" data-target="module-4">
+                        <div class="role-icon">💻</div>
+                        <div class="role-title">Developer</div>
+                        <div class="role-description">I implement features based on requirements</div>
+                        <div class="role-path">→ Direct to Module 4: Implementation View</div>
+                    </div>
+
+                    <div class="role-card" role="button" tabindex="0" aria-label="Stakeholder role" data-role="stakeholder" data-target="module-3">
+                        <div class="role-icon">👥</div>
+                        <div class="role-title">Stakeholder</div>
+                        <div class="role-description">I provide input and review requirements</div>
+                        <div class="role-path">→ Direct to Module 3: Alignment View</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Before/After Comparison -->
+            <section class="before-after">
+                <div class="comparison-card before">
+                    <div class="comparison-label">❌ Without Project Conductor</div>
+                    <ul class="comparison-items">
+                        <li>Weeks of email back-and-forth</li>
+                        <li>Misaligned stakeholder expectations</li>
+                        <li>Requirements drift during development</li>
+                        <li>No visibility into change impact</li>
+                        <li>70% project failure rate</li>
+                    </ul>
+                </div>
+
+                <div class="comparison-card after">
+                    <div class="comparison-label">✅ With Project Conductor</div>
+                    <ul class="comparison-items">
+                        <li>Real-time collaboration & updates</li>
+                        <li>Automatic 3-tier alignment</li>
+                        <li>Living PRD that stays current</li>
+                        <li>Instant change impact analysis</li>
+                        <li>92% project success rate</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Success Metrics Dashboard -->
+            <section>
+                <h3 class="section-title">Proven Results</h3>
+                <div class="metrics-dashboard">
+                    <div class="metric-box">
+                        <div class="metric-value">10x</div>
+                        <div class="metric-label">Faster Requirements Creation</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">85%</div>
+                        <div class="metric-label">Reduction in Rework</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">100%</div>
+                        <div class="metric-label">Stakeholder Visibility</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value">Real-time</div>
+                        <div class="metric-label">Impact Analysis</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video Section -->
+            <section class="video-section">
+                <h3 class="section-title">See It In Action</h3>
+                <div class="video-player" role="button" tabindex="0" aria-label="Play introduction video">
+                    <div class="play-button">▶</div>
+                </div>
+                <p style="text-align: center; color: #666; font-style: italic;">2-minute overview of the complete workflow</p>
+            </section>
+
+            <!-- Quick Start Wizard -->
+            <section class="quick-start-wizard">
+                <h3 style="text-align: center; font-size: 2rem; margin-bottom: 30px;">Quick Start: Create Your First PRD</h3>
+
+                <div class="wizard-progress">
+                    <div class="progress-dot active" data-dot="0"></div>
+                    <div class="progress-dot" data-dot="1"></div>
+                    <div class="progress-dot" data-dot="2"></div>
+                </div>
+
+                <div class="wizard-step active" data-wizard-step="0">
+                    <div class="wizard-question">What problem are you solving?</div>
+                    <textarea class="wizard-input" id="wizard-problem" placeholder="e.g., Our customer support team is overwhelmed with repetitive questions about order status..." aria-label="Problem description"></textarea>
+                    <div class="wizard-buttons">
+                        <button class="btn-wizard" onclick="nextWizardStep()">Next</button>
+                    </div>
+                </div>
+
+                <div class="wizard-step" data-wizard-step="1">
+                    <div class="wizard-question">Who needs to be involved?</div>
+                    <input type="text" class="wizard-input" id="wizard-stakeholders" placeholder="e.g., sarah@company.com, john@company.com, engineering@company.com" aria-label="Stakeholder emails">
+                    <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 10px;">Enter email addresses separated by commas</p>
+                    <div class="wizard-buttons">
+                        <button class="btn-wizard" onclick="prevWizardStep()">Back</button>
+                        <button class="btn-wizard" onclick="nextWizardStep()">Next</button>
+                    </div>
+                </div>
+
+                <div class="wizard-step" data-wizard-step="2">
+                    <div class="wizard-question">What does success look like?</div>
+                    <textarea class="wizard-input" id="wizard-success" placeholder="e.g., Customers can check order status without contacting support, reducing tickets by 40%..." aria-label="Success criteria"></textarea>
+                    <div class="wizard-buttons">
+                        <button class="btn-wizard" onclick="prevWizardStep()">Back</button>
+                        <button class="btn-wizard" onclick="completeWizard()">
+                            <span id="wizard-submit-text">Create Draft PRD</span>
+                            <span id="wizard-loading" class="loading" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation Buttons -->
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="skipToDashboard()" aria-label="Skip to main dashboard">
+                    Skip to Dashboard
+                </button>
+                <button class="btn btn-primary" onclick="startInteractiveTour()" aria-label="Start interactive tour">
+                    Take Interactive Tour
+                </button>
+                <button class="btn btn-secondary" onclick="loadExamplePRD()" aria-label="Load example PRD">
+                    Load Example PRD
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Process Step Interactions
+        document.querySelectorAll('.process-step').forEach(step => {
+            step.addEventListener('click', () => {
+                const stepNum = step.dataset.step;
+                alert(`Module ${stepNum}: ${step.querySelector('.step-title').textContent}\n\n${step.querySelector('.tooltip').textContent.trim()}`);
+            });
+
+            step.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    step.click();
+                }
+            });
+        });
+
+        // Role Card Interactions
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const role = card.dataset.role;
+                const target = card.dataset.target;
+
+                // Store role preference
+                localStorage.setItem('userRole', role);
+
+                // Show confirmation
+                const roleName = card.querySelector('.role-title').textContent;
+                if (confirm(`Welcome, ${roleName}!\n\nYou'll be directed to ${target}. Continue?`)) {
+                    alert(`Navigation to ${target} would happen here.\n\nFor now, this is a demonstration. Click "Take Interactive Tour" to explore the system.`);
+                }
+            });
+
+            card.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
+                }
+            });
+        });
+
+        // Video Player
+        document.querySelector('.video-player').addEventListener('click', () => {
+            alert('Video player would launch here.\n\nIn production, this would show a 2-minute walkthrough video demonstrating:\n\n1. Creating a business problem\n2. Stakeholder collaboration\n3. PRD generation\n4. Traceability tracking\n5. Change impact analysis');
+        });
+
+        document.querySelector('.video-player').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.querySelector('.video-player').click();
+            }
+        });
+
+        // Quick Start Wizard
+        let currentWizardStep = 0;
+        const wizardData = {
+            problem: '',
+            stakeholders: '',
+            success: ''
+        };
+
+        function nextWizardStep() {
+            // Save current step data
+            if (currentWizardStep === 0) {
+                wizardData.problem = document.getElementById('wizard-problem').value;
+                if (!wizardData.problem.trim()) {
+                    alert('Please describe the problem you\'re trying to solve.');
+                    return;
+                }
+            } else if (currentWizardStep === 1) {
+                wizardData.stakeholders = document.getElementById('wizard-stakeholders').value;
+                if (!wizardData.stakeholders.trim()) {
+                    alert('Please enter at least one stakeholder email.');
+                    return;
+                }
+            }
+
+            // Move to next step
+            document.querySelector(`[data-wizard-step="${currentWizardStep}"]`).classList.remove('active');
+            document.querySelector(`[data-dot="${currentWizardStep}"]`).classList.remove('active');
+
+            currentWizardStep++;
+
+            document.querySelector(`[data-wizard-step="${currentWizardStep}"]`).classList.add('active');
+            document.querySelector(`[data-dot="${currentWizardStep}"]`).classList.add('active');
+        }
+
+        function prevWizardStep() {
+            document.querySelector(`[data-wizard-step="${currentWizardStep}"]`).classList.remove('active');
+            document.querySelector(`[data-dot="${currentWizardStep}"]`).classList.remove('active');
+
+            currentWizardStep--;
+
+            document.querySelector(`[data-wizard-step="${currentWizardStep}"]`).classList.add('active');
+            document.querySelector(`[data-dot="${currentWizardStep}"]`).classList.add('active');
+        }
+
+        function completeWizard() {
+            wizardData.success = document.getElementById('wizard-success').value;
+
+            if (!wizardData.success.trim()) {
+                alert('Please describe what success looks like for this project.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('wizard-submit-text').style.display = 'none';
+            document.getElementById('wizard-loading').style.display = 'inline-block';
+
+            // Simulate API call
+            setTimeout(() => {
+                // Store wizard data
+                localStorage.setItem('quickStartPRD', JSON.stringify(wizardData));
+
+                alert(`Draft PRD Created Successfully!\n\n` +
+                      `Problem: ${wizardData.problem.substring(0, 50)}...\n` +
+                      `Stakeholders: ${wizardData.stakeholders}\n` +
+                      `Success Criteria: ${wizardData.success.substring(0, 50)}...\n\n` +
+                      `Stakeholders have been invited and notified.\n` +
+                      `You'll now be directed to the PRD dashboard.`);
+
+                // Reset wizard
+                document.getElementById('wizard-submit-text').style.display = 'inline';
+                document.getElementById('wizard-loading').style.display = 'none';
+            }, 2000);
+        }
+
+        // Navigation Functions
+        function skipToDashboard() {
+            alert('Navigation to unified dashboard would happen here.\n\nThis would show:\n- Active PRDs\n- Recent updates\n- Pending approvals\n- Traceability status\n- Team activity');
+        }
+
+        function startInteractiveTour() {
+            alert('Interactive tour starting...\n\nThis would provide a step-by-step walkthrough of:\n\n1. Creating your first requirement\n2. Inviting stakeholders\n3. Reviewing 3-tier alignment\n4. Tracking implementation\n5. Analyzing change impact\n\nEach step would be interactive with sample data.');
+        }
+
+        function loadExamplePRD() {
+            const example = {
+                problem: 'Customer support team receives 200+ daily questions about order status, costing 15 hours/day',
+                stakeholders: 'product@example.com, support@example.com, dev@example.com',
+                success: 'Customers can self-serve order status, reducing support tickets by 40% and saving 6 hours/day'
+            };
+
+            if (confirm('Load example PRD?\n\nThis will populate the Quick Start Wizard with sample data from a real use case.')) {
+                document.getElementById('wizard-problem').value = example.problem;
+                document.getElementById('wizard-stakeholders').value = example.stakeholders;
+                document.getElementById('wizard-success').value = example.success;
+
+                document.querySelector('.quick-start-wizard').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            // Alt + S: Skip to dashboard
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                skipToDashboard();
+            }
+            // Alt + T: Start tour
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                startInteractiveTour();
+            }
+            // Alt + E: Load example
+            if (e.altKey && e.key === 'e') {
+                e.preventDefault();
+                loadExamplePRD();
+            }
+        });
+
+        // Announce page load for screen readers
+        window.addEventListener('load', () => {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('role', 'status');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.className = 'sr-only';
+            announcement.textContent = 'Welcome to Project Conductor onboarding. Module 0 loaded successfully.';
+            document.body.appendChild(announcement);
+        });
+
+        // Auto-save wizard progress
+        const wizardInputs = document.querySelectorAll('.wizard-input');
+        wizardInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const key = `wizard_draft_${e.target.id}`;
+                localStorage.setItem(key, e.target.value);
+            });
+
+            // Restore draft on load
+            const key = `wizard_draft_${input.id}`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                input.value = saved;
+            }
+        });
+    </script>
+
+    <!-- State Synchronization -->
+    <script src="module-state-sync.js"></script>
+    <script>
+        // Initialize state sync for Module 0
+        ConductorModuleState.init(0);
+
+        // Listen for state updates from dashboard
+        ConductorModuleState.onStateUpdate((detail) => {
+            console.log('[Module 0] State updated from dashboard:', detail);
+        });
+
+        // Track onboarding progress
+        function trackProgress(step) {
+            ConductorModuleState.updateState({
+                onboardingProgress: step,
+                lastStep: step,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Save wizard inputs to state
+        const wizardInputsSync = document.querySelectorAll('.wizard-input');
+        wizardInputsSync.forEach(input => {
+            input.addEventListener('change', (e) => {
+                ConductorModuleState.updateState({
+                    [`wizard_${e.target.id}`]: e.target.value
+                }, { saveImmediately: true });
+            });
+        });
+
+        console.log('[Module 0] State synchronization initialized');
+    </script>
+</body>
+</html>

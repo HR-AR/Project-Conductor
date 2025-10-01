@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5: Change Impact Analysis & Traceability - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .nav-breadcrumb {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: #6c757d;
+        }
+
+        .split-view {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            min-height: calc(100vh - 200px);
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .current-value {
+            background: #e7f3ff;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 15px;
+        }
+
+        .current-value strong {
+            display: block;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .current-value span {
+            color: #495057;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .impact-dashboard {
+            display: none;
+        }
+
+        .impact-dashboard.active {
+            display: block;
+        }
+
+        .impact-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .impact-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .impact-card.critical {
+            border-left-color: #dc3545;
+        }
+
+        .impact-card.high {
+            border-left-color: #fd7e14;
+        }
+
+        .impact-card.medium {
+            border-left-color: #ffc107;
+        }
+
+        .impact-card.low {
+            border-left-color: #28a745;
+        }
+
+        .impact-card-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .impact-card-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .impact-card-detail {
+            font-size: 0.9em;
+            color: #495057;
+            margin-top: 5px;
+        }
+
+        .affected-requirements {
+            margin-bottom: 30px;
+        }
+
+        .requirement-impact-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .requirement-impact-item.direct {
+            border-left-color: #dc3545;
+        }
+
+        .requirement-impact-item.indirect {
+            border-left-color: #ffc107;
+        }
+
+        .requirement-impact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .requirement-impact-id {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .severity-badge.critical {
+            background: #dc3545;
+            color: white;
+        }
+
+        .severity-badge.high {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .severity-badge.medium {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .severity-badge.low {
+            background: #28a745;
+            color: white;
+        }
+
+        .requirement-impact-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .stakeholder-list {
+            margin-bottom: 30px;
+        }
+
+        .stakeholder-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stakeholder-info {
+            flex: 1;
+        }
+
+        .stakeholder-name {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stakeholder-reason {
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        .stakeholder-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .timeline-impact {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .timeline-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item {
+            text-align: center;
+        }
+
+        .timeline-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .timeline-date {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .timeline-arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .timeline-delta {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 2px solid #ffc107;
+        }
+
+        .timeline-delta strong {
+            color: #856404;
+            font-size: 1.2em;
+        }
+
+        .gantt-chart {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .gantt-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .gantt-label {
+            width: 150px;
+            font-size: 0.9em;
+            color: #495057;
+        }
+
+        .gantt-bar-container {
+            flex: 1;
+            height: 30px;
+            position: relative;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .gantt-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: absolute;
+            top: 0;
+        }
+
+        .gantt-bar.delayed {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .budget-impact {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .budget-comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .budget-item {
+            text-align: center;
+        }
+
+        .budget-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .budget-amount {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .budget-breakdown {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .budget-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .budget-breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .code-impact {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .code-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .code-stat {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .code-stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .code-stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .traceability-graph {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .trace-chain {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .trace-node {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            padding: 15px 30px;
+            min-width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .trace-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .trace-node.impacted {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .trace-node-type {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .trace-node-title {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .trace-arrow {
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .trace-arrow.impacted {
+            color: #dc3545;
+        }
+
+        .dependency-graph {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .graph-canvas {
+            width: 100%;
+            height: 400px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+
+        .graph-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .version-comparison {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .diff-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .diff-column {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .diff-column h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .diff-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .diff-item.unchanged {
+            opacity: 0.7;
+        }
+
+        .diff-item.changed {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .diff-item.removed {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .diff-item.added {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .diff-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+
+        .diff-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .alignment-status {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .alignment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .alignment-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-before {
+            color: #28a745;
+        }
+
+        .status-after {
+            color: #ffc107;
+        }
+
+        .approval-workflow {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .workflow-section {
+            margin-bottom: 20px;
+        }
+
+        .workflow-section h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .workflow-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .historical-changes {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .history-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .history-item {
+            position: relative;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .history-version {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .history-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .history-changes {
+            color: #495057;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .scenarios {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .scenario-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .scenario-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .scenario-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .scenario-card.active {
+            background: #e7f3ff;
+            border-left-color: #0066cc;
+        }
+
+        .scenario-name {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .scenario-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .scenario-metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scenario-metric-label {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+
+        .scenario-metric-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .add-scenario-btn {
+            margin-top: 15px;
+        }
+
+        .action-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .action-panel .btn {
+            margin: 0;
+        }
+
+        .expandable {
+            margin-bottom: 20px;
+        }
+
+        .expandable-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .expandable-header:hover {
+            background: #e9ecef;
+        }
+
+        .expandable-content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .expandable-content.active {
+            display: block;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        @media print {
+            .left-panel {
+                display: none;
+            }
+
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                display: none;
+            }
+
+            body {
+                background: white;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Module 5: Change Impact Analysis & Traceability</h1>
+            <p>Understand the full impact of changes before committing</p>
+        </div>
+
+        <div class="nav-breadcrumb">
+            <div class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span>→</span>
+                <a href="module-3-prd-generator.html">Module 3: PRD</a>
+                <span>→</span>
+                <a href="module-4-implementation-tracker.html">Module 4: Implementation</a>
+                <span>→</span>
+                <span>Module 5: Change Impact</span>
+            </div>
+        </div>
+
+        <div class="split-view">
+            <div class="left-panel">
+                <div class="section">
+                    <h2 class="section-title">Change Simulator</h2>
+
+                    <div class="form-group">
+                        <label for="selectRequirement">Select Requirement to Modify</label>
+                        <select id="selectRequirement">
+                            <option value="">-- Select a requirement --</option>
+                            <option value="REQ-001">REQ-001: User Authentication System</option>
+                            <option value="REQ-002">REQ-002: Dashboard Analytics</option>
+                            <option value="REQ-003">REQ-003: One-Click Checkout</option>
+                            <option value="REQ-004">REQ-004: Email Notification Service</option>
+                            <option value="REQ-005">REQ-005: Mobile Responsive Design</option>
+                            <option value="REQ-006">REQ-006: Payment Gateway Integration</option>
+                            <option value="REQ-007">REQ-007: User Profile Management</option>
+                        </select>
+                    </div>
+
+                    <div id="currentValueDisplay" style="display: none;">
+                        <div class="current-value">
+                            <strong>Current Title:</strong>
+                            <span id="currentTitle">-</span>
+                        </div>
+                        <div class="current-value">
+                            <strong>Current Description:</strong>
+                            <span id="currentDescription">-</span>
+                        </div>
+                        <div class="current-value">
+                            <strong>Current Priority:</strong>
+                            <span id="currentPriority">-</span>
+                        </div>
+                        <div class="current-value">
+                            <strong>Current Status:</strong>
+                            <span id="currentStatus">-</span>
+                        </div>
+                        <div class="current-value">
+                            <strong>Current Dependencies:</strong>
+                            <span id="currentDependencies">-</span>
+                        </div>
+                    </div>
+
+                    <div id="changeEditor" style="display: none;">
+                        <h3 style="margin: 20px 0 15px 0; color: #2c3e50;">Propose Changes</h3>
+
+                        <div class="form-group">
+                            <label for="newTitle">New Title</label>
+                            <input type="text" id="newTitle" placeholder="Enter new title">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newDescription">New Description</label>
+                            <textarea id="newDescription" placeholder="Enter new description"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPriority">New Priority</label>
+                            <select id="newPriority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newStatus">New Status</label>
+                            <select id="newStatus">
+                                <option value="planned">Planned</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="testing">Testing</option>
+                                <option value="completed">Completed</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newDependencies">Dependencies (comma-separated)</label>
+                            <input type="text" id="newDependencies" placeholder="e.g., REQ-001, REQ-002">
+                        </div>
+
+                        <button class="btn btn-primary btn-block" onclick="simulateImpact()">
+                            Simulate Impact
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">What-If Scenarios</h2>
+                    <div class="scenario-list">
+                        <div class="scenario-card" onclick="loadScenario('A')">
+                            <div class="scenario-name">Scenario A: Reduce Scope</div>
+                            <div class="scenario-metrics">
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Timeline:</span>
+                                    <span class="scenario-metric-value">On time</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Budget:</span>
+                                    <span class="scenario-metric-value">$50,000</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Features:</span>
+                                    <span class="scenario-metric-value">70%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scenario-card" onclick="loadScenario('B')">
+                            <div class="scenario-name">Scenario B: Add Resources</div>
+                            <div class="scenario-metrics">
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Timeline:</span>
+                                    <span class="scenario-metric-value">On time</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Budget:</span>
+                                    <span class="scenario-metric-value">$75,000</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Features:</span>
+                                    <span class="scenario-metric-value">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scenario-card" onclick="loadScenario('C')">
+                            <div class="scenario-name">Scenario C: Delay Features</div>
+                            <div class="scenario-metrics">
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Timeline:</span>
+                                    <span class="scenario-metric-value">+2 weeks</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Budget:</span>
+                                    <span class="scenario-metric-value">$50,000</span>
+                                </div>
+                                <div class="scenario-metric">
+                                    <span class="scenario-metric-label">Features:</span>
+                                    <span class="scenario-metric-value">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-block add-scenario-btn" onclick="addNewScenario()">
+                        + Add New Scenario
+                    </button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div id="impactDashboard" class="impact-dashboard">
+                    <div class="section">
+                        <h2 class="section-title">Impact Summary</h2>
+                        <div class="impact-summary">
+                            <div class="impact-card critical">
+                                <div class="impact-card-label">Overall Severity</div>
+                                <div class="impact-card-value">High</div>
+                                <div class="impact-card-detail">Significant impact detected</div>
+                            </div>
+                            <div class="impact-card high">
+                                <div class="impact-card-label">Affected Requirements</div>
+                                <div class="impact-card-value">8</div>
+                                <div class="impact-card-detail">5 direct, 3 indirect</div>
+                            </div>
+                            <div class="impact-card medium">
+                                <div class="impact-card-label">Stakeholders Impacted</div>
+                                <div class="impact-card-value">4</div>
+                                <div class="impact-card-detail">Re-approval needed</div>
+                            </div>
+                            <div class="impact-card medium">
+                                <div class="impact-card-label">Timeline Delay</div>
+                                <div class="impact-card-value">+7 days</div>
+                                <div class="impact-card-detail">Critical path affected</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Affected Requirements (8)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="requirement-impact-item direct">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-003: One-Click Checkout</div>
+                                    <span class="severity-badge critical">Critical</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Direct</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">Modified directly</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Re-test, Re-approve</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="requirement-impact-item direct">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-006: Payment Gateway</div>
+                                    <span class="severity-badge high">High</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Direct</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">Depends on REQ-003</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Update integration</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="requirement-impact-item direct">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-001: User Authentication</div>
+                                    <span class="severity-badge high">High</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Direct</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">Checkout requires auth</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Re-test</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="requirement-impact-item indirect">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-002: Dashboard Analytics</div>
+                                    <span class="severity-badge medium">Medium</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Indirect</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">Tracks checkout metrics</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Update reports</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="requirement-impact-item indirect">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-004: Email Notifications</div>
+                                    <span class="severity-badge medium">Medium</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Indirect</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">Order confirmation flow</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Update templates</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="requirement-impact-item indirect">
+                                <div class="requirement-impact-header">
+                                    <div class="requirement-impact-id">REQ-005: Mobile Design</div>
+                                    <span class="severity-badge low">Low</span>
+                                </div>
+                                <div class="requirement-impact-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Impact Type</span>
+                                        <span class="detail-value">Indirect</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reason</span>
+                                        <span class="detail-value">UI component shared</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Action Needed</span>
+                                        <span class="detail-value">Visual QA</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Stakeholder Re-Alignment (4 people)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="stakeholder-list">
+                                <div class="stakeholder-item">
+                                    <div class="stakeholder-info">
+                                        <div class="stakeholder-name">Sarah Chen (Tech Lead)</div>
+                                        <div class="stakeholder-reason">Estimate changes from 3 days to 6 days due to new complexity</div>
+                                    </div>
+                                    <div class="stakeholder-actions">
+                                        <button class="btn btn-primary" onclick="draftEmail('Sarah')">Draft Email</button>
+                                        <button class="btn btn-secondary" onclick="scheduleMeeting('Sarah')">Schedule Meeting</button>
+                                    </div>
+                                </div>
+
+                                <div class="stakeholder-item">
+                                    <div class="stakeholder-info">
+                                        <div class="stakeholder-name">Lisa Wang (UX Designer)</div>
+                                        <div class="stakeholder-reason">Mockups need updating for new checkout flow</div>
+                                    </div>
+                                    <div class="stakeholder-actions">
+                                        <button class="btn btn-primary" onclick="draftEmail('Lisa')">Draft Email</button>
+                                        <button class="btn btn-secondary" onclick="scheduleMeeting('Lisa')">Schedule Meeting</button>
+                                    </div>
+                                </div>
+
+                                <div class="stakeholder-item">
+                                    <div class="stakeholder-info">
+                                        <div class="stakeholder-name">Mike Rodriguez (Business Owner)</div>
+                                        <div class="stakeholder-reason">ROI calculations need revision based on new timeline</div>
+                                    </div>
+                                    <div class="stakeholder-actions">
+                                        <button class="btn btn-primary" onclick="draftEmail('Mike')">Draft Email</button>
+                                        <button class="btn btn-secondary" onclick="scheduleMeeting('Mike')">Schedule Meeting</button>
+                                    </div>
+                                </div>
+
+                                <div class="stakeholder-item">
+                                    <div class="stakeholder-info">
+                                        <div class="stakeholder-name">Tom Harris (QA Lead)</div>
+                                        <div class="stakeholder-reason">Test plan expansion required for new scope</div>
+                                    </div>
+                                    <div class="stakeholder-actions">
+                                        <button class="btn btn-primary" onclick="draftEmail('Tom')">Draft Email</button>
+                                        <button class="btn btn-secondary" onclick="scheduleMeeting('Tom')">Schedule Meeting</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Timeline Impact (+7 days delay)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="timeline-impact">
+                                <div class="timeline-comparison">
+                                    <div class="timeline-item">
+                                        <div class="timeline-label">Current Deadline</div>
+                                        <div class="timeline-date">March 15, 2024</div>
+                                    </div>
+                                    <div class="timeline-arrow">→</div>
+                                    <div class="timeline-item">
+                                        <div class="timeline-label">New Deadline</div>
+                                        <div class="timeline-date">March 22, 2024</div>
+                                    </div>
+                                </div>
+                                <div class="timeline-delta">
+                                    <strong>+7 days delay</strong> - Critical path affected
+                                </div>
+
+                                <div class="gantt-chart">
+                                    <h4 style="margin-bottom: 15px;">Gantt Chart - Delay Propagation</h4>
+                                    <div class="gantt-row">
+                                        <div class="gantt-label">Authentication</div>
+                                        <div class="gantt-bar-container">
+                                            <div class="gantt-bar" style="left: 0%; width: 30%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="gantt-row">
+                                        <div class="gantt-label">Checkout (Modified)</div>
+                                        <div class="gantt-bar-container">
+                                            <div class="gantt-bar delayed" style="left: 30%; width: 40%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="gantt-row">
+                                        <div class="gantt-label">Payment Gateway</div>
+                                        <div class="gantt-bar-container">
+                                            <div class="gantt-bar delayed" style="left: 50%; width: 30%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="gantt-row">
+                                        <div class="gantt-label">Testing Phase</div>
+                                        <div class="gantt-bar-container">
+                                            <div class="gantt-bar delayed" style="left: 70%; width: 20%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="gantt-row">
+                                        <div class="gantt-label">Deployment</div>
+                                        <div class="gantt-bar-container">
+                                            <div class="gantt-bar delayed" style="left: 85%; width: 10%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Budget Impact (+$15,000)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="budget-impact">
+                                <div class="budget-comparison">
+                                    <div class="budget-item">
+                                        <div class="budget-label">Current Estimate</div>
+                                        <div class="budget-amount">$50,000</div>
+                                    </div>
+                                    <div class="timeline-arrow">→</div>
+                                    <div class="budget-item">
+                                        <div class="budget-label">New Estimate</div>
+                                        <div class="budget-amount">$65,000</div>
+                                    </div>
+                                </div>
+
+                                <div class="budget-breakdown">
+                                    <h4 style="margin-bottom: 15px;">Cost Breakdown</h4>
+                                    <div class="budget-breakdown-item">
+                                        <span>Development Time (+24 hours)</span>
+                                        <strong style="color: #dc3545;">+$12,000</strong>
+                                    </div>
+                                    <div class="budget-breakdown-item">
+                                        <span>QA Time (+6 hours)</span>
+                                        <strong style="color: #dc3545;">+$3,000</strong>
+                                    </div>
+                                    <div class="budget-breakdown-item">
+                                        <span>Design Updates (+4 hours)</span>
+                                        <strong style="color: #dc3545;">+$2,000</strong>
+                                    </div>
+                                    <div class="budget-breakdown-item">
+                                        <span>Project Management Overhead</span>
+                                        <strong style="color: #dc3545;">+$1,500</strong>
+                                    </div>
+                                    <div class="budget-breakdown-item" style="border-top: 2px solid #2c3e50; padding-top: 10px; margin-top: 10px;">
+                                        <span style="font-weight: 700;">Total Increase</span>
+                                        <strong style="color: #dc3545; font-size: 1.2em;">+$15,000 (30%)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Code Impact (8 files, ~350 LOC)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="code-impact">
+                                <div class="code-stats">
+                                    <div class="code-stat">
+                                        <div class="code-stat-value">8</div>
+                                        <div class="code-stat-label">Files Affected</div>
+                                    </div>
+                                    <div class="code-stat">
+                                        <div class="code-stat-value">~350</div>
+                                        <div class="code-stat-label">Lines Changed</div>
+                                    </div>
+                                    <div class="code-stat">
+                                        <div class="code-stat-value">12</div>
+                                        <div class="code-stat-label">Tests to Update</div>
+                                    </div>
+                                    <div class="code-stat">
+                                        <div class="code-stat-value">3</div>
+                                        <div class="code-stat-label">API Endpoints</div>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                                    <h4 style="margin-bottom: 15px;">Affected Files</h4>
+                                    <ul style="list-style: none; padding: 0;">
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>checkout.service.ts</strong> - Core business logic (~120 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>checkout.controller.ts</strong> - API endpoints (~50 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>payment.service.ts</strong> - Integration updates (~80 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>auth.middleware.ts</strong> - Security updates (~30 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>checkout.test.ts</strong> - Unit tests (~40 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>integration.test.ts</strong> - E2E tests (~30 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                                            <strong>database.migrations.ts</strong> - Schema changes (~20 LOC)
+                                        </li>
+                                        <li style="padding: 8px 0;">
+                                            <strong>api.documentation.md</strong> - Documentation updates (~15 LOC)
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Traceability Visualization</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="traceability-graph">
+                                <div class="trace-chain">
+                                    <div class="trace-node">
+                                        <div class="trace-node-type">Business Objective</div>
+                                        <div class="trace-node-title">Increase Conversion Rate 25%</div>
+                                    </div>
+                                    <div class="trace-arrow impacted">↓</div>
+                                    <div class="trace-node impacted">
+                                        <div class="trace-node-type">Requirement</div>
+                                        <div class="trace-node-title">REQ-003: One-Click Checkout</div>
+                                    </div>
+                                    <div class="trace-arrow impacted">↓</div>
+                                    <div class="trace-node impacted">
+                                        <div class="trace-node-type">Design Artifact</div>
+                                        <div class="trace-node-title">Design-007: Checkout UI Mockup</div>
+                                    </div>
+                                    <div class="trace-arrow impacted">↓</div>
+                                    <div class="trace-node impacted">
+                                        <div class="trace-node-type">Code Implementation</div>
+                                        <div class="trace-node-title">Code-024: checkout.service.ts</div>
+                                    </div>
+                                    <div class="trace-arrow impacted">↓</div>
+                                    <div class="trace-node impacted">
+                                        <div class="trace-node-type">Test Suite</div>
+                                        <div class="trace-node-title">Test-012: checkout.test.ts</div>
+                                    </div>
+                                    <div class="trace-arrow impacted">↓</div>
+                                    <div class="trace-node impacted">
+                                        <div class="trace-node-type">Deployment</div>
+                                        <div class="trace-node-title">Deploy-003: Production Release v2.1</div>
+                                    </div>
+                                </div>
+                                <p style="text-align: center; margin-top: 20px; color: #6c757d; font-style: italic;">
+                                    Red nodes indicate components affected by the proposed change
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Dependency Graph Network</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="dependency-graph">
+                                <div class="graph-canvas">
+                                    Interactive network graph would render here using D3.js or similar
+                                    <br><br>
+                                    <div style="font-size: 0.9em; color: #495057;">
+                                        Legend: 🟢 No Impact | 🟡 Indirect Impact | 🔴 Direct Impact
+                                    </div>
+                                </div>
+                                <div class="graph-controls">
+                                    <button class="btn btn-secondary">Zoom In</button>
+                                    <button class="btn btn-secondary">Zoom Out</button>
+                                    <button class="btn btn-secondary">Reset View</button>
+                                    <button class="btn btn-secondary">Filter: High Impact Only</button>
+                                    <button class="btn btn-primary">Export Graph</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Version Comparison (Before vs After)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="version-comparison">
+                                <div class="diff-view">
+                                    <div class="diff-column">
+                                        <h4>Before (Current PRD)</h4>
+                                        <div class="diff-item unchanged">
+                                            <div class="diff-label">Title</div>
+                                            <div class="diff-value">One-Click Checkout</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Description</div>
+                                            <div class="diff-value">Implement basic one-click checkout for logged-in users</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Priority</div>
+                                            <div class="diff-value">High</div>
+                                        </div>
+                                        <div class="diff-item unchanged">
+                                            <div class="diff-label">Status</div>
+                                            <div class="diff-value">In Progress</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Dependencies</div>
+                                            <div class="diff-value">REQ-001</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="diff-column">
+                                        <h4>After (Proposed Changes)</h4>
+                                        <div class="diff-item unchanged">
+                                            <div class="diff-label">Title</div>
+                                            <div class="diff-value">One-Click Checkout</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Description</div>
+                                            <div class="diff-value">Enhanced one-click checkout with guest support and saved payment methods</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Priority</div>
+                                            <div class="diff-value">Critical</div>
+                                        </div>
+                                        <div class="diff-item unchanged">
+                                            <div class="diff-label">Status</div>
+                                            <div class="diff-value">In Progress</div>
+                                        </div>
+                                        <div class="diff-item changed">
+                                            <div class="diff-label">Dependencies</div>
+                                            <div class="diff-value">REQ-001, REQ-006</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alignment-status">
+                                    <h4 style="margin-bottom: 15px;">Alignment Status Changes</h4>
+                                    <div class="alignment-item">
+                                        <span>Mike Rodriguez (Business Owner)</span>
+                                        <span>
+                                            <span class="status-before">Aligned ✅</span> →
+                                            <span class="status-after">Needs Re-review ⚠️</span>
+                                        </span>
+                                    </div>
+                                    <div class="alignment-item">
+                                        <span>Sarah Chen (Tech Lead)</span>
+                                        <span>
+                                            <span class="status-before">Aligned ✅</span> →
+                                            <span class="status-after">Needs Re-review ⚠️</span>
+                                        </span>
+                                    </div>
+                                    <div class="alignment-item">
+                                        <span>Lisa Wang (UX Designer)</span>
+                                        <span>
+                                            <span class="status-before">Aligned ✅</span> →
+                                            <span class="status-after">Needs Re-review ⚠️</span>
+                                        </span>
+                                    </div>
+                                    <div class="alignment-item">
+                                        <span>Tom Harris (QA Lead)</span>
+                                        <span>
+                                            <span class="status-before">Aligned ✅</span> →
+                                            <span class="status-after">Needs Re-review ⚠️</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Approval Workflow</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="approval-workflow">
+                                <div class="workflow-section">
+                                    <h4>If Impact is Acceptable</h4>
+                                    <div class="workflow-actions">
+                                        <button class="btn btn-success" onclick="approveChange()">
+                                            Approve Change
+                                        </button>
+                                        <button class="btn btn-warning" onclick="approveAndRealign()">
+                                            Approve & Re-align
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="scheduleReview()">
+                                            Schedule Review
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="workflow-section">
+                                    <h4>If Impact is Too High</h4>
+                                    <div class="workflow-actions">
+                                        <button class="btn btn-danger" onclick="rejectChange()">
+                                            Reject Change
+                                        </button>
+                                        <button class="btn btn-warning" onclick="modifyProposal()">
+                                            Modify Proposal
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="escalate()">
+                                            Escalate to Leadership
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expandable">
+                        <div class="expandable-header" onclick="toggleExpandable(this)">
+                            <span>Historical Changes (5 versions)</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="expandable-content">
+                            <div class="historical-changes">
+                                <div class="history-timeline">
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <div class="history-version">Version 1.0 (Current)</div>
+                                            <div class="history-date">March 1, 2024</div>
+                                        </div>
+                                        <div class="history-changes">
+                                            Initial requirement creation - Basic one-click checkout
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="btn btn-secondary" onclick="viewDiff('1.0')">View Details</button>
+                                            <button class="btn btn-secondary" onclick="restoreVersion('1.0')">Restore</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <div class="history-version">Version 0.9</div>
+                                            <div class="history-date">February 25, 2024</div>
+                                        </div>
+                                        <div class="history-changes">
+                                            Added authentication dependency, updated priority to High
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="btn btn-secondary" onclick="viewDiff('0.9')">View Details</button>
+                                            <button class="btn btn-secondary" onclick="restoreVersion('0.9')">Restore</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <div class="history-version">Version 0.8</div>
+                                            <div class="history-date">February 20, 2024</div>
+                                        </div>
+                                        <div class="history-changes">
+                                            Expanded description to include mobile support
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="btn btn-secondary" onclick="viewDiff('0.8')">View Details</button>
+                                            <button class="btn btn-secondary" onclick="restoreVersion('0.8')">Restore</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <div class="history-version">Version 0.7</div>
+                                            <div class="history-date">February 15, 2024</div>
+                                        </div>
+                                        <div class="history-changes">
+                                            Status changed from Planned to In Progress
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="btn btn-secondary" onclick="viewDiff('0.7')">View Details</button>
+                                            <button class="btn btn-secondary" onclick="restoreVersion('0.7')">Restore</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <div class="history-version">Version 0.6</div>
+                                            <div class="history-date">February 10, 2024</div>
+                                        </div>
+                                        <div class="history-changes">
+                                            Initial draft - Stakeholder alignment phase
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="btn btn-secondary" onclick="viewDiff('0.6')">View Details</button>
+                                            <button class="btn btn-secondary" onclick="restoreVersion('0.6')">Restore</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="emptyState" style="text-align: center; padding: 100px 20px; color: #6c757d;">
+                    <div style="font-size: 4em; margin-bottom: 20px;">🔍</div>
+                    <h2 style="color: #2c3e50; margin-bottom: 15px;">No Analysis Yet</h2>
+                    <p style="font-size: 1.1em;">
+                        Select a requirement from the left panel and propose changes to see the impact analysis.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-panel">
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="applyChange()">
+                    Apply Change
+                </button>
+                <button class="btn btn-primary" onclick="notifyStakeholders()">
+                    Notify Stakeholders
+                </button>
+                <button class="btn btn-primary" onclick="generateReport()">
+                    Generate Change Report
+                </button>
+                <a href="module-3-prd-generator.html" class="btn btn-secondary">
+                    Back to PRD
+                </a>
+                <a href="module-4-implementation-tracker.html" class="btn btn-secondary">
+                    View Implementation
+                </a>
+                <button class="btn btn-secondary" onclick="startNewChange()">
+                    Start New Change
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for requirements
+        const requirements = {
+            'REQ-001': {
+                title: 'User Authentication System',
+                description: 'Implement secure user authentication with JWT tokens',
+                priority: 'critical',
+                status: 'completed',
+                dependencies: ''
+            },
+            'REQ-002': {
+                title: 'Dashboard Analytics',
+                description: 'Real-time analytics dashboard with KPI tracking',
+                priority: 'high',
+                status: 'in-progress',
+                dependencies: 'REQ-001'
+            },
+            'REQ-003': {
+                title: 'One-Click Checkout',
+                description: 'Implement basic one-click checkout for logged-in users',
+                priority: 'high',
+                status: 'in-progress',
+                dependencies: 'REQ-001'
+            },
+            'REQ-004': {
+                title: 'Email Notification Service',
+                description: 'Automated email notifications for user actions',
+                priority: 'medium',
+                status: 'planned',
+                dependencies: 'REQ-001'
+            },
+            'REQ-005': {
+                title: 'Mobile Responsive Design',
+                description: 'Fully responsive design for mobile devices',
+                priority: 'high',
+                status: 'in-progress',
+                dependencies: ''
+            },
+            'REQ-006': {
+                title: 'Payment Gateway Integration',
+                description: 'Integrate Stripe payment processing',
+                priority: 'critical',
+                status: 'testing',
+                dependencies: 'REQ-001, REQ-003'
+            },
+            'REQ-007': {
+                title: 'User Profile Management',
+                description: 'Allow users to manage their profile information',
+                priority: 'medium',
+                status: 'completed',
+                dependencies: 'REQ-001'
+            }
+        };
+
+        // Handle requirement selection
+        document.getElementById('selectRequirement').addEventListener('change', function() {
+            const reqId = this.value;
+            if (reqId && requirements[reqId]) {
+                const req = requirements[reqId];
+
+                // Show current values
+                document.getElementById('currentValueDisplay').style.display = 'block';
+                document.getElementById('currentTitle').textContent = req.title;
+                document.getElementById('currentDescription').textContent = req.description;
+                document.getElementById('currentPriority').textContent = req.priority;
+                document.getElementById('currentStatus').textContent = req.status;
+                document.getElementById('currentDependencies').textContent = req.dependencies || 'None';
+
+                // Populate change editor
+                document.getElementById('changeEditor').style.display = 'block';
+                document.getElementById('newTitle').value = req.title;
+                document.getElementById('newDescription').value = req.description;
+                document.getElementById('newPriority').value = req.priority;
+                document.getElementById('newStatus').value = req.status;
+                document.getElementById('newDependencies').value = req.dependencies;
+            } else {
+                document.getElementById('currentValueDisplay').style.display = 'none';
+                document.getElementById('changeEditor').style.display = 'none';
+            }
+        });
+
+        // Simulate impact analysis
+        function simulateImpact() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('impactDashboard').classList.add('active');
+
+            // Scroll to impact dashboard
+            document.getElementById('impactDashboard').scrollIntoView({ behavior: 'smooth' });
+
+            alert('Impact analysis complete! Review the detailed impact assessment below.');
+        }
+
+        // Expandable sections
+        function toggleExpandable(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                icon.classList.remove('rotated');
+            } else {
+                content.classList.add('active');
+                icon.classList.add('rotated');
+            }
+        }
+
+        // Stakeholder actions
+        function draftEmail(stakeholder) {
+            alert(`Drafting email to ${stakeholder}...\n\nSubject: Change Impact Notification - REQ-003\n\nDear ${stakeholder},\n\nA proposed change to REQ-003 (One-Click Checkout) may impact your work. Please review the impact analysis and provide your feedback.\n\n[Link to Impact Dashboard]\n\nBest regards,\nProject Conductor`);
+        }
+
+        function scheduleMeeting(stakeholder) {
+            alert(`Scheduling re-alignment meeting with ${stakeholder}...\n\nProposed time: Tomorrow 2:00 PM\nDuration: 30 minutes\nTopic: REQ-003 Change Impact Review\n\nCalendar invite sent!`);
+        }
+
+        // Workflow actions
+        function approveChange() {
+            if (confirm('Are you sure you want to approve this change? This will update the PRD and notify all stakeholders.')) {
+                alert('Change approved! PRD updated, stakeholders notified, and timeline adjusted.');
+                window.location.href = 'module-3-prd-generator.html';
+            }
+        }
+
+        function approveAndRealign() {
+            if (confirm('This will approve the change and return to Module 3 for stakeholder re-alignment. Continue?')) {
+                alert('Change approved! Redirecting to alignment process...');
+                window.location.href = 'module-3-prd-generator.html';
+            }
+        }
+
+        function scheduleReview() {
+            alert('Review meeting scheduled for tomorrow at 2:00 PM.\nInvites sent to all impacted stakeholders.');
+        }
+
+        function rejectChange() {
+            if (confirm('Are you sure you want to reject this change? All proposed modifications will be discarded.')) {
+                alert('Change rejected. Reverting to original requirement.');
+                startNewChange();
+            }
+        }
+
+        function modifyProposal() {
+            alert('Reopening change editor for modifications...');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function escalate() {
+            alert('Change impact escalated to leadership.\n\nEmail sent to:\n- CTO\n- VP of Engineering\n- Product Director\n\nIncluding full impact analysis and decision request.');
+        }
+
+        // Historical actions
+        function viewDiff(version) {
+            alert(`Viewing detailed diff for Version ${version}...\n\n[Diff view would open in modal or new panel]`);
+        }
+
+        function restoreVersion(version) {
+            if (confirm(`Are you sure you want to restore Version ${version}? This will discard the current changes.`)) {
+                alert(`Version ${version} restored successfully!`);
+                location.reload();
+            }
+        }
+
+        // Scenario management
+        function loadScenario(scenario) {
+            alert(`Loading Scenario ${scenario}...\n\nThis would update the impact analysis with the selected scenario's parameters.`);
+
+            // Highlight selected scenario
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+
+        function addNewScenario() {
+            const name = prompt('Enter scenario name:');
+            if (name) {
+                alert(`New scenario "${name}" created! You can now configure its parameters and compare it with other scenarios.`);
+            }
+        }
+
+        // Action panel functions
+        function applyChange() {
+            if (confirm('Are you sure you want to apply this change? This will update all related systems and notify stakeholders.')) {
+                alert('Change applied successfully!\n\n✅ PRD updated\n✅ Timeline adjusted\n✅ Budget updated\n✅ Stakeholders notified\n✅ Tasks updated');
+                window.location.href = 'module-4-implementation-tracker.html';
+            }
+        }
+
+        function notifyStakeholders() {
+            alert('Sending impact summary to all stakeholders...\n\n✅ Email sent to 4 stakeholders\n✅ Slack notifications sent\n✅ Calendar invites sent\n\nAll stakeholders have been notified of the change impact.');
+        }
+
+        function generateReport() {
+            alert('Generating comprehensive change impact report...\n\n📄 Report includes:\n- Executive summary\n- Detailed impact analysis\n- Timeline comparison\n- Budget breakdown\n- Risk assessment\n- Stakeholder approval matrix\n\nReport will be downloaded as PDF.');
+        }
+
+        function startNewChange() {
+            if (confirm('Start a new change analysis? Current analysis will be cleared.')) {
+                location.reload();
+            }
+        }
+
+        // Initialize - show empty state
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('impactDashboard').classList.remove('active');
+        });
+    </script>
+
+    <!-- State Synchronization -->
+    <script src="module-state-sync.js"></script>
+    <script>
+        // Initialize state sync for Module 5
+        ConductorModuleState.init(5);
+
+        // Listen for state updates from dashboard
+        ConductorModuleState.onStateUpdate((detail) => {
+            console.log('[Module 5] State updated from dashboard:', detail);
+        });
+
+        // Save impact analysis to state
+        function saveImpactAnalysisState() {
+            ConductorModuleState.updateState({
+                impactAnalysis: {
+                    lastAnalysis: new Date().toISOString(),
+                    changeCount: 0
+                }
+            }, { saveImmediately: true });
+        }
+
+        // Track change selections
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('change-item')) {
+                saveImpactAnalysisState();
+            }
+        });
+
+        console.log('[Module 5] State synchronization initialized');
+    </script>
+</body>
+</html>

@@ -15,8 +15,13 @@ if (process.env['REDIS_URL']) {
       reconnectStrategy: (retries) => {
         const delay = Math.min(retries * 50, 2000);
         return delay;
-      }
-    }
+      },
+      connectTimeout: 5000, // 5 second connection timeout
+      keepAlive: 30000, // Keep alive every 30 seconds
+    },
+    // Performance optimizations
+    pingInterval: 30000, // Ping every 30 seconds to keep connection alive
+    commandsQueueMaxLength: 1000, // Max queued commands
   });
 
   redisClient.on('connect', () => {

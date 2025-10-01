@@ -25,10 +25,24 @@ class Database {
       database: process.env['DB_NAME'] || 'conductor',
       user: process.env['DB_USER'] || 'conductor',
       password: process.env['DB_PASSWORD'] || 'conductor',
-      max: parseInt(process.env['DB_POOL_MAX'] || '20'),
-      idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000'),
-      connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000'),
+
+      // Optimized connection pool settings for production
+      max: parseInt(process.env['DB_POOL_MAX'] || '20'), // Maximum 20 connections
+      min: parseInt(process.env['DB_POOL_MIN'] || '2'), // Minimum 2 connections always ready
+      idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000'), // 30s idle timeout
+      connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000'), // 2s connection timeout
+
+      // Query timeout to prevent long-running queries
+      query_timeout: parseInt(process.env['DB_QUERY_TIMEOUT'] || '30000'), // 30s query timeout
+
+      // Statement timeout for safety
+      statement_timeout: parseInt(process.env['DB_STATEMENT_TIMEOUT'] || '30000'), // 30s statement timeout
+
+      // SSL configuration
       ssl: process.env['DB_SSL'] === 'true' ? { rejectUnauthorized: false } : false,
+
+      // Application name for tracking
+      application_name: process.env['DB_APP_NAME'] || 'project-conductor',
     };
 
     this.pool = new Pool(this.config);

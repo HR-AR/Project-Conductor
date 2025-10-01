@@ -8,6 +8,9 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import compression from 'compression';
+import helmet from 'helmet';
+import path from 'path';
 import logger from './utils/logger';
 
 // Import middleware
@@ -17,6 +20,17 @@ import {
   requestLogger,
   corsHandler,
 } from './middleware/error-handler';
+import {
+  responseTimeMiddleware,
+  performanceMetricsMiddleware,
+  requestSizeMonitor,
+} from './middleware/performance';
+import {
+  cacheMiddleware,
+  cacheInvalidationMiddleware,
+  etagMiddleware,
+  cacheControlMiddleware,
+} from './middleware/cache';
 
 // Import rate limiting
 import { rateLimiters } from './middleware/rate-limiter';
@@ -65,12 +79,72 @@ const commentsService = ServiceFactory.getCommentsService();
 
 // Global middleware
 app.use(corsHandler);
+
+// Security headers with helmet
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for API server
+  crossOriginEmbedderPolicy: false, // Allow embedding
+}));
+
+// Performance monitoring
+app.use(responseTimeMiddleware);
+app.use(performanceMetricsMiddleware);
+app.use(requestSizeMonitor);
+
+// Request logging
 app.use(requestLogger);
+
+// Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', 1);
+
+// Compression middleware for all responses (gzip/brotli)
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6, // Balanced compression level
+  threshold: 1024, // Only compress responses > 1KB
+}));
+
+// ETag support for caching
+app.use(etagMiddleware);
+
+// Static file serving with cache headers
+const projectRoot = path.resolve(__dirname, '..');
+app.use('/demo', express.static(projectRoot, {
+  setHeaders: (res, filePath) => {
+    // Set MIME type for HTML files
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day for HTML
+    }
+    // Set cache for CSS files
+    else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for CSS
+    }
+    // Set cache for JavaScript files
+    else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for JS
+    }
+    // Set cache for images
+    else if (filePath.match(/\.(jpg|jpeg|png|gif|svg|ico)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days for images
+    }
+    // Default cache for other files
+    else {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day default
+    }
+  },
+}));
 
 // Health check endpoint (no rate limiting)
 app.get('/health', async (_req, res) => {
@@ -105,6 +179,31 @@ app.get('/health', async (_req, res) => {
 
 // Apply general API rate limiting
 app.use('/api', rateLimiters.api(redisClient));
+
+// Redis caching for GET requests (5 minute TTL)
+app.use('/api/v1', cacheMiddleware(redisClient, {
+  ttl: 300, // 5 minutes
+  keyPrefix: 'api',
+  excludeQuery: ['timestamp'], // Exclude timestamp from cache key
+}));
+
+// Cache invalidation on write operations
+app.use('/api/v1', cacheInvalidationMiddleware(redisClient, {
+  keyPrefix: 'api',
+}));
+
+// Cache control headers for read-heavy endpoints
+app.use('/api/v1/requirements/:id', cacheControlMiddleware({
+  public: true,
+  maxAge: 60, // 1 minute
+  staleWhileRevalidate: 300, // 5 minutes
+}));
+
+app.use('/api/v1/traceability', cacheControlMiddleware({
+  public: true,
+  maxAge: 300, // 5 minutes
+  staleWhileRevalidate: 600, // 10 minutes
+}));
 
 // API routes
 app.use('/api/v1/requirements', requirementsRoutes);
@@ -156,6 +255,24 @@ app.get('/api/v1/presence/requirement/:requirementId', (req, res) => {
   }
 });
 
+// Demo dashboard route - serves the unified dashboard
+app.get('/demo', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'PROJECT_CONDUCTOR_DEMO.html'));
+});
+
+// Individual demo routes
+app.get('/demo/live', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'live-demo.html'));
+});
+
+app.get('/demo/orchestration', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'orchestration-demo.html'));
+});
+
+app.get('/demo/prd', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'prd-orchestration-demo.html'));
+});
+
 // Root endpoint
 app.get('/', (_req, res) => {
   res.json({
@@ -164,6 +281,10 @@ app.get('/', (_req, res) => {
     description: 'A comprehensive requirements management and workflow orchestration API',
     endpoints: {
       health: '/health',
+      demo: '/demo',
+      demoLive: '/demo/live',
+      demoOrchestration: '/demo/orchestration',
+      demoPRD: '/demo/prd',
       requirements: '/api/v1/requirements',
       links: '/api/v1/links',
       traceability: '/api/v1/requirements/:id/links',
@@ -185,6 +306,7 @@ app.get('/', (_req, res) => {
       'Live editing indicators',
       'Comment threading system with real-time updates',
       'Comprehensive audit logging',
+      'Interactive demo UI',
     ],
   });
 });
@@ -481,10 +603,12 @@ const startServer = async () => {
       server.listen(PORT, () => {
         logger.info({ port: PORT }, 'Project Conductor server running');
         logger.info({ url: `http://localhost:${PORT}/health` }, 'Health check available');
+        logger.info({ url: `http://localhost:${PORT}/demo` }, 'Demo dashboard available');
         logger.info({ url: `http://localhost:${PORT}/api/v1` }, 'API documentation available');
         logger.info({ url: `http://localhost:${PORT}/api/v1/requirements` }, 'Requirements API available');
         logger.info({ environment: process.env['NODE_ENV'] || 'development' }, 'Environment');
         logger.info('Real-time presence tracking enabled');
+        logger.info('Static file serving enabled with gzip compression');
       });
     }
   } catch (error) {

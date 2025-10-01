@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Unified Dashboard</title>
+
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate">
+    <meta http-equiv="Pragma" content="cache">
+
+    <!-- DNS Prefetch for faster module loading -->
+    <link rel="dns-prefetch" href="//localhost">
+    <link rel="preconnect" href="//localhost">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        /* Global Navigation Bar */
+        .global-nav {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav-tabs {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: #2ecc71;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .nav-badge {
+            background: #e74c3c;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge.warning {
+            background: #f39c12;
+        }
+
+        .nav-badge.success {
+            background: #2ecc71;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+        }
+
+        .search-bar {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: white;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            background: rgba(255,255,255,0.25);
+            width: 350px;
+        }
+
+        .search-bar::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .icon-button {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .icon-button:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.1);
+        }
+
+        .icon-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .progress-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-size: 1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .progress-percentage {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2a5298;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e1e8ed;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298 0%, #2ecc71 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-breakdown {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Dashboard Home */
+        .dashboard-home {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+
+        .activity-icon {
+            font-size: 1.5rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.95rem;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .action-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-item {
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-item:hover {
+            transform: translateX(5px);
+        }
+
+        .action-item.critical {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .action-item.warning {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+        }
+
+        .action-item.success {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+        }
+
+        .quick-start {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .quick-start-btn {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quick-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-start-btn.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.6);
+        }
+
+        .fab-menu {
+            position: fixed;
+            bottom: 5rem;
+            right: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 1rem;
+            display: none;
+            z-index: 998;
+            min-width: 250px;
+        }
+
+        .fab-menu.open {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fab-menu-item {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .fab-menu-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        /* Notification Center */
+        .notification-dropdown {
+            position: absolute;
+            top: 4rem;
+            right: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            min-width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+        }
+
+        .notification-dropdown.open {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e1e8ed;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .notification-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-text {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: white;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-item {
+            color: #7f8c8d;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+            color: #3498db;
+        }
+
+        .breadcrumb-item.active {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .breadcrumb-separator {
+            color: #bdc3c7;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+            transition: right 0.3s ease;
+            z-index: 1002;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .settings-content {
+            padding: 2rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #bdc3c7;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #2ecc71;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        .danger-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .danger-button:hover {
+            background: #c0392b;
+        }
+
+        /* Help System */
+        .help-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: white;
+            color: #3498db;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .help-button:hover {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Module Frame */
+        .module-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 160px);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .module-frame.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        .module-frame.preloaded {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav-tabs {
+                overflow-x: auto;
+            }
+
+            .dashboard-home {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                width: 150px;
+            }
+
+            .search-bar:focus {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-logo span {
+                display: none;
+            }
+
+            .nav-tab {
+                padding: 1rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            .progress-breakdown {
+                font-size: 0.8rem;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-progress {
+            width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: loadingProgress 2s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes loadingProgress {
+            0%, 100% { width: 0%; }
+            50% { width: 70%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Navigation -->
+    <nav class="global-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="showHome(); return false;">
+                <span>🎯</span>
+                <span>Project Conductor</span>
+            </a>
+
+            <div class="nav-tabs">
+                <a class="nav-tab" data-module="0" onclick="navigateToModule(0)">
+                    <span>0️⃣</span>
+                    <span>Learn</span>
+                </a>
+                <a class="nav-tab active" data-module="1" onclick="navigateToModule(1)">
+                    <span>1️⃣</span>
+                    <span>Present</span>
+                </a>
+                <a class="nav-tab" data-module="2" onclick="navigateToModule(2)">
+                    <span>2️⃣</span>
+                    <span>Problem</span>
+                </a>
+                <a class="nav-tab" data-module="3" onclick="navigateToModule(3)">
+                    <span>3️⃣</span>
+                    <span>Align</span>
+                    <span class="nav-badge warning">3</span>
+                </a>
+                <a class="nav-tab" data-module="4" onclick="navigateToModule(4)">
+                    <span>4️⃣</span>
+                    <span>Build</span>
+                    <span class="nav-badge success">2</span>
+                </a>
+                <a class="nav-tab" data-module="5" onclick="navigateToModule(5)">
+                    <span>5️⃣</span>
+                    <span>Impact</span>
+                </a>
+            </div>
+
+            <div class="nav-actions">
+                <input type="text" class="search-bar" placeholder="Search everything..." id="globalSearch" onkeyup="handleSearch(event)">
+                <button class="icon-button" onclick="toggleNotifications()">
+                    <span>🔔</span>
+                    <span class="icon-badge">3</span>
+                </button>
+                <button class="icon-button" onclick="toggleSettings()">
+                    <span>⚙️</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-container">
+            <div class="progress-header">
+                <div class="progress-title">Overall Progress</div>
+                <div class="progress-percentage" id="progressPercentage">60%</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar" style="width: 60%;"></div>
+            </div>
+            <div class="progress-breakdown" id="progressBreakdown">
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Problem defined</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Stakeholders invited</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">⚠️</span>
+                    <span>Requirements aligned: 12/15</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">🔄</span>
+                    <span>Implementation: In progress</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Changes pending: 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-container" id="breadcrumb">
+            <a href="#" class="breadcrumb-item active" onclick="showHome(); return false;">Home</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Home -->
+        <div id="dashboardHome" class="dashboard-home">
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- At-a-Glance Summary -->
+                <div class="card">
+                    <h2 class="card-title">At-a-Glance Summary</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">Current PRD</div>
+                            <div class="summary-value">E-commerce Checkout Improvement</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Status</div>
+                            <div class="summary-value" style="color: #3498db;">60% Complete</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Owner</div>
+                            <div class="summary-value">John Chen</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Stakeholders</div>
+                            <div class="summary-value">4 active</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Timeline</div>
+                            <div class="summary-value" style="color: #f39c12;">12 days remaining</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Last Updated</div>
+                            <div class="summary-value">2 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">✅</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Sarah</strong> approved REQ-003</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #f39c12;">
+                            <div class="activity-icon">💬</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Mike</strong> added concern to REQ-007</div>
+                                <div class="activity-time">4 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #2ecc71;">
+                            <div class="activity-icon">🤖</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Agent-Code</strong> completed API generation</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #9b59b6;">
+                            <div class="activity-icon">🔗</div>
+                            <div class="activity-content">
+                                <div class="activity-text">Traceability link created: REQ-005 → TEST-012</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start -->
+                <div class="card">
+                    <h2 class="card-title">Quick Start</h2>
+                    <div class="quick-start">
+                        <button class="quick-start-btn" onclick="navigateToModule(3)">
+                            <span>Continue to Alignment</span>
+                            <span>→</span>
+                        </button>
+                        <button class="quick-start-btn secondary" onclick="navigateToModule(4)">
+                            <span>View Implementation Progress</span>
+                            <span>→</span>
+                        </button>
+                        <button class="quick-start-btn secondary" onclick="navigateToModule(5)">
+                            <span>Analyze Change Impact</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Action Items -->
+                <div class="card">
+                    <h2 class="card-title">Action Items</h2>
+                    <div class="action-items">
+                        <div class="action-item critical" onclick="navigateToModule(3)">
+                            <span>🔴</span>
+                            <div>
+                                <div style="font-weight: 600;">3 requirements need alignment</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">High priority</div>
+                            </div>
+                        </div>
+                        <div class="action-item warning">
+                            <span>🟡</span>
+                            <div>
+                                <div style="font-weight: 600;">1 stakeholder hasn't responded</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Follow up needed</div>
+                            </div>
+                        </div>
+                        <div class="action-item success" onclick="navigateToModule(4)">
+                            <span>🟢</span>
+                            <div>
+                                <div style="font-weight: 600;">2 tests passing, ready to deploy</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Review deployment</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="card">
+                    <h2 class="card-title">Key Metrics</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Requirements Coverage</span>
+                                <span style="font-weight: 600; color: #2ecc71;">87%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 87%; background: #2ecc71;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Traceability</span>
+                                <span style="font-weight: 600; color: #3498db;">92%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 92%; background: #3498db;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Test Coverage</span>
+                                <span style="font-weight: 600; color: #f39c12;">76%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 76%; background: #f39c12;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Container -->
+        <div id="moduleContainer" style="display: none; position: relative;">
+            <!-- Multiple iframes for caching -->
+            <iframe id="moduleFrame0" class="module-frame" data-module="0"></iframe>
+            <iframe id="moduleFrame1" class="module-frame" data-module="1"></iframe>
+            <iframe id="moduleFrame2" class="module-frame" data-module="2"></iframe>
+            <iframe id="moduleFrame3" class="module-frame" data-module="3"></iframe>
+            <iframe id="moduleFrame4" class="module-frame" data-module="4"></iframe>
+            <iframe id="moduleFrame5" class="module-frame" data-module="5"></iframe>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="toggleFabMenu()">+</button>
+    <div class="fab-menu" id="fabMenu">
+        <a class="fab-menu-item" onclick="showAddRequirement()">
+            <span>➕</span>
+            <span>Add Requirement</span>
+        </a>
+        <a class="fab-menu-item" onclick="showInviteStakeholder()">
+            <span>👥</span>
+            <span>Invite Stakeholder</span>
+        </a>
+        <a class="fab-menu-item" onclick="showStartDiscussion()">
+            <span>💬</span>
+            <span>Start Discussion</span>
+        </a>
+        <a class="fab-menu-item" onclick="showViewMetrics()">
+            <span>📊</span>
+            <span>View Metrics</span>
+        </a>
+        <a class="fab-menu-item" onclick="toggleNotifications()">
+            <span>🔔</span>
+            <span>Notifications (3)</span>
+        </a>
+        <a class="fab-menu-item" onclick="toggleSettings()">
+            <span>⚙️</span>
+            <span>Settings</span>
+        </a>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">Notifications</div>
+        <div class="notification-item" onclick="navigateToModule(3)">
+            <div class="notification-text">Sarah marked REQ-007 as Align But</div>
+            <div class="notification-time">1 hour ago</div>
+        </div>
+        <div class="notification-item" onclick="navigateToModule(4)">
+            <div class="notification-text">Implementation phase 3 complete ✅</div>
+            <div class="notification-time">3 hours ago</div>
+        </div>
+        <div class="notification-item">
+            <div class="notification-text">Mike requested meeting on REQ-012</div>
+            <div class="notification-time">5 hours ago</div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Settings</div>
+            <button class="settings-close" onclick="toggleSettings()">×</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="settings-section-title">User Profile</div>
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600;">John Chen</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d;">john.chen@example.com</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Preferences</div>
+                <div class="settings-option">
+                    <span>Dark Mode</span>
+                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleDarkMode()"></div>
+                </div>
+                <div class="settings-option">
+                    <span>Email Notifications</span>
+                    <div class="toggle-switch active" id="emailNotifications" onclick="toggleEmailNotifications()"></div>
+                </div>
+                <div class="settings-option">
+                    <span>Auto-save</span>
+                    <div class="toggle-switch active" id="autoSave"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Data Management</div>
+                <button class="quick-start-btn secondary" onclick="exportData()" style="margin-bottom: 1rem; width: 100%;">
+                    <span>📥 Export All Data</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="importData()" style="margin-bottom: 1rem; width: 100%;">
+                    <span>📤 Import Existing PRD</span>
+                </button>
+                <button class="danger-button" onclick="clearAllData()">
+                    🗑️ Clear All Data
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Keyboard Shortcuts</div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Search</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + K</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>New Requirement</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + N</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Settings</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + ,</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Help & Support</div>
+                <a class="fab-menu-item" href="#" onclick="openVideoTutorials()">
+                    <span>📹</span>
+                    <span>Video Tutorials</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="openDocumentation()">
+                    <span>📚</span>
+                    <span>Documentation</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="openExamplePRDs()">
+                    <span>📋</span>
+                    <span>Example PRDs</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="contactSupport()">
+                    <span>💬</span>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-button" onclick="openHelp()">?</button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading module...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+    </div>
+
+    <script>
+        // Module Configuration
+        const MODULES = [
+            { id: 0, name: 'Learn', file: 'module-0-onboarding.html' },
+            { id: 1, name: 'Present', file: 'PROJECT_CONDUCTOR_DEMO.html' },
+            { id: 2, name: 'Problem Input', file: 'module-2-business-input.html' },
+            { id: 3, name: 'PRD Alignment', file: 'module-3-prd-alignment.html' },
+            { id: 4, name: 'Implementation', file: 'module-4-implementation.html' },
+            { id: 5, name: 'Change Impact', file: 'module-5-change-impact.html' }
+        ];
+
+        // Module Cache Management
+        const ModuleCache = {
+            loaded: new Set(),
+            loading: new Set(),
+            preloadQueue: [],
+            loadTimes: {},
+            startTimes: {},
+
+            isLoaded(moduleId) {
+                return this.loaded.has(moduleId);
+            },
+
+            markLoaded(moduleId) {
+                this.loaded.add(moduleId);
+                this.loading.delete(moduleId);
+
+                // Calculate load time
+                if (this.startTimes[moduleId]) {
+                    const loadTime = Date.now() - this.startTimes[moduleId];
+                    this.loadTimes[moduleId] = loadTime;
+                    console.log(`Module ${moduleId} cached (loaded in ${loadTime}ms)`);
+                    delete this.startTimes[moduleId];
+                } else {
+                    console.log(`Module ${moduleId} cached`);
+                }
+            },
+
+            isLoading(moduleId) {
+                return this.loading.has(moduleId);
+            },
+
+            markLoading(moduleId) {
+                this.loading.add(moduleId);
+                this.startTimes[moduleId] = Date.now();
+            },
+
+            shouldPreload(moduleId, currentModule) {
+                // Pre-load adjacent modules
+                const adjacentModules = [currentModule - 1, currentModule + 1];
+                return adjacentModules.includes(moduleId) && !this.isLoaded(moduleId) && !this.isLoading(moduleId);
+            },
+
+            getPerformanceStats() {
+                return {
+                    loadedModules: Array.from(this.loaded),
+                    loadTimes: this.loadTimes,
+                    averageLoadTime: Object.values(this.loadTimes).reduce((a, b) => a + b, 0) / Object.keys(this.loadTimes).length || 0
+                };
+            },
+
+            clearCache() {
+                this.loaded.clear();
+                this.loading.clear();
+                this.loadTimes = {};
+                this.startTimes = {};
+                console.log('Module cache cleared');
+            }
+        };
+
+        // State Management
+        const AppState = {
+            currentModule: 'home',
+            currentPRD: {
+                problem: "Cart abandonment at 68%",
+                stakeholders: ["john@example.com", "sarah@example.com", "mike@example.com"],
+                goals: ["Reduce cart abandonment by 30%", "Improve checkout flow UX"],
+                requirements: [],
+                progress: 60
+            },
+            notifications: [],
+            settings: {
+                darkMode: false,
+                emailNotifications: true,
+                autoSave: true
+            }
+        };
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('conductorState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                Object.assign(AppState, state);
+                updateUIFromState();
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('conductorState', JSON.stringify(AppState));
+        }
+
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            if (AppState.settings.autoSave) {
+                saveState();
+                console.log('Auto-saved at', new Date().toLocaleTimeString());
+            }
+        }, 30000);
+
+        // Update UI from state
+        function updateUIFromState() {
+            document.getElementById('progressBar').style.width = AppState.currentPRD.progress + '%';
+            document.getElementById('progressPercentage').textContent = AppState.currentPRD.progress + '%';
+        }
+
+        // Pre-load a module in the background
+        function preloadModule(moduleId) {
+            if (ModuleCache.isLoaded(moduleId) || ModuleCache.isLoading(moduleId)) {
+                return;
+            }
+
+            const module = MODULES[moduleId];
+            if (!module) return;
+
+            ModuleCache.markLoading(moduleId);
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+
+            if (!iframe.src || iframe.src === 'about:blank') {
+                console.log(`Pre-loading module ${moduleId}: ${module.name}`);
+                iframe.src = module.file;
+                iframe.classList.add('preloaded');
+
+                iframe.onload = () => {
+                    ModuleCache.markLoaded(moduleId);
+                    // Pass state to preloaded iframe
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'STATE_UPDATE',
+                            state: AppState
+                        }, '*');
+                    } catch (e) {
+                        console.log('Could not pass state to preloaded iframe:', e);
+                    }
+                };
+            }
+        }
+
+        // Load module with caching
+        function loadModule(moduleId) {
+            const module = MODULES[moduleId];
+            if (!module) return;
+
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+
+            // If already loaded, just show it
+            if (ModuleCache.isLoaded(moduleId)) {
+                console.log(`Module ${moduleId} loaded from cache`);
+                return Promise.resolve(iframe);
+            }
+
+            // If not loaded, load it now
+            return new Promise((resolve) => {
+                ModuleCache.markLoading(moduleId);
+
+                if (!iframe.src || iframe.src === 'about:blank') {
+                    iframe.src = module.file;
+                }
+
+                iframe.onload = () => {
+                    ModuleCache.markLoaded(moduleId);
+                    // Pass state to iframe
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'STATE_UPDATE',
+                            state: AppState
+                        }, '*');
+                    } catch (e) {
+                        console.log('Could not pass state to iframe:', e);
+                    }
+                    resolve(iframe);
+                };
+
+                // Fallback for already loaded iframes
+                if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                    ModuleCache.markLoaded(moduleId);
+                    resolve(iframe);
+                }
+            });
+        }
+
+        // Navigation with caching
+        function navigateToModule(moduleNumber) {
+            const module = MODULES[moduleNumber];
+            if (!module) return;
+
+            // Show loading with module name
+            showLoading(module.name);
+
+            AppState.currentModule = moduleNumber;
+
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === moduleNumber);
+            });
+
+            // Update breadcrumb
+            updateBreadcrumb(['Home', module.name]);
+
+            // Hide home, show module container
+            document.getElementById('dashboardHome').style.display = 'none';
+            document.getElementById('moduleContainer').style.display = 'block';
+
+            // Hide all other iframes
+            document.querySelectorAll('.module-frame').forEach(frame => {
+                frame.classList.remove('active');
+            });
+
+            // Load and show the selected module
+            loadModule(moduleNumber).then((iframe) => {
+                // Smooth transition
+                setTimeout(() => {
+                    iframe.classList.add('active');
+                    hideLoading();
+
+                    // Pre-load adjacent modules
+                    preloadAdjacentModules(moduleNumber);
+                }, 100);
+            }).catch((error) => {
+                console.error('Error loading module:', error);
+                hideLoading();
+            });
+
+            // Fallback: hide loading after 3 seconds
+            setTimeout(() => {
+                hideLoading();
+            }, 3000);
+
+            saveState();
+        }
+
+        // Pre-load adjacent modules for faster navigation
+        function preloadAdjacentModules(currentModule) {
+            // Pre-load previous and next modules
+            const toPreload = [currentModule - 1, currentModule + 1];
+
+            toPreload.forEach(moduleId => {
+                if (moduleId >= 0 && moduleId < MODULES.length) {
+                    if (ModuleCache.shouldPreload(moduleId, currentModule)) {
+                        setTimeout(() => preloadModule(moduleId), 500);
+                    }
+                }
+            });
+        }
+
+        function showHome() {
+            AppState.currentModule = 'home';
+
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Update breadcrumb
+            updateBreadcrumb(['Home']);
+
+            // Show home, hide module
+            document.getElementById('dashboardHome').style.display = 'grid';
+            document.getElementById('moduleContainer').style.display = 'none';
+
+            saveState();
+        }
+
+        // Breadcrumb
+        function updateBreadcrumb(items) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = items.map((item, index) => {
+                const isLast = index === items.length - 1;
+                const isHome = item === 'Home';
+                return `
+                    <a href="#" class="breadcrumb-item ${isLast ? 'active' : ''}"
+                       onclick="${isHome ? 'showHome()' : ''}; return false;">
+                        ${item}
+                    </a>
+                    ${!isLast ? '<span class="breadcrumb-separator">›</span>' : ''}
+                `;
+            }).join('');
+        }
+
+        // FAB Menu
+        function toggleFabMenu() {
+            const menu = document.getElementById('fabMenu');
+            menu.classList.toggle('open');
+        }
+
+        // Close FAB menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const fabMenu = document.getElementById('fabMenu');
+            const fab = document.querySelector('.fab');
+            if (!fabMenu.contains(e.target) && !fab.contains(e.target)) {
+                fabMenu.classList.remove('open');
+            }
+        });
+
+        // Notifications
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // Close notifications when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notificationDropdown');
+            const button = e.target.closest('.icon-button');
+            if (!dropdown.contains(e.target) && !button) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // Settings
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
+
+        function toggleDarkMode() {
+            const toggle = document.getElementById('darkModeToggle');
+            toggle.classList.toggle('active');
+            AppState.settings.darkMode = toggle.classList.contains('active');
+            saveState();
+            // Implement dark mode styling here
+            alert('Dark mode coming soon!');
+        }
+
+        function toggleEmailNotifications() {
+            const toggle = document.getElementById('emailNotifications');
+            toggle.classList.toggle('active');
+            AppState.settings.emailNotifications = toggle.classList.contains('active');
+            saveState();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(AppState, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `conductor-export-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        Object.assign(AppState, imported);
+                        saveState();
+                        updateUIFromState();
+                        alert('Data imported successfully!');
+                    } catch (err) {
+                        alert('Error importing data: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Search
+        function handleSearch(event) {
+            const query = event.target.value.toLowerCase();
+            if (query.length < 2) return;
+
+            // Implement search logic here
+            console.log('Searching for:', query);
+        }
+
+        // Quick Actions
+        function showAddRequirement() {
+            alert('Add Requirement modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showInviteStakeholder() {
+            alert('Invite Stakeholder modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showStartDiscussion() {
+            alert('Start Discussion modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showViewMetrics() {
+            alert('View Metrics dashboard coming soon!');
+            toggleFabMenu();
+        }
+
+        // Help
+        function openHelp() {
+            alert('Context-sensitive help system:\n\n• Video Tutorials\n• Documentation\n• Example PRDs\n• Contact Support\n\nOpening help center...');
+        }
+
+        function openVideoTutorials() {
+            window.open('https://example.com/tutorials', '_blank');
+        }
+
+        function openDocumentation() {
+            window.open('https://example.com/docs', '_blank');
+        }
+
+        function openExamplePRDs() {
+            window.open('https://example.com/examples', '_blank');
+        }
+
+        function contactSupport() {
+            window.open('mailto:support@conductor.io', '_blank');
+        }
+
+        // Loading
+        function showLoading(moduleName = 'module') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            const progressBar = document.getElementById('loadingProgressBar');
+
+            text.textContent = `Loading ${moduleName}...`;
+            progressBar.style.animation = 'loadingProgress 2s ease-in-out infinite';
+            overlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + K - Search
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('globalSearch').focus();
+            }
+
+            // Cmd/Ctrl + N - New Requirement
+            if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+                e.preventDefault();
+                showAddRequirement();
+            }
+
+            // Cmd/Ctrl + , - Settings
+            if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+                e.preventDefault();
+                toggleSettings();
+            }
+
+            // Escape - Close modals
+            if (e.key === 'Escape') {
+                document.getElementById('notificationDropdown').classList.remove('open');
+                document.getElementById('fabMenu').classList.remove('open');
+                document.getElementById('settingsPanel').classList.remove('open');
+            }
+        });
+
+        // Sync state with all loaded iframes
+        function syncStateWithIframes() {
+            ModuleCache.loaded.forEach(moduleId => {
+                const iframe = document.getElementById(`moduleFrame${moduleId}`);
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'STATE_UPDATE',
+                            state: AppState
+                        }, '*');
+                    } catch (e) {
+                        console.log(`Could not sync state with module ${moduleId}:`, e);
+                    }
+                }
+            });
+        }
+
+        // Listen for messages from iframes
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'UPDATE_STATE') {
+                Object.assign(AppState, event.data.state);
+                saveState();
+                updateUIFromState();
+
+                // Sync the updated state with all other loaded iframes
+                syncStateWithIframes();
+            } else if (event.data.type === 'MODULE_READY') {
+                console.log(`Module ${event.data.moduleId} is ready`);
+            }
+        });
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (AppState.settings.autoSave) return;
+
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+
+            // Show resume message if state exists
+            const saved = localStorage.getItem('conductorState');
+            if (saved) {
+                console.log('Resuming where you left off...');
+            }
+
+            // Pre-load critical modules after page load
+            setTimeout(() => {
+                console.log('Starting background pre-loading of critical modules...');
+                // Pre-load Module 1 (Present) - most commonly accessed
+                preloadModule(1);
+
+                // Pre-load Module 2 after a delay
+                setTimeout(() => preloadModule(2), 1000);
+
+                // Pre-load Module 3 after another delay
+                setTimeout(() => preloadModule(3), 2000);
+            }, 1000);
+
+            // Add browser cache hints via link preload
+            addCacheHints();
+        });
+
+        // Add cache hints for module files
+        function addCacheHints() {
+            const head = document.head;
+
+            MODULES.forEach((module, index) => {
+                // Add preconnect for faster loading
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = module.file;
+                link.as = 'document';
+
+                // Prioritize first few modules
+                if (index <= 2) {
+                    link.setAttribute('importance', 'high');
+                }
+
+                head.appendChild(link);
+            });
+
+            console.log('Cache hints added for all modules');
+        }
+
+        // Simulate live updates
+        setInterval(() => {
+            // Update notification count randomly
+            const notificationBadge = document.querySelector('.icon-badge');
+            const currentCount = parseInt(notificationBadge.textContent);
+            if (Math.random() > 0.8) {
+                notificationBadge.textContent = currentCount + 1;
+            }
+        }, 10000);
+
+        // Developer Tools - Expose to console
+        window.ConductorDebug = {
+            getModuleCache: () => ModuleCache,
+            getPerformanceStats: () => ModuleCache.getPerformanceStats(),
+            clearCache: () => {
+                ModuleCache.clearCache();
+                // Clear iframe sources
+                document.querySelectorAll('.module-frame').forEach(frame => {
+                    frame.src = 'about:blank';
+                });
+                console.log('All caches cleared. Reload modules to see fresh content.');
+            },
+            preloadAll: () => {
+                MODULES.forEach((module, index) => {
+                    setTimeout(() => preloadModule(index), index * 500);
+                });
+                console.log('Pre-loading all modules...');
+            },
+            showLoadedModules: () => {
+                console.log('Loaded modules:', Array.from(ModuleCache.loaded).map(id => `${id}: ${MODULES[id].name}`));
+            },
+            getAppState: () => AppState,
+            version: '2.0.0 - Optimized with Caching'
+        };
+
+        console.log('%c🎯 Project Conductor Dashboard v2.0.0', 'color: #2a5298; font-size: 16px; font-weight: bold;');
+        console.log('%cOptimizations enabled: Module pre-loading, caching, lazy loading', 'color: #2ecc71; font-size: 12px;');
+        console.log('%cType ConductorDebug for developer tools', 'color: #7f8c8d; font-size: 11px;');
+    </script>
+</body>
+</html>

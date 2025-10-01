@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Problem Input - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 40%;
+            transition: width 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            padding: 30px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Autosave Indicator */
+        .autosave {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .autosave-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Split View */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        .form-section {
+            padding: 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            border-right: 2px solid #e5e7eb;
+        }
+
+        .preview-section {
+            padding: 40px;
+            background: #f9fafb;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 32px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip-icon {
+            width: 18px;
+            height: 18px;
+            background: #6366f1;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #1f2937;
+            color: white;
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            font-weight: normal;
+            line-height: 1.5;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Template Dropdown */
+        .template-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .template-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .template-btn:hover {
+            border-color: #6366f1;
+            background: #f0f9ff;
+        }
+
+        .template-btn.active {
+            border-color: #6366f1;
+            background: #6366f1;
+            color: white;
+        }
+
+        /* Rich Text Editor */
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f3f4f6;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+        }
+
+        .editor-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .editor-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        textarea, .editable-content {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 0 0 8px 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.6;
+        }
+
+        textarea:focus, .editable-content:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .char-counter.warning {
+            color: #f59e0b;
+        }
+
+        /* Multi-select Stakeholders */
+        .stakeholder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stakeholder-option {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stakeholder-option:hover {
+            border-color: #6366f1;
+            background: #f0f9ff;
+        }
+
+        .stakeholder-option.selected {
+            border-color: #6366f1;
+            background: #ede9fe;
+        }
+
+        .stakeholder-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Success Criteria */
+        .criteria-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .criterion {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .criterion-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 12px;
+        }
+
+        .criterion-grid input {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .criterion-grid input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .add-criterion-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .add-criterion-btn:hover {
+            background: #4f46e5;
+        }
+
+        .remove-btn {
+            padding: 6px 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: #6366f1;
+            background: #f0f9ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #94a3b8;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .file-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            position: relative;
+        }
+
+        .file-thumbnail {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 8px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .file-name {
+            font-size: 12px;
+            color: #4b5563;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Email Inputs */
+        .email-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .email-group input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .email-group select {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 16px;
+            padding: 30px 40px;
+            background: #f9fafb;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4b5563;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Preview Section */
+        .preview-header {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .preview-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .preview-card h3 {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .preview-content {
+            color: #6b7280;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .preview-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .preview-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-list li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .stakeholder-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #ede9fe;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #5b21b6;
+        }
+
+        .roi-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        small {
+            display: block;
+            margin-top: 4px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="header" style="position: relative;">
+            <h1>Define Your Business Problem</h1>
+            <p>The clearer you are here, the better the solution will be. Take your time.</p>
+            <div class="autosave">
+                <div class="autosave-dot"></div>
+                <span>Auto-saved 5 seconds ago</span>
+            </div>
+        </div>
+
+        <!-- Split View -->
+        <div class="split-view">
+            <!-- Form Section -->
+            <div class="form-section">
+                <!-- Problem Description -->
+                <div class="form-group">
+                    <label>
+                        1. Describe the business problem
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">
+                                Be specific! Instead of "Users are leaving," try "68% of mobile users abandon checkout on the payment screen."
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="template-selector">
+                        <button class="template-btn" onclick="loadTemplate('ecommerce')">E-commerce</button>
+                        <button class="template-btn" onclick="loadTemplate('analytics')">Analytics</button>
+                        <button class="template-btn" onclick="loadTemplate('mobile')">Mobile</button>
+                        <button class="template-btn active" onclick="loadTemplate('custom')">Custom</button>
+                    </div>
+
+                    <div class="editor-toolbar">
+                        <button class="editor-btn" onclick="formatText('bold')"><strong>B</strong></button>
+                        <button class="editor-btn" onclick="formatText('italic')"><em>I</em></button>
+                        <button class="editor-btn" onclick="formatText('insertUnorderedList')">• List</button>
+                        <button class="editor-btn" onclick="formatText('insertOrderedList')">1. List</button>
+                        <button class="editor-btn" onclick="insertLink()">Link</button>
+                    </div>
+
+                    <textarea id="problemDescription" placeholder="Start typing or select a template above..." oninput="updatePreview(); countChars()"></textarea>
+                    <div class="char-counter" id="charCounter">0 characters (aim for 200+)</div>
+                </div>
+
+                <!-- Impact Assessment -->
+                <div class="form-group">
+                    <label>
+                        2. Who is affected by this problem?
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">
+                                Select all teams that are impacted. This helps us invite the right stakeholders.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="stakeholder-grid" id="stakeholderGrid">
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'customers')">
+                            <div class="stakeholder-avatar">C</div>
+                            <span>Customers</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'product')">
+                            <div class="stakeholder-avatar">P</div>
+                            <span>Product Team</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'engineering')">
+                            <div class="stakeholder-avatar">E</div>
+                            <span>Engineering</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'ux')">
+                            <div class="stakeholder-avatar">U</div>
+                            <span>UX/Design</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'business')">
+                            <div class="stakeholder-avatar">B</div>
+                            <span>Business/Finance</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'marketing')">
+                            <div class="stakeholder-avatar">M</div>
+                            <span>Marketing</span>
+                        </div>
+                        <div class="stakeholder-option" onclick="toggleStakeholder(this, 'support')">
+                            <div class="stakeholder-avatar">S</div>
+                            <span>Support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Criteria -->
+                <div class="form-group">
+                    <label>
+                        3. What does success look like?
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">
+                                Define measurable goals. Example: "Reduce cart abandonment from 68% to under 40% by Q2 2024"
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="criteria-list" id="criteriaList">
+                        <div class="criterion">
+                            <div class="criterion-header">
+                                <strong>Success Metric #1</strong>
+                            </div>
+                            <div class="criterion-grid">
+                                <input type="text" placeholder="Metric name (e.g., Cart abandonment rate)" oninput="updatePreview()">
+                                <input type="text" placeholder="Current (e.g., 68%)" oninput="updatePreview()">
+                                <input type="text" placeholder="Target (e.g., < 40%)" oninput="updatePreview()">
+                                <input type="text" placeholder="Timeframe (e.g., Q2 2024)" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="add-criterion-btn" onclick="addCriterion()">
+                        <span>+</span>
+                        Add Another Success Metric
+                    </button>
+                </div>
+
+                <!-- Supporting Evidence -->
+                <div class="form-group">
+                    <label>
+                        4. Supporting evidence (optional)
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">
+                                Upload customer feedback, analytics screenshots, market research, or competitor analysis to strengthen your case.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <p><strong>Drag & drop files here</strong> or click to browse</p>
+                        <small>Accepts PDFs, images, CSV, and links</small>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.csv" onchange="handleFiles(this.files)">
+
+                    <div class="file-list" id="fileList"></div>
+
+                    <div style="margin-top: 20px;">
+                        <textarea placeholder="Customer feedback quotes (optional)" rows="3" style="border-radius: 8px;" oninput="updatePreview()"></textarea>
+                        <small>Paste relevant customer feedback or quotes</small>
+                    </div>
+
+                    <div style="margin-top: 12px;">
+                        <textarea placeholder="Competitor analysis notes (optional)" rows="3" style="border-radius: 8px;" oninput="updatePreview()"></textarea>
+                        <small>How do competitors handle this problem?</small>
+                    </div>
+                </div>
+
+                <!-- Stakeholder Invitation -->
+                <div class="form-group">
+                    <label>
+                        5. Invite stakeholders to collaborate
+                        <span class="tooltip">
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">
+                                Invite team members who will help define requirements. They'll receive an email with context about this problem.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div id="emailInputs">
+                        <div class="email-group">
+                            <select>
+                                <option>Product Manager</option>
+                                <option>Engineering Lead</option>
+                                <option>UX Designer</option>
+                                <option>Business Analyst</option>
+                                <option>Stakeholder</option>
+                            </select>
+                            <input type="email" placeholder="email@company.com" oninput="updatePreview()">
+                        </div>
+                    </div>
+
+                    <button class="add-criterion-btn" onclick="addEmailInput()">
+                        <span>+</span>
+                        Add Another Stakeholder
+                    </button>
+
+                    <div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bae6fd;">
+                        <small style="color: #075985; margin: 0;">
+                            💬 <strong>Slack integration:</strong> Add invitees to dedicated Slack channel (coming soon)
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <div class="preview-header">Live Preview</div>
+
+                <div class="preview-card">
+                    <h3>Problem Statement</h3>
+                    <div class="preview-content" id="previewProblem">
+                        <em style="color: #cbd5e1;">Your problem description will appear here as you type...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Affected Stakeholders</h3>
+                    <div class="stakeholder-chips" id="previewStakeholders">
+                        <em style="color: #cbd5e1;">Select stakeholders above</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Success Metrics</h3>
+                    <div class="preview-content" id="previewMetrics">
+                        <em style="color: #cbd5e1;">Add success criteria above</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Collaboration Team</h3>
+                    <ul class="preview-list" id="previewTeam">
+                        <li style="color: #cbd5e1; list-style: none;">
+                            <em>Invite stakeholders above</em>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="preview-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                    <h3>Estimated Impact</h3>
+                    <div class="preview-content">
+                        <p><strong>Confidence Level:</strong> <span id="confidenceLevel">Calculating...</span></p>
+                        <div id="roiPreview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="saveDraft()">
+                💾 Save Draft
+            </button>
+            <button class="btn btn-secondary" onclick="showPreviewModal()">
+                👁️ Preview Full PRD
+            </button>
+            <button class="btn btn-primary" onclick="continueToModule3()">
+                Invite Stakeholders & Continue →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Auto-save functionality
+        let autosaveTimer;
+        let selectedStakeholders = new Set();
+        let uploadedFiles = [];
+        let criteriaCount = 1;
+
+        function countChars() {
+            const textarea = document.getElementById('problemDescription');
+            const counter = document.getElementById('charCounter');
+            const count = textarea.value.length;
+
+            counter.textContent = `${count} characters (aim for 200+)`;
+
+            if (count >= 200) {
+                counter.style.color = '#10b981';
+                counter.textContent = `${count} characters - Great detail!`;
+            } else if (count >= 100) {
+                counter.classList.add('warning');
+            } else {
+                counter.classList.remove('warning');
+            }
+        }
+
+        function loadTemplate(type) {
+            const templates = {
+                ecommerce: `Our mobile checkout experience has a critical abandonment issue:\n\n• 68% of users who add items to cart abandon during checkout\n• Most drop-offs occur on the payment information screen\n• Mobile users are 3x more likely to abandon than desktop users\n• We're losing an estimated $450K/month in potential revenue\n\nCustomer feedback indicates confusion about shipping costs and security concerns. Competitors like Amazon and Shopify have streamlined one-click checkout that we lack.`,
+
+                analytics: `We lack visibility into customer behavior and business performance:\n\n• Product team makes decisions without user data\n• No funnel analysis to identify drop-off points\n• Can't segment users by behavior or demographics\n• Unable to measure impact of new features\n• Marketing campaigns run blind without conversion tracking\n\nOur competitors use advanced analytics to optimize every touchpoint. We need similar capabilities to compete.`,
+
+                mobile: `Mobile users represent 60% of our traffic but only 25% of revenue:\n\n• Mobile experience is slow (avg 8-second load time)\n• Not optimized for touch interfaces\n• Key features unavailable on mobile\n• High bounce rate on mobile landing pages\n• Responsive design breaks on certain devices\n\nUser research shows mobile users want a native-like experience. Our current implementation feels like a desktop site crammed into mobile.`,
+
+                custom: ''
+            };
+
+            document.getElementById('problemDescription').value = templates[type];
+
+            // Update button states
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            updatePreview();
+            countChars();
+        }
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
+        }
+
+        function insertLink() {
+            const url = prompt('Enter URL:');
+            if (url) {
+                document.execCommand('createLink', false, url);
+            }
+        }
+
+        function toggleStakeholder(element, role) {
+            element.classList.toggle('selected');
+
+            if (selectedStakeholders.has(role)) {
+                selectedStakeholders.delete(role);
+            } else {
+                selectedStakeholders.add(role);
+            }
+
+            updatePreview();
+        }
+
+        function addCriterion() {
+            criteriaCount++;
+            const criteriaList = document.getElementById('criteriaList');
+            const newCriterion = document.createElement('div');
+            newCriterion.className = 'criterion';
+            newCriterion.innerHTML = `
+                <div class="criterion-header">
+                    <strong>Success Metric #${criteriaCount}</strong>
+                    <button class="remove-btn" onclick="removeCriterion(this)">Remove</button>
+                </div>
+                <div class="criterion-grid">
+                    <input type="text" placeholder="Metric name (e.g., User engagement rate)" oninput="updatePreview()">
+                    <input type="text" placeholder="Current (e.g., 35%)" oninput="updatePreview()">
+                    <input type="text" placeholder="Target (e.g., > 60%)" oninput="updatePreview()">
+                    <input type="text" placeholder="Timeframe (e.g., Q3 2024)" oninput="updatePreview()">
+                </div>
+            `;
+            criteriaList.appendChild(newCriterion);
+        }
+
+        function removeCriterion(button) {
+            button.closest('.criterion').remove();
+            updatePreview();
+        }
+
+        function addEmailInput() {
+            const container = document.getElementById('emailInputs');
+            const newInput = document.createElement('div');
+            newInput.className = 'email-group';
+            newInput.innerHTML = `
+                <select>
+                    <option>Product Manager</option>
+                    <option>Engineering Lead</option>
+                    <option>UX Designer</option>
+                    <option>Business Analyst</option>
+                    <option>Stakeholder</option>
+                </select>
+                <input type="email" placeholder="email@company.com" oninput="updatePreview()">
+            `;
+            container.appendChild(newInput);
+            updatePreview();
+        }
+
+        function handleFiles(files) {
+            const fileList = document.getElementById('fileList');
+
+            Array.from(files).forEach(file => {
+                uploadedFiles.push(file);
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+
+                const icon = getFileIcon(file.name);
+
+                fileItem.innerHTML = `
+                    <div class="file-thumbnail">${icon}</div>
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                `;
+
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = {
+                'pdf': '📄',
+                'png': '🖼️',
+                'jpg': '🖼️',
+                'jpeg': '🖼️',
+                'csv': '📊',
+                'doc': '📝',
+                'docx': '📝'
+            };
+            return icons[ext] || '📎';
+        }
+
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function updatePreview() {
+            // Update problem preview
+            const problemText = document.getElementById('problemDescription').value;
+            const previewProblem = document.getElementById('previewProblem');
+            if (problemText.trim()) {
+                previewProblem.innerHTML = problemText.replace(/\n/g, '<br>');
+            } else {
+                previewProblem.innerHTML = '<em style="color: #cbd5e1;">Your problem description will appear here as you type...</em>';
+            }
+
+            // Update stakeholders preview
+            const previewStakeholders = document.getElementById('previewStakeholders');
+            if (selectedStakeholders.size > 0) {
+                const stakeholderNames = {
+                    'customers': 'Customers',
+                    'product': 'Product Team',
+                    'engineering': 'Engineering',
+                    'ux': 'UX/Design',
+                    'business': 'Business/Finance',
+                    'marketing': 'Marketing',
+                    'support': 'Support'
+                };
+
+                previewStakeholders.innerHTML = '';
+                selectedStakeholders.forEach(role => {
+                    const chip = document.createElement('div');
+                    chip.className = 'chip';
+                    chip.innerHTML = `
+                        <div class="stakeholder-avatar" style="width: 20px; height: 20px; font-size: 11px;">${role[0].toUpperCase()}</div>
+                        ${stakeholderNames[role]}
+                    `;
+                    previewStakeholders.appendChild(chip);
+                });
+            } else {
+                previewStakeholders.innerHTML = '<em style="color: #cbd5e1;">Select stakeholders above</em>';
+            }
+
+            // Update metrics preview
+            const criteria = document.querySelectorAll('.criterion');
+            const previewMetrics = document.getElementById('previewMetrics');
+
+            if (criteria.length > 0) {
+                let metricsHtml = '<ul class="preview-list">';
+                let hasRevenue = false;
+
+                criteria.forEach((criterion, index) => {
+                    const inputs = criterion.querySelectorAll('input');
+                    const metric = inputs[0].value;
+                    const current = inputs[1].value;
+                    const target = inputs[2].value;
+                    const timeframe = inputs[3].value;
+
+                    if (metric || current || target || timeframe) {
+                        metricsHtml += `<li><strong>${metric || 'Metric ' + (index + 1)}</strong>: ${current || '?'} → ${target || '?'} by ${timeframe || 'TBD'}</li>`;
+
+                        if (metric.toLowerCase().includes('revenue') || current.includes('$') || target.includes('$')) {
+                            hasRevenue = true;
+                        }
+                    }
+                });
+
+                metricsHtml += '</ul>';
+                previewMetrics.innerHTML = metricsHtml;
+
+                // Show ROI if revenue metrics
+                const roiPreview = document.getElementById('roiPreview');
+                if (hasRevenue) {
+                    roiPreview.innerHTML = '<div class="roi-badge">💰 Estimated ROI: High</div>';
+                } else {
+                    roiPreview.innerHTML = '';
+                }
+            } else {
+                previewMetrics.innerHTML = '<em style="color: #cbd5e1;">Add success criteria above</em>';
+            }
+
+            // Update team preview
+            const emailInputs = document.querySelectorAll('#emailInputs input[type="email"]');
+            const previewTeam = document.getElementById('previewTeam');
+
+            let teamHtml = '';
+            let validEmails = 0;
+
+            emailInputs.forEach((input, index) => {
+                const email = input.value.trim();
+                const role = input.previousElementSibling.value;
+
+                if (email && email.includes('@')) {
+                    validEmails++;
+                    teamHtml += `<li><strong>${role}:</strong> ${email}</li>`;
+                }
+            });
+
+            if (validEmails > 0) {
+                previewTeam.innerHTML = teamHtml;
+            } else {
+                previewTeam.innerHTML = '<li style="color: #cbd5e1; list-style: none;"><em>Invite stakeholders above</em></li>';
+            }
+
+            // Update confidence level
+            const confidenceLevel = document.getElementById('confidenceLevel');
+            let score = 0;
+
+            if (problemText.length > 200) score += 25;
+            if (selectedStakeholders.size > 0) score += 25;
+            if (criteria.length > 0) score += 25;
+            if (validEmails > 0) score += 25;
+
+            const levels = [
+                { threshold: 0, text: 'Low - Add more details', color: '#ef4444' },
+                { threshold: 25, text: 'Medium - Getting better', color: '#f59e0b' },
+                { threshold: 50, text: 'Good - Almost there', color: '#3b82f6' },
+                { threshold: 75, text: 'High - Ready to proceed!', color: '#10b981' }
+            ];
+
+            const level = levels.reverse().find(l => score >= l.threshold);
+            confidenceLevel.textContent = level.text;
+            confidenceLevel.style.color = level.color;
+
+            // Trigger autosave
+            clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(() => {
+                saveDraft(true);
+            }, 2000);
+        }
+
+        function saveDraft(silent = false) {
+            const data = {
+                problem: document.getElementById('problemDescription').value,
+                stakeholders: Array.from(selectedStakeholders),
+                criteria: Array.from(document.querySelectorAll('.criterion')).map(c => {
+                    const inputs = c.querySelectorAll('input');
+                    return {
+                        metric: inputs[0].value,
+                        current: inputs[1].value,
+                        target: inputs[2].value,
+                        timeframe: inputs[3].value
+                    };
+                }),
+                files: uploadedFiles.map(f => f.name),
+                timestamp: new Date().toISOString()
+            };
+
+            localStorage.setItem('businessProblemDraft', JSON.stringify(data));
+
+            if (!silent) {
+                alert('Draft saved successfully!');
+            }
+
+            // Update autosave indicator
+            const autosave = document.querySelector('.autosave span');
+            autosave.textContent = 'Auto-saved just now';
+        }
+
+        function showPreviewModal() {
+            alert('PRD Preview Modal - This would show a formatted PRD document with all entered information');
+        }
+
+        function continueToModule3() {
+            saveDraft(true);
+
+            // Validate required fields
+            const problem = document.getElementById('problemDescription').value;
+            const emailInputs = document.querySelectorAll('#emailInputs input[type="email"]');
+            const hasValidEmail = Array.from(emailInputs).some(input =>
+                input.value.trim() && input.value.includes('@')
+            );
+
+            if (!problem.trim()) {
+                alert('Please describe the business problem before continuing.');
+                return;
+            }
+
+            if (!hasValidEmail) {
+                alert('Please invite at least one stakeholder before continuing.');
+                return;
+            }
+
+            // Send invitations
+            alert('Invitations sent! Redirecting to Module 3: Stakeholder Collaboration...');
+
+            // In production, this would navigate to module-3-stakeholder-collaboration.html
+            // window.location.href = 'module-3-stakeholder-collaboration.html';
+        }
+
+        // Initialize auto-save timer display
+        setInterval(() => {
+            const autosave = document.querySelector('.autosave span');
+            if (autosave.textContent.includes('just now')) {
+                autosave.textContent = 'Auto-saved 30 seconds ago';
+            } else if (autosave.textContent.includes('30 seconds')) {
+                autosave.textContent = 'Auto-saved 1 minute ago';
+            } else if (autosave.textContent.includes('1 minute')) {
+                autosave.textContent = 'Auto-saved 2 minutes ago';
+            }
+        }, 30000);
+
+        // Load draft on page load
+        window.addEventListener('load', () => {
+            const draft = localStorage.getItem('businessProblemDraft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                document.getElementById('problemDescription').value = data.problem || '';
+                updatePreview();
+                countChars();
+            }
+        });
+    </script>
+
+    <!-- State Synchronization -->
+    <script src="module-state-sync.js"></script>
+    <script>
+        // Initialize state sync for Module 2
+        ConductorModuleState.init(2);
+
+        // Listen for state updates from dashboard
+        ConductorModuleState.onStateUpdate((detail) => {
+            console.log('[Module 2] State updated from dashboard:', detail);
+            // Restore form data if available
+            if (detail.newState.problemDescription) {
+                document.getElementById('problemDescription').value = detail.newState.problemDescription;
+                updatePreview();
+            }
+        });
+
+        // Save form data to state
+        function saveFormToState() {
+            const formData = {
+                problemDescription: document.getElementById('problemDescription')?.value || '',
+                stakeholders: document.getElementById('stakeholders')?.value || '',
+                goals: document.getElementById('goals')?.value || '',
+                constraints: document.getElementById('constraints')?.value || '',
+                success: document.getElementById('success')?.value || '',
+                timeline: document.getElementById('timeline')?.value || '',
+                lastModified: new Date().toISOString()
+            };
+
+            ConductorModuleState.updateState(formData, { saveImmediately: true });
+        }
+
+        // Auto-save on input
+        document.querySelectorAll('textarea, input').forEach(element => {
+            element.addEventListener('input', () => {
+                // Debounce the save
+                clearTimeout(window.autoSaveTimer);
+                window.autoSaveTimer = setTimeout(saveFormToState, 1000);
+            });
+        });
+
+        // Save before navigation
+        window.addEventListener('beforeunload', saveFormToState);
+
+        console.log('[Module 2] State synchronization initialized');
+    </script>
+</body>
+</html>
