@@ -273,42 +273,9 @@ app.get('/demo/prd', (_req, res) => {
   res.sendFile(path.join(projectRoot, 'prd-orchestration-demo.html'));
 });
 
-// Root endpoint
+// Root endpoint - Serve unified dashboard
 app.get('/', (_req, res) => {
-  res.json({
-    message: 'Project Conductor - Workflow Orchestration System',
-    version: '1.0.0',
-    description: 'A comprehensive requirements management and workflow orchestration API',
-    endpoints: {
-      health: '/health',
-      demo: '/demo',
-      demoLive: '/demo/live',
-      demoOrchestration: '/demo/orchestration',
-      demoPRD: '/demo/prd',
-      requirements: '/api/v1/requirements',
-      links: '/api/v1/links',
-      traceability: '/api/v1/requirements/:id/links',
-      comments: '/api/v1/requirements/:id/comments',
-      quality: '/api/v1/requirements/:id/analyze',
-      documentation: '/api/v1/requirements (for API documentation)',
-    },
-    features: [
-      'Requirements CRUD operations',
-      'Version history tracking',
-      'Advanced filtering and search',
-      'Bulk operations',
-      'CSV export',
-      'Requirement linking and traceability',
-      'Impact analysis and dependency tracking',
-      'Circular dependency detection',
-      'Real-time updates via WebSocket',
-      'User presence tracking and collaboration',
-      'Live editing indicators',
-      'Comment threading system with real-time updates',
-      'Comprehensive audit logging',
-      'Interactive demo UI',
-    ],
-  });
+  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
 });
 
 // API documentation endpoint
