@@ -2098,5 +2098,525 @@
 
         console.log('[Module 5] State synchronization initialized');
     </script>
+
+    <!-- API & WebSocket Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/api-client.js"></script>
+    <script src="/websocket-client.js"></script>
+    <script>
+        // =================================================================
+        // MODULE 5: BACKEND INTEGRATION
+        // =================================================================
+
+        let currentRequirementData = null;
+        let impactAnalysisData = null;
+        let affectedLinksData = [];
+        let currentUserId = 'user-' + Math.random().toString(36).substr(2, 9);
+        let currentUsername = localStorage.getItem('demo-username') || 'Demo User';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('[Module 5] Initializing backend integration...');
+
+            // Load requirements list
+            await loadRequirementsList();
+
+            // Setup WebSocket real-time updates
+            setupRealtimeIntegration();
+        });
+
+        /**
+         * Load all requirements for dropdown
+         */
+        async function loadRequirementsList() {
+            try {
+                loading.start();
+
+                const result = await api.get('/requirements', {
+                    limit: 100,
+                    sortBy: 'updatedAt',
+                    sortOrder: 'DESC'
+                });
+
+                const dropdown = document.getElementById('requirement-select');
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="">Select a requirement to analyze...</option>' +
+                        result.data.map(req => `
+                            <option value="${req.id}">${req.id} - ${req.title}</option>
+                        `).join('');
+
+                    dropdown.addEventListener('change', async (e) => {
+                        if (e.target.value) {
+                            await loadRequirementForAnalysis(e.target.value);
+                        }
+                    });
+                }
+
+                console.log(`[Module 5] Loaded ${result.data.length} requirements`);
+            } catch (error) {
+                console.error('[Module 5] Failed to load requirements:', error);
+                showError('Failed to load requirements: ' + error.message);
+            } finally {
+                loading.stop();
+            }
+        }
+
+        /**
+         * Load specific requirement with impact analysis
+         */
+        async function loadRequirementForAnalysis(requirementId) {
+            try {
+                loading.start();
+
+                console.log('[Module 5] Loading requirement:', requirementId);
+
+                // Load requirement, impact, and links in parallel
+                const [reqResult, impactResult, linksResult] = await Promise.all([
+                    api.get(`/requirements/${requirementId}`),
+                    api.get(`/traceability/impact/${requirementId}`),
+                    api.get(`/requirements/${requirementId}/links`)
+                ]);
+
+                currentRequirementData = reqResult.data;
+                impactAnalysisData = impactResult.data;
+                affectedLinksData = linksResult.data;
+
+                // Display in UI
+                displayCurrentRequirement();
+                displayImpactGraph();
+                displayAffectedRequirements();
+
+                // Join WebSocket room for real-time updates
+                ws.joinRequirement(requirementId, currentUserId, currentUsername);
+
+                console.log('[Module 5] Loaded successfully');
+
+            } catch (error) {
+                console.error('[Module 5] Failed to load requirement:', error);
+                showError('Failed to load requirement: ' + error.message);
+            } finally {
+                loading.stop();
+            }
+        }
+
+        /**
+         * Display current requirement in "Before" section
+         */
+        function displayCurrentRequirement() {
+            if (!currentRequirementData) return;
+
+            const container = document.querySelector('.before-section');
+            if (!container) return;
+
+            container.innerHTML = `
+                <h3>Current Requirement</h3>
+                <div class="requirement-display">
+                    <div class="req-field">
+                        <label>ID:</label>
+                        <span>${currentRequirementData.id}</span>
+                    </div>
+                    <div class="req-field">
+                        <label>Title:</label>
+                        <span>${currentRequirementData.title}</span>
+                    </div>
+                    <div class="req-field">
+                        <label>Description:</label>
+                        <span>${currentRequirementData.description || 'No description'}</span>
+                    </div>
+                    <div class="req-field">
+                        <label>Priority:</label>
+                        <span class="priority-badge priority-${currentRequirementData.priority}">${currentRequirementData.priority}</span>
+                    </div>
+                    <div class="req-field">
+                        <label>Status:</label>
+                        <span class="status-badge status-${currentRequirementData.status}">${currentRequirementData.status}</span>
+                    </div>
+                    <div class="req-field">
+                        <label>Last Updated:</label>
+                        <span>${new Date(currentRequirementData.updatedAt).toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Propose Changes</h3>
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" id="edit-title" value="${currentRequirementData.title}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea id="edit-description" rows="4">${currentRequirementData.description || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority:</label>
+                        <select id="edit-priority">
+                            <option value="low" ${currentRequirementData.priority === 'low' ? 'selected' : ''}>Low</option>
+                            <option value="medium" ${currentRequirementData.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                            <option value="high" ${currentRequirementData.priority === 'high' ? 'selected' : ''}>High</option>
+                            <option value="critical" ${currentRequirementData.priority === 'critical' ? 'selected' : ''}>Critical</option>
+                        </select>
+                    </div>
+                    <button onclick="submitChangeProposal()" class="btn-primary">Submit Change</button>
+                </div>
+            `;
+
+            // Setup real-time editing indicators
+            setupEditingNotifications();
+        }
+
+        /**
+         * Display impact graph
+         */
+        function displayImpactGraph() {
+            if (!impactAnalysisData || !affectedLinksData) return;
+
+            const container = document.querySelector('.impact-graph-container');
+            if (!container) return;
+
+            const incomingCount = affectedLinksData.incomingLinks?.length || 0;
+            const outgoingCount = affectedLinksData.outgoingLinks?.length || 0;
+            const suspectCount = affectedLinksData.suspectLinks || 0;
+
+            container.innerHTML = `
+                <h3>Impact Analysis</h3>
+                <div class="impact-metrics">
+                    <div class="metric">
+                        <span class="metric-value">${affectedLinksData.totalLinks || 0}</span>
+                        <span class="metric-label">Total Links</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value">${incomingCount}</span>
+                        <span class="metric-label">Upstream</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value">${outgoingCount}</span>
+                        <span class="metric-label">Downstream</span>
+                    </div>
+                    <div class="metric warning">
+                        <span class="metric-value">${suspectCount}</span>
+                        <span class="metric-label">Suspect Links</span>
+                    </div>
+                </div>
+
+                <div class="graph-visualization">
+                    <div class="graph-node-container">
+                        ${incomingCount > 0 ? `
+                            <div class="graph-section">
+                                <h4>⬅️ Upstream Requirements</h4>
+                                ${affectedLinksData.incomingLinks.map(link => `
+                                    <div class="graph-node upstream ${link.isSuspect ? 'suspect' : ''}">
+                                        <strong>${link.sourceId}</strong>
+                                        <div class="node-title">${link.sourceRequirement?.title || 'Unknown'}</div>
+                                        ${link.isSuspect ? '<span class="suspect-badge">⚠️ SUSPECT</span>' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div class="graph-section">
+                            <div class="graph-node current">
+                                <strong>${currentRequirementData.id}</strong>
+                                <div class="node-title">${currentRequirementData.title}</div>
+                                <div class="node-label">Current Requirement</div>
+                            </div>
+                        </div>
+
+                        ${outgoingCount > 0 ? `
+                            <div class="graph-section">
+                                <h4>Downstream Requirements ➡️</h4>
+                                ${affectedLinksData.outgoingLinks.map(link => `
+                                    <div class="graph-node downstream ${link.isSuspect ? 'suspect' : ''}">
+                                        <strong>${link.targetId}</strong>
+                                        <div class="node-title">${link.targetRequirement?.title || 'Unknown'}</div>
+                                        ${link.isSuspect ? '<span class="suspect-badge">⚠️ SUSPECT</span>' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Display affected requirements list
+         */
+        function displayAffectedRequirements() {
+            if (!affectedLinksData) return;
+
+            const container = document.querySelector('.affected-requirements-list');
+            if (!container) return;
+
+            const allAffected = [
+                ...(affectedLinksData.incomingLinks || []).map(link => ({
+                    id: link.sourceId,
+                    title: link.sourceRequirement?.title || 'Unknown',
+                    type: 'upstream',
+                    linkType: link.linkType,
+                    isSuspect: link.isSuspect,
+                    linkId: link.id
+                })),
+                ...(affectedLinksData.outgoingLinks || []).map(link => ({
+                    id: link.targetId,
+                    title: link.targetRequirement?.title || 'Unknown',
+                    type: 'downstream',
+                    linkType: link.linkType,
+                    isSuspect: link.isSuspect,
+                    linkId: link.id
+                }))
+            ];
+
+            if (allAffected.length === 0) {
+                container.innerHTML = '<div class="no-data">No linked requirements found. This requirement has no dependencies.</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <h3>Affected Requirements (${allAffected.length})</h3>
+                ${allAffected.map(req => `
+                    <div class="affected-item ${req.isSuspect ? 'suspect' : ''}">
+                        <div class="affected-header">
+                            <span class="affected-id">${req.id}</span>
+                            <span class="affected-type ${req.type}">${req.type.toUpperCase()}</span>
+                            ${req.isSuspect ? '<span class="suspect-badge">⚠️ SUSPECT</span>' : ''}
+                        </div>
+                        <div class="affected-title">${req.title}</div>
+                        <div class="affected-link-type">Link Type: ${req.linkType}</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        /**
+         * Submit change proposal
+         */
+        async function submitChangeProposal() {
+            if (!currentRequirementData) {
+                showError('No requirement selected');
+                return;
+            }
+
+            const changes = {
+                title: document.getElementById('edit-title')?.value,
+                description: document.getElementById('edit-description')?.value,
+                priority: document.getElementById('edit-priority')?.value
+            };
+
+            // Validate
+            if (!changes.title || changes.title.trim() === '') {
+                showError('Title cannot be empty');
+                return;
+            }
+
+            try {
+                loading.start();
+                console.log('[Module 5] Submitting changes:', changes);
+
+                // Update requirement
+                const updated = await api.put(`/requirements/${currentRequirementData.id}`, changes);
+
+                // Mark all affected links as suspect
+                const linksToMark = [
+                    ...(affectedLinksData.incomingLinks || []),
+                    ...(affectedLinksData.outgoingLinks || [])
+                ];
+
+                console.log(`[Module 5] Marking ${linksToMark.length} links as suspect`);
+
+                for (const link of linksToMark) {
+                    if (!link.isSuspect) {
+                        try {
+                            await api.put(`/links/${link.id}/suspect`, {
+                                isSuspect: true,
+                                suspectReason: `Source requirement ${currentRequirementData.id} was modified on ${new Date().toLocaleString()}`
+                            });
+                        } catch (error) {
+                            console.error(`Failed to mark link ${link.id} as suspect:`, error);
+                        }
+                    }
+                }
+
+                // Create audit comment
+                await api.post(`/requirements/${currentRequirementData.id}/comments`, {
+                    content: `**Requirement Updated**\n\n` +
+                             `Title: ${currentRequirementData.title} → ${changes.title}\n` +
+                             `Priority: ${currentRequirementData.priority} → ${changes.priority}\n\n` +
+                             `Affected ${linksToMark.length} linked requirements - all marked as suspect for review.`
+                });
+
+                // Broadcast change via WebSocket
+                ws.broadcastFieldChange(
+                    currentRequirementData.id,
+                    'all',
+                    changes,
+                    currentUserId,
+                    currentUsername
+                );
+
+                showSuccess('Changes submitted successfully! All affected links marked as suspect.');
+
+                // Reload requirement
+                await loadRequirementForAnalysis(currentRequirementData.id);
+
+            } catch (error) {
+                console.error('[Module 5] Failed to submit changes:', error);
+                showError('Failed to submit changes: ' + error.message);
+            } finally {
+                loading.stop();
+            }
+        }
+
+        /**
+         * Setup real-time editing notifications
+         */
+        function setupEditingNotifications() {
+            const titleInput = document.getElementById('edit-title');
+            const descInput = document.getElementById('edit-description');
+
+            if (titleInput) {
+                titleInput.addEventListener('focus', () => {
+                    ws.startEditing(currentRequirementData.id, currentUserId);
+                });
+                titleInput.addEventListener('blur', () => {
+                    ws.stopEditing(currentRequirementData.id, currentUserId);
+                });
+            }
+
+            if (descInput) {
+                descInput.addEventListener('focus', () => {
+                    ws.startEditing(currentRequirementData.id, currentUserId);
+                });
+                descInput.addEventListener('blur', () => {
+                    ws.stopEditing(currentRequirementData.id, currentUserId);
+                });
+            }
+        }
+
+        /**
+         * Setup real-time WebSocket integration
+         */
+        function setupRealtimeIntegration() {
+            // Listen for changes from other users
+            ws.on('requirement:field-changed', (data) => {
+                if (currentRequirementData && data.requirementId === currentRequirementData.id) {
+                    if (data.userId !== currentUserId) {
+                        showNotification(`${data.username} is editing this requirement`);
+
+                        // Show temporary indicator
+                        const indicator = document.createElement('div');
+                        indicator.className = 'remote-edit-indicator';
+                        indicator.innerHTML = `
+                            <strong>${data.username}</strong> changed ${data.field}
+                        `;
+                        indicator.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: #3498db;
+                            color: white;
+                            padding: 15px 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                            z-index: 10000;
+                            animation: slideInRight 0.3s ease-out;
+                        `;
+                        document.body.appendChild(indicator);
+                        setTimeout(() => indicator.remove(), 5000);
+                    }
+                }
+            });
+
+            // Listen for editing status
+            ws.on('presence:editing-start', (data) => {
+                if (currentRequirementData && data.requirementId === currentRequirementData.id) {
+                    showNotification(`${data.user.username} started editing`);
+                }
+            });
+
+            ws.on('presence:editing-stop', (data) => {
+                if (currentRequirementData && data.requirementId === currentRequirementData.id) {
+                    console.log(`${data.user.username} stopped editing`);
+                }
+            });
+
+            // Listen for comments
+            ws.on('comment:created', (data) => {
+                if (currentRequirementData && data.comment?.requirementId === currentRequirementData.id) {
+                    showNotification(`${data.comment.author?.username || 'Someone'} added a comment`);
+                }
+            });
+        }
+
+        /**
+         * Show success notification
+         */
+        function showSuccess(message) {
+            const toast = document.createElement('div');
+            toast.className = 'success-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #2ecc71;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        /**
+         * Show error notification
+         */
+        function showError(message) {
+            const toast = document.createElement('div');
+            toast.className = 'error-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #e74c3c;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        /**
+         * Show notification
+         */
+        function showNotification(message) {
+            const toast = document.createElement('div');
+            toast.className = 'info-toast';
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #3498db;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        console.log('[Module 5] Backend integration ready');
+    </script>
 </body>
 </html>

@@ -1314,7 +1314,7 @@
         </div>
 
         <!-- Module Container -->
-        <div id="moduleContainer" style="display: none; position: relative;">
+        <div id="moduleContainer" style="display: none; position: relative; min-height: calc(100vh - 160px);">
             <!-- Multiple iframes for caching -->
             <iframe id="moduleFrame0" class="module-frame" data-module="0" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
             <iframe id="moduleFrame1" class="module-frame" data-module="1" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
@@ -1731,7 +1731,10 @@
                     reject(new Error(`Module ${moduleId} load timeout`));
                 }, 10000); // 10 second timeout
 
-                if (!iframe.src || iframe.src === 'about:blank') {
+                // Always set src if not the target file
+                const currentSrc = iframe.getAttribute('src');
+                if (!currentSrc || currentSrc === 'about:blank' || currentSrc !== module.file) {
+                    console.log(`Setting iframe ${moduleId} src to ${module.file}`);
                     iframe.src = module.file;
                 }
 
@@ -1837,8 +1840,15 @@
 
         // Navigation with caching
         function navigateToModule(moduleNumber) {
+            console.log('[Dashboard] navigateToModule called:', moduleNumber);
+
             const module = MODULES[moduleNumber];
-            if (!module) return;
+            if (!module) {
+                console.error('[Dashboard] Module not found:', moduleNumber);
+                return;
+            }
+
+            console.log('[Dashboard] Loading module:', module);
 
             // Show loading with module name
             showLoading(module.name);
@@ -1866,10 +1876,27 @@
             });
 
             // Load and show the selected module
+            console.log('[Dashboard] Calling loadModule for:', moduleNumber);
             loadModule(moduleNumber).then((iframe) => {
+                console.log('[Dashboard] loadModule promise resolved');
                 // Smooth transition
                 setTimeout(() => {
+                    console.log(`[Dashboard] Adding active class to module ${moduleNumber}`);
+                    console.log('[Dashboard] Iframe element:', iframe);
+                    console.log('[Dashboard] Iframe src:', iframe.src);
                     iframe.classList.add('active');
+                    console.log('[Dashboard] Iframe classes:', iframe.className);
+
+                    // Debug: Log iframe properties
+                    console.log(`Iframe ${moduleNumber} state:`, {
+                        src: iframe.src,
+                        width: iframe.offsetWidth,
+                        height: iframe.offsetHeight,
+                        display: window.getComputedStyle(iframe).display,
+                        visibility: window.getComputedStyle(iframe).visibility,
+                        opacity: window.getComputedStyle(iframe).opacity
+                    });
+
                     hideLoading();
 
                     // Pre-load adjacent modules

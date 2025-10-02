@@ -774,7 +774,147 @@ class SimpleMockService {
 
     return trends.sort((a, b) => a.date.localeCompare(b.date));
   }
+
+  /**
+   * Initialize with sample demo data
+   */
+  async initializeDemoData(): Promise<void> {
+    console.log('[SimpleMockService] Initializing demo data...');
+
+    // Create sample requirements with links
+    const req1 = await this.createRequirement({
+      title: 'User Authentication System',
+      description: 'Implement secure user login and registration with JWT tokens',
+      priority: 'critical',
+      tags: ['security', 'auth', 'backend'],
+    });
+
+    const req2 = await this.createRequirement({
+      title: 'Dashboard Overview Page',
+      description: 'Create main dashboard with key metrics and visualizations',
+      priority: 'high',
+      tags: ['ui', 'frontend', 'dashboard'],
+    });
+
+    const req3 = await this.createRequirement({
+      title: 'Requirements Management API',
+      description: 'RESTful API for creating, reading, updating, and deleting requirements',
+      priority: 'critical',
+      tags: ['api', 'backend', 'core'],
+    });
+
+    const req4 = await this.createRequirement({
+      title: 'Real-time Collaboration',
+      description: 'WebSocket-based real-time collaboration with presence tracking',
+      priority: 'high',
+      tags: ['realtime', 'websocket', 'collaboration'],
+    });
+
+    const req5 = await this.createRequirement({
+      title: 'Traceability Matrix',
+      description: 'Visual traceability matrix showing requirement relationships',
+      priority: 'medium',
+      tags: ['traceability', 'visualization', 'ui'],
+    });
+
+    const req6 = await this.createRequirement({
+      title: 'Export to PDF/CSV',
+      description: 'Export requirements and reports in various formats',
+      priority: 'low',
+      tags: ['export', 'reporting', 'feature'],
+    });
+
+    await this.createRequirement({
+      title: 'Mobile Responsive Design',
+      description: 'Ensure all pages work on mobile devices',
+      priority: 'high',
+      tags: ['ui', 'responsive', 'mobile'],
+    });
+
+    await this.createRequirement({
+      title: 'API Documentation',
+      description: 'Swagger/OpenAPI documentation for all endpoints',
+      priority: 'medium',
+      tags: ['documentation', 'api'],
+    });
+
+    // Create links between requirements
+    const linkId1 = await generateUniqueId('LINK');
+    await this.createLink({
+      id: linkId1,
+      sourceId: req1.id,
+      targetId: req2.id,
+      linkType: 'depends-on',
+      isSuspect: false,
+      createdBy: 'system',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const linkId2 = await generateUniqueId('LINK');
+    await this.createLink({
+      id: linkId2,
+      sourceId: req2.id,
+      targetId: req3.id,
+      linkType: 'depends-on',
+      isSuspect: false,
+      createdBy: 'system',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const linkId3 = await generateUniqueId('LINK');
+    await this.createLink({
+      id: linkId3,
+      sourceId: req4.id,
+      targetId: req3.id,
+      linkType: 'implements',
+      isSuspect: false,
+      createdBy: 'system',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const linkId4 = await generateUniqueId('LINK');
+    await this.createLink({
+      id: linkId4,
+      sourceId: req5.id,
+      targetId: req3.id,
+      linkType: 'depends-on',
+      isSuspect: false,
+      createdBy: 'system',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const linkId5 = await generateUniqueId('LINK');
+    await this.createLink({
+      id: linkId5,
+      sourceId: req6.id,
+      targetId: req3.id,
+      linkType: 'depends-on',
+      isSuspect: false,
+      createdBy: 'system',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    console.log(`[SimpleMockService] Created ${this.requirements.size} requirements and ${this.links.size} links`);
+  }
 }
 
-export const simpleMockService = new SimpleMockService();
+// Create singleton and initialize with demo data immediately
+const mockServiceInstance = new SimpleMockService();
+
+// Initialize demo data synchronously (don't await, just fire and forget with logging)
+(async () => {
+  try {
+    await mockServiceInstance.initializeDemoData();
+    console.log('[SimpleMockService] Demo data initialization complete');
+  } catch (err) {
+    console.error('[SimpleMockService] Failed to initialize demo data:', err);
+  }
+})();
+
+export const simpleMockService = mockServiceInstance;
 export default SimpleMockService;

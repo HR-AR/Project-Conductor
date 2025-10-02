@@ -798,9 +798,8 @@ class DemoWalkthrough {
     }
 
     skipTour() {
-        if (confirm('Are you sure you want to exit the tour? You can restart it anytime from the "Take Tour" button.')) {
-            this.cleanup();
-        }
+        // Just let them exit - no annoying confirmation!
+        this.cleanup();
     }
 
     pauseTour() {
@@ -1093,21 +1092,10 @@ class DemoWalkthrough {
 // Initialize global instance
 window.demoWalkthrough = new DemoWalkthrough();
 
-// Auto-start on first visit
+// Don't auto-start - let users click "Take Tour" button when ready
 document.addEventListener('DOMContentLoaded', () => {
-    const hasVisited = localStorage.getItem('walkthrough-completed');
-    const hasStarted = localStorage.getItem('walkthrough-started');
-
-    if (!hasVisited && !hasStarted) {
-        // Show welcome prompt
-        setTimeout(() => {
-            if (confirm('Welcome to Project Conductor! Would you like to take a guided tour to learn how everything works?')) {
-                window.demoWalkthrough.start();
-            } else {
-                localStorage.setItem('walkthrough-started', 'declined');
-            }
-        }, 1000);
-    }
+    // Tour is opt-in only - no intrusive popups!
+    console.log('[Demo Walkthrough] Ready. Click "Take Tour" button to start.');
 });
 
 // Keyboard shortcuts

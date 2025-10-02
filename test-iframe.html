@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Iframe Loading</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: sans-serif; }
+        #container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: #f0f0f0;
+            border: 2px solid #333;
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        iframe.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+        button { margin: 5px; padding: 10px 20px; }
+    </style>
+</head>
+<body>
+    <h1>Iframe Test</h1>
+    <div>
+        <button onclick="loadModule(0)">Module 0</button>
+        <button onclick="loadModule(1)">Module 1</button>
+        <button onclick="loadModule(5)">Module 5</button>
+    </div>
+    <div id="container">
+        <iframe id="frame0" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+        <iframe id="frame1" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+        <iframe id="frame5" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+    </div>
+
+    <script>
+        const modules = [
+            { id: 0, url: '/demo/module-0-onboarding.html' },
+            { id: 1, url: '/demo/PROJECT_CONDUCTOR_DEMO.html' },
+            { id: 5, url: '/demo/module-5-change-impact.html' }
+        ];
+
+        function loadModule(id) {
+            const module = modules.find(m => m.id === id);
+            if (!module) return;
+
+            console.log('Loading module:', module.url);
+
+            const iframe = document.getElementById(`frame${id}`);
+
+            // Hide all others
+            document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+
+            // Set src if not set
+            if (!iframe.src || iframe.src === 'about:blank') {
+                iframe.src = module.url;
+                console.log('Set iframe src to:', module.url);
+            }
+
+            // Show this one
+            setTimeout(() => {
+                iframe.classList.add('active');
+                console.log('Added active class to frame', id);
+            }, 100);
+        }
+    </script>
+</body>
+</html>
