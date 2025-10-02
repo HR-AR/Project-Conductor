@@ -46,7 +46,7 @@ import { createCommentsRoutes } from './routes/comments.routes';
 import qualityRoutes from './routes/quality.routes';
 import reviewRoutes from './routes/review.routes';
 import metricsRoutes from './routes/metrics.routes';
-import orchestratorRoutes, { initializeOrchestrator } from './routes/orchestrator.routes';
+// import orchestratorRoutes, { initializeOrchestrator } from './routes/orchestrator.routes'; // Temporarily disabled
 
 // Import database
 import { db } from './config/database';
@@ -217,7 +217,7 @@ app.use('/api/v1', createCommentsRoutes(webSocketService));
 app.use('/api/v1', qualityRoutes);
 app.use('/api/v1', reviewRoutes);
 app.use('/api/v1', metricsRoutes);
-app.use('/api/v1/orchestrator', orchestratorRoutes);
+// app.use('/api/v1/orchestrator', orchestratorRoutes); // Temporarily disabled
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {
@@ -554,9 +554,9 @@ const startServer = async () => {
 
     // Initialize orchestrator (optional - controlled via env variable)
     if (process.env['ENABLE_ORCHESTRATOR'] === 'true') {
-      const orchestrator = initializeOrchestrator();
-      await orchestrator.start();
-      logger.info('Orchestrator started successfully');
+      // const orchestrator = initializeOrchestrator(); // Temporarily disabled
+      // await orchestrator.start();
+      logger.info('Orchestrator temporarily disabled');
     }
 
     // Set up periodic presence cleanup (every 5 minutes)

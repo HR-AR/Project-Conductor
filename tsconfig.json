@@ -30,7 +30,10 @@
   "exclude": [
     "node_modules",
     "dist",
-    "tests"
+    "tests",
+    "src/orchestrator",
+    "src/routes/orchestrator.routes.ts",
+    "examples"
   ],
   "ts-node": {
     "esm": false,
