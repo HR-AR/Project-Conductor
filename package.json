@@ -26,7 +26,15 @@
     "scout": "node scripts/scout-cli.mjs",
     "scout:prp": "node scripts/scout-cli.mjs --from docs/prps",
     "scout:initial": "node scripts/scout-cli.mjs --from INITIAL.md",
-    "workflow": "bash scripts/workflow.sh"
+    "workflow": "bash scripts/workflow.sh",
+    "conductor": "node scripts/conductor-cli.mjs",
+    "conductor:status": "node scripts/conductor-cli.mjs status",
+    "conductor:test": "node scripts/conductor-cli.mjs test",
+    "conductor:advance": "node scripts/conductor-cli.mjs advance",
+    "conductor:rollback": "node scripts/conductor-cli.mjs rollback",
+    "conductor:deploy": "node scripts/conductor-cli.mjs deploy",
+    "conductor:report": "node scripts/conductor-cli.mjs report",
+    "conductor:dashboard": "node scripts/conductor-cli.mjs dashboard"
   },
   "keywords": [
     "workflow",
