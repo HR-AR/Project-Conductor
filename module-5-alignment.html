@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5: Alignment & Conflict Resolution - Project Conductor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-header {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-header:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .left-panel, .center-panel, .right-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+        }
+
+        .right-panel {
+            background: #f8f9fa;
+            border-left: 2px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conflict-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .conflict-item {
+            background: white;
+            border-left: 4px solid #dc3545;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .conflict-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .conflict-item.active {
+            border-left-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .conflict-item.resolved {
+            border-left-color: #28a745;
+            opacity: 0.7;
+        }
+
+        .conflict-item.voting {
+            border-left-color: #ffc107;
+        }
+
+        .conflict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .conflict-title {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .conflict-severity {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .severity-critical { background: #dc3545; color: white; }
+        .severity-high { background: #fd7e14; color: white; }
+        .severity-medium { background: #ffc107; color: #000; }
+        .severity-low { background: #17a2b8; color: white; }
+
+        .conflict-type {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e9ecef;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 6px;
+            margin-top: 6px;
+        }
+
+        .conflict-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 12px;
+        }
+
+        .conflict-details {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .detail-value {
+            color: #495057;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .impact-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .impact-card.high { border-color: #dc3545; }
+        .impact-card.medium { border-color: #ffc107; }
+        .impact-card.low { border-color: #28a745; }
+
+        .impact-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .impact-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stakeholder-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+
+        .stakeholder-card:hover {
+            border-color: #667eea;
+        }
+
+        .stakeholder-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .stakeholder-info {
+            flex: 1;
+        }
+
+        .stakeholder-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stakeholder-role {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .vote-weight {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .position-badge {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .position-option-a { background: #c6f6d5; color: #22543d; }
+        .position-option-b { background: #fed7d7; color: #c53030; }
+        .position-option-c { background: #bee3f8; color: #2c5282; }
+        .position-neutral { background: #e9ecef; color: #495057; }
+        .position-more-info { background: #feebc8; color: #7c2d12; }
+
+        .comment-thread {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .comment-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .resolution-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .resolution-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .resolution-option:hover {
+            border-color: #667eea;
+            background: #f0f9ff;
+        }
+
+        .resolution-option.selected {
+            border-color: #667eea;
+            background: #ede9fe;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .option-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .option-votes {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .option-description {
+            color: #495057;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .pros, .cons {
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .pros {
+            background: #d4edda;
+        }
+
+        .cons {
+            background: #f8d7da;
+        }
+
+        .pros h4, .cons h4 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .pros li::before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .cons li::before {
+            content: "✗ ";
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .option-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .voting-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .vote-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .vote-fill {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .vote-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        .quorum-status {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .quorum-met {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .quorum-not-met {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .comparison-matrix {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .matrix-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .matrix-table .winner {
+            background: #d4edda;
+            font-weight: 700;
+        }
+
+        .tradeoff-chart {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .ai-assistant {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .ai-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-ai {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .btn-ai:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-ai:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .meeting-scheduler {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .meeting-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .attendee-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .attendee-chip {
+            background: #ede9fe;
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .remove-attendee {
+            cursor: pointer;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-success:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 16px;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 24px 30px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10001;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.warning {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .toast.info {
+            background: #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-open { background: #fed7d7; color: #c53030; }
+        .status-discussion { background: #bee3f8; color: #2c5282; }
+        .status-voting { background: #feebc8; color: #7c2d12; }
+        .status-resolved { background: #c6f6d5; color: #22543d; }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Alignment & Conflict Resolution</h1>
+                <p>Resolve conflicts with stakeholder voting and impact analysis</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-header" onclick="showCreateConflictModal()">+ New Conflict</button>
+                <button class="btn-header" onclick="showReportModal()">Export Report</button>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left: Conflict List -->
+            <div class="left-panel scrollbar-thin">
+                <div class="conflict-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Active Conflicts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    Active Conflicts
+                    <select id="filterSeverity" onchange="filterConflicts()" style="font-size: 0.85rem; padding: 6px; border-radius: 6px;">
+                        <option value="all">All Severity</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div id="conflictList">
+                    <div class="conflict-item active voting" onclick="selectConflict(this, 0)" data-severity="critical">
+                        <div class="conflict-header">
+                            <div class="conflict-title">BRD vs PRD: Timeline Conflict</div>
+                            <span class="conflict-severity severity-critical">Critical</span>
+                        </div>
+                        <div>
+                            <span class="conflict-type">Timeline</span>
+                            <span class="conflict-type">BRD-PRD</span>
+                        </div>
+                        <div class="conflict-meta">
+                            <span>Status: <span class="status-badge status-voting">Voting</span></span>
+                            <span>6 stakeholders</span>
+                        </div>
+                    </div>
+
+                    <div class="conflict-item" onclick="selectConflict(this, 1)" data-severity="high">
+                        <div class="conflict-header">
+                            <div class="conflict-title">PRD vs Design: Tech Stack</div>
+                            <span class="conflict-severity severity-high">High</span>
+                        </div>
+                        <div>
+                            <span class="conflict-type">Technical</span>
+                            <span class="conflict-type">PRD-Design</span>
+                        </div>
+                        <div class="conflict-meta">
+                            <span>Status: <span class="status-badge status-discussion">Discussion</span></span>
+                            <span>4 stakeholders</span>
+                        </div>
+                    </div>
+
+                    <div class="conflict-item" onclick="selectConflict(this, 2)" data-severity="high">
+                        <div class="conflict-header">
+                            <div class="conflict-title">Resource Allocation Dispute</div>
+                            <span class="conflict-severity severity-high">High</span>
+                        </div>
+                        <div>
+                            <span class="conflict-type">Resource</span>
+                            <span class="conflict-type">Budget</span>
+                        </div>
+                        <div class="conflict-meta">
+                            <span>Status: <span class="status-badge status-open">Open</span></span>
+                            <span>5 stakeholders</span>
+                        </div>
+                    </div>
+
+                    <div class="conflict-item resolved" onclick="selectConflict(this, 3)" data-severity="medium">
+                        <div class="conflict-header">
+                            <div class="conflict-title">Budget Constraints</div>
+                            <span class="conflict-severity severity-medium">Medium</span>
+                        </div>
+                        <div>
+                            <span class="conflict-type">Budget</span>
+                        </div>
+                        <div class="conflict-meta">
+                            <span>Status: <span class="status-badge status-resolved">Resolved</span></span>
+                            <span>3 stakeholders</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Conflict Details -->
+            <div class="center-panel scrollbar-thin" id="centerPanel">
+                <div class="section-title">Conflict Details</div>
+
+                <div class="conflict-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Conflict Type:</div>
+                        <div class="detail-value">Timeline Mismatch</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Between:</div>
+                        <div class="detail-value">BRD (Business) ↔ PRD (Engineering)</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Created:</div>
+                        <div class="detail-value">2024-01-15</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-voting">Voting</span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Deadline:</div>
+                        <div class="detail-value">2024-01-20 (5 days remaining)</div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 30px;">Impact Analysis</div>
+                <div class="impact-grid">
+                    <div class="impact-card high">
+                        <div class="impact-title">Timeline</div>
+                        <div class="impact-value">+45 days</div>
+                        <div class="stat-label">Potential delay</div>
+                    </div>
+                    <div class="impact-card high">
+                        <div class="impact-title">Budget</div>
+                        <div class="impact-value">$250K</div>
+                        <div class="stat-label">Additional cost</div>
+                    </div>
+                    <div class="impact-card medium">
+                        <div class="impact-title">Quality</div>
+                        <div class="impact-value">7/10</div>
+                        <div class="stat-label">Risk score</div>
+                    </div>
+                    <div class="impact-card high">
+                        <div class="impact-title">Scope</div>
+                        <div class="impact-value">12 features</div>
+                        <div class="stat-label">Affected</div>
+                    </div>
+                </div>
+
+                <div class="ai-assistant">
+                    <h3 style="margin-bottom: 8px;">AI Assistant</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.9;">Get AI-powered insights to resolve this conflict</p>
+                    <div class="ai-buttons">
+                        <button class="btn-ai" onclick="suggestResolutions()">
+                            <span style="margin-right: 8px;">🤖</span> Suggest Resolution Options
+                        </button>
+                        <button class="btn-ai" onclick="analyzeImpact()">
+                            <span style="margin-right: 8px;">📊</span> Analyze Impact
+                        </button>
+                        <button class="btn-ai" onclick="findSimilarConflicts()">
+                            <span style="margin-right: 8px;">🔍</span> Find Similar Past Conflicts
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tradeoff-chart">
+                    <h3 style="margin-bottom: 16px;">Trade-off Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 30px;">Resolution Options</div>
+                <div class="resolution-options" id="resolutionOptions">
+                    <div class="resolution-option" onclick="selectResolution(this, 0)">
+                        <div class="option-header">
+                            <div class="option-title">Option A: Phased Rollout</div>
+                            <div class="option-votes">2 votes (40%)</div>
+                        </div>
+                        <div class="option-description">
+                            Launch MVP in Q1 2024 with core features, then roll out remaining features in Q2 2024. This allows us to meet market demands while ensuring quality.
+                        </div>
+                        <div class="pros-cons">
+                            <div class="pros">
+                                <h4>Pros</h4>
+                                <ul>
+                                    <li>Meets Q1 deadline</li>
+                                    <li>Reduced initial scope</li>
+                                    <li>Early market feedback</li>
+                                    <li>Lower risk</li>
+                                </ul>
+                            </div>
+                            <div class="cons">
+                                <h4>Cons</h4>
+                                <ul>
+                                    <li>Incomplete feature set</li>
+                                    <li>Multiple releases</li>
+                                    <li>Customer confusion</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-metrics">
+                            <div class="metric">
+                                <div class="metric-value">+15d</div>
+                                <div class="metric-label">Timeline</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">+$50K</div>
+                                <div class="metric-label">Cost</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">8/10</div>
+                                <div class="metric-label">Quality</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">Low</div>
+                                <div class="metric-label">Risk</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resolution-option selected" onclick="selectResolution(this, 1)">
+                        <div class="option-header">
+                            <div class="option-title">Option B: Resource Augmentation</div>
+                            <div class="option-votes">3 votes (60%)</div>
+                        </div>
+                        <div class="option-description">
+                            Add 3 senior contractors to the team to accelerate development and meet the Q1 deadline with full feature set.
+                        </div>
+                        <div class="pros-cons">
+                            <div class="pros">
+                                <h4>Pros</h4>
+                                <ul>
+                                    <li>Full feature set in Q1</li>
+                                    <li>Single release</li>
+                                    <li>No scope reduction</li>
+                                    <li>Knowledge transfer</li>
+                                </ul>
+                            </div>
+                            <div class="cons">
+                                <h4>Cons</h4>
+                                <ul>
+                                    <li>Higher cost</li>
+                                    <li>Onboarding time</li>
+                                    <li>Integration complexity</li>
+                                    <li>Quality concerns</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-metrics">
+                            <div class="metric">
+                                <div class="metric-value">+5d</div>
+                                <div class="metric-label">Timeline</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">+$180K</div>
+                                <div class="metric-label">Cost</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">7/10</div>
+                                <div class="metric-label">Quality</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">Med</div>
+                                <div class="metric-label">Risk</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resolution-option" onclick="selectResolution(this, 2)">
+                        <div class="option-header">
+                            <div class="option-title">Option C: Scope Reduction</div>
+                            <div class="option-votes">0 votes (0%)</div>
+                        </div>
+                        <div class="option-description">
+                            Cut 5 non-critical features to reduce complexity and meet Q1 deadline with existing team.
+                        </div>
+                        <div class="pros-cons">
+                            <div class="pros">
+                                <h4>Pros</h4>
+                                <ul>
+                                    <li>No additional cost</li>
+                                    <li>Meets Q1 deadline</li>
+                                    <li>Focused delivery</li>
+                                    <li>Existing team</li>
+                                </ul>
+                            </div>
+                            <div class="cons">
+                                <h4>Cons</h4>
+                                <ul>
+                                    <li>Missing features</li>
+                                    <li>Stakeholder disappointment</li>
+                                    <li>Competitive disadvantage</li>
+                                    <li>Scope creep risk</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-metrics">
+                            <div class="metric">
+                                <div class="metric-value">+0d</div>
+                                <div class="metric-label">Timeline</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">$0</div>
+                                <div class="metric-label">Cost</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">9/10</div>
+                                <div class="metric-label">Quality</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">Low</div>
+                                <div class="metric-label">Risk</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" onclick="addResolutionOption()">
+                        + Add Another Option
+                    </button>
+                </div>
+
+                <div class="comparison-matrix">
+                    <h3 style="margin-bottom: 16px;">Option Comparison Matrix</h3>
+                    <table class="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Timeline Impact</th>
+                                <th>Cost Impact</th>
+                                <th>Quality Score</th>
+                                <th>Risk Level</th>
+                                <th>Votes</th>
+                                <th>Weighted Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Option A</td>
+                                <td>+15 days</td>
+                                <td>+$50K</td>
+                                <td>8/10</td>
+                                <td>Low</td>
+                                <td>2 (40%)</td>
+                                <td>7.2</td>
+                            </tr>
+                            <tr class="winner">
+                                <td><strong>Option B</strong></td>
+                                <td>+5 days</td>
+                                <td>+$180K</td>
+                                <td>7/10</td>
+                                <td>Medium</td>
+                                <td>3 (60%)</td>
+                                <td><strong>7.8</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Option C</td>
+                                <td>+0 days</td>
+                                <td>$0</td>
+                                <td>9/10</td>
+                                <td>Low</td>
+                                <td>0 (0%)</td>
+                                <td>6.5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <strong>Resolution Notes:</strong>
+                    <textarea id="resolutionNotes" placeholder="Document the agreed resolution and implementation plan...">After careful consideration and stakeholder voting, we are proceeding with Option B (Resource Augmentation). We will onboard 3 senior contractors with expertise in our tech stack to accelerate development while maintaining quality standards.</textarea>
+                </div>
+            </div>
+
+            <!-- Right: Stakeholder Votes & Actions -->
+            <div class="right-panel scrollbar-thin">
+                <div class="section-title">Stakeholder Votes</div>
+
+                <div class="voting-section">
+                    <strong>Consensus Vote</strong>
+                    <div class="vote-bar">
+                        <div class="vote-fill" id="consensusBar" style="width: 60%;">60% Aligned</div>
+                    </div>
+                    <div class="vote-details">
+                        <span>3 of 5 voted</span>
+                        <span>Weighted: 7/10</span>
+                    </div>
+                    <div class="quorum-status quorum-not-met">
+                        Quorum: 60% (Need 1 more vote)
+                    </div>
+                </div>
+
+                <div id="stakeholderList">
+                    <div class="stakeholder-card">
+                        <div class="stakeholder-header">
+                            <div class="avatar">SM</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Sarah Miller</div>
+                                <div class="stakeholder-role">Product Manager</div>
+                            </div>
+                            <div class="vote-weight">×2</div>
+                        </div>
+                        <span class="position-badge position-option-b">Voted: Option B</span>
+                        <div class="comment-thread">
+                            "We can allocate budget for contractors. This is our best path to meet market demands without compromising quality."
+                            <div class="comment-meta">Posted 2 hours ago</div>
+                        </div>
+                    </div>
+
+                    <div class="stakeholder-card">
+                        <div class="stakeholder-header">
+                            <div class="avatar">JC</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">John Chen</div>
+                                <div class="stakeholder-role">Engineering Lead</div>
+                            </div>
+                            <div class="vote-weight">×2</div>
+                        </div>
+                        <span class="position-badge position-option-a">Voted: Option A</span>
+                        <div class="comment-thread">
+                            "I prefer phased rollout to manage complexity. However, I can work with Option B if we carefully vet the contractors."
+                            <div class="comment-meta">Posted 1 hour ago</div>
+                        </div>
+                    </div>
+
+                    <div class="stakeholder-card">
+                        <div class="stakeholder-header">
+                            <div class="avatar">EB</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Emily Brown</div>
+                                <div class="stakeholder-role">VP Engineering</div>
+                            </div>
+                            <div class="vote-weight">×3</div>
+                        </div>
+                        <span class="position-badge position-option-b">Voted: Option B</span>
+                        <div class="comment-thread">
+                            "Approved. I've identified 3 vetted contractors who can start next week. We'll need a solid onboarding plan."
+                            <div class="comment-meta">Posted 30 minutes ago</div>
+                        </div>
+                    </div>
+
+                    <div class="stakeholder-card">
+                        <div class="stakeholder-header">
+                            <div class="avatar">DK</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">David Kim</div>
+                                <div class="stakeholder-role">Finance Director</div>
+                            </div>
+                            <div class="vote-weight">×2</div>
+                        </div>
+                        <span class="position-badge position-more-info">Not Voted Yet</span>
+                        <div class="comment-thread">
+                            "Reviewing the $180K budget request. Need more details on contractor rates and duration."
+                            <div class="comment-meta">Posted 15 minutes ago</div>
+                        </div>
+                    </div>
+
+                    <div class="stakeholder-card">
+                        <div class="stakeholder-header">
+                            <div class="avatar">AL</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Anna Lee</div>
+                                <div class="stakeholder-role">UX Lead</div>
+                            </div>
+                            <div class="vote-weight">×1</div>
+                        </div>
+                        <span class="position-badge position-neutral">Not Voted Yet</span>
+                        <div class="comment-thread">
+                            "Need to understand impact on design review cycles before voting."
+                            <div class="comment-meta">Posted 10 minutes ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="meeting-scheduler">
+                    <h4 style="margin-bottom: 12px;">Schedule Alignment Meeting</h4>
+                    <div class="meeting-form">
+                        <div class="form-group">
+                            <label class="form-label">Date & Time</label>
+                            <input type="datetime-local" class="form-input" id="meetingDateTime">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Duration</label>
+                            <select class="form-select" id="meetingDuration">
+                                <option value="30">30 minutes</option>
+                                <option value="60" selected>1 hour</option>
+                                <option value="90">1.5 hours</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Agenda</label>
+                            <textarea class="form-textarea" id="meetingAgenda" placeholder="Meeting agenda...">1. Review conflict details
+2. Discuss resolution options
+3. Q&A session
+4. Vote on final decision
+5. Define action items</textarea>
+                        </div>
+                        <button class="btn btn-primary btn-block btn-small" onclick="scheduleMeeting()">
+                            Schedule Meeting
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn btn-success btn-block" id="resolveBtn" onclick="resolveConflict()" disabled>
+                    Mark as Resolved (Need Quorum)
+                </button>
+                <button class="btn btn-secondary btn-block" onclick="castVote()">
+                    Cast Your Vote
+                </button>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="saveProgress()">Save Progress</button>
+            <button class="btn btn-secondary" onclick="exportConflictData()">Export Conflict Data</button>
+            <button class="btn btn-primary" style="margin-left: auto;" onclick="proceedToImplementation()">
+                Proceed to Implementation →
+            </button>
+        </div>
+    </div>
+
+    <!-- Create Conflict Modal -->
+    <div id="createConflictModal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">Create New Conflict</div>
+                <button class="modal-close" onclick="closeModal('createConflictModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Conflict Title</label>
+                    <input type="text" class="form-input" id="newConflictTitle" placeholder="Brief description of the conflict">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="newConflictType">
+                        <option>Timeline Conflict</option>
+                        <option>Budget Conflict</option>
+                        <option>Resource Conflict</option>
+                        <option>Technical Feasibility</option>
+                        <option>BRD-PRD Misalignment</option>
+                        <option>PRD-Design Inconsistency</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Severity</label>
+                    <select class="form-select" id="newConflictSeverity">
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Description (min 50 characters)</label>
+                    <textarea class="form-textarea" id="newConflictDescription" placeholder="Detailed description of the conflict, affected parties, and context..." style="min-height: 120px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Stakeholders</label>
+                    <div class="attendee-list" id="selectedStakeholders">
+                        <div class="attendee-chip">Sarah Miller (PM) <span class="remove-attendee" onclick="this.parentElement.remove()">×</span></div>
+                        <div class="attendee-chip">John Chen (Eng) <span class="remove-attendee" onclick="this.parentElement.remove()">×</span></div>
+                    </div>
+                    <button class="btn btn-secondary btn-small" style="margin-top: 8px;">+ Add Stakeholder</button>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="createConflict()">Create Conflict</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content" style="width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">Conflict Resolution Report</div>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Export Options</h3>
+                <div style="margin: 20px 0;">
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox" checked> Conflict Timeline
+                    </label>
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox" checked> Stakeholder Participation
+                    </label>
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox" checked> Voting Results
+                    </label>
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox" checked> Final Decision & Rationale
+                    </label>
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox" checked> Implementation Plan
+                    </label>
+                    <label style="display: block; margin-bottom: 12px;">
+                        <input type="checkbox"> Lessons Learned
+                    </label>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-primary" onclick="exportReport('pdf')">Export as PDF</button>
+                    <button class="btn btn-secondary" onclick="exportReport('json')">Export as JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        let alignmentId = null;
+        let currentConflict = null;
+        let radarChart = null;
+
+        // Initialize radar chart
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            const data = {
+                labels: ['Cost', 'Time', 'Quality', 'Scope', 'Risk'],
+                datasets: [
+                    {
+                        label: 'Option A: Phased Rollout',
+                        data: [8, 6, 8, 7, 9],
+                        fill: true,
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: 'rgb(102, 126, 234)',
+                        pointBackgroundColor: 'rgb(102, 126, 234)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(102, 126, 234)'
+                    },
+                    {
+                        label: 'Option B: Resource Augmentation',
+                        data: [5, 8, 7, 9, 6],
+                        fill: true,
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        borderColor: 'rgb(40, 167, 69)',
+                        pointBackgroundColor: 'rgb(40, 167, 69)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(40, 167, 69)'
+                    },
+                    {
+                        label: 'Option C: Scope Reduction',
+                        data: [10, 9, 9, 4, 8],
+                        fill: true,
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: 'rgb(220, 53, 69)',
+                        pointBackgroundColor: 'rgb(220, 53, 69)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(220, 53, 69)'
+                    }
+                ]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            };
+
+            radarChart = new Chart(ctx, config);
+        }
+
+        function selectConflict(element, index) {
+            document.querySelectorAll('.conflict-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            // In a real app, load conflict details from API
+            showToast('Conflict details loaded', 'info');
+        }
+
+        function selectResolution(element, index) {
+            document.querySelectorAll('.resolution-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function filterConflicts() {
+            const severity = document.getElementById('filterSeverity').value;
+            const conflicts = document.querySelectorAll('.conflict-item');
+
+            conflicts.forEach(conflict => {
+                if (severity === 'all' || conflict.dataset.severity === severity) {
+                    conflict.style.display = 'block';
+                } else {
+                    conflict.style.display = 'none';
+                }
+            });
+        }
+
+        function addResolutionOption() {
+            const container = document.getElementById('resolutionOptions');
+            const newOption = document.createElement('div');
+            newOption.className = 'resolution-option';
+            newOption.innerHTML = `
+                <div class="option-header">
+                    <div class="option-title">New Option</div>
+                    <div class="option-votes">0 votes (0%)</div>
+                </div>
+                <div class="option-description">
+                    <textarea class="form-textarea" placeholder="Describe this resolution option..." style="margin-bottom: 12px;"></textarea>
+                </div>
+                <button class="btn btn-secondary btn-small" onclick="this.parentElement.remove()">Remove Option</button>
+            `;
+            container.insertBefore(newOption, container.lastElementChild);
+            showToast('New option added', 'success');
+        }
+
+        function castVote() {
+            const selected = document.querySelector('.resolution-option.selected');
+            if (!selected) {
+                showToast('Please select a resolution option first', 'warning');
+                return;
+            }
+
+            // Simulate voting
+            showToast('Your vote has been recorded', 'success');
+
+            // Update consensus bar
+            const bar = document.getElementById('consensusBar');
+            const newWidth = Math.min(100, parseInt(bar.style.width) + 20);
+            bar.style.width = newWidth + '%';
+            bar.textContent = newWidth + '% Aligned';
+
+            // Enable resolve button if quorum met
+            if (newWidth >= 75) {
+                document.getElementById('resolveBtn').disabled = false;
+                document.getElementById('resolveBtn').textContent = 'Mark as Resolved';
+            }
+
+            // Emit WebSocket event
+            if (typeof ws !== 'undefined' && ws.isConnected()) {
+                ws.socket.emit('conflict:vote-cast', {
+                    conflictId: 'conf-001',
+                    option: selected.querySelector('.option-title').textContent,
+                    userId: ws.currentUser.userId,
+                    username: ws.currentUser.username
+                });
+            }
+        }
+
+        async function resolveConflict() {
+            const notes = document.getElementById('resolutionNotes').value;
+            if (notes.length < 50) {
+                showToast('Please provide resolution notes (min 50 characters)', 'error');
+                return;
+            }
+
+            const selected = document.querySelector('.resolution-option.selected');
+            if (!selected) {
+                showToast('Please select a resolution option', 'error');
+                return;
+            }
+
+            showToast('Conflict marked as resolved', 'success');
+
+            // Emit WebSocket event
+            if (typeof ws !== 'undefined' && ws.isConnected()) {
+                ws.socket.emit('conflict:resolved', {
+                    conflictId: 'conf-001',
+                    resolution: selected.querySelector('.option-title').textContent,
+                    notes: notes,
+                    userId: ws.currentUser.userId,
+                    username: ws.currentUser.username
+                });
+            }
+
+            // API call
+            if (typeof api !== 'undefined') {
+                try {
+                    await api.post('/conflicts/conf-001/resolve', {
+                        resolution: selected.querySelector('.option-title').textContent,
+                        notes: notes
+                    });
+                } catch (err) {
+                    console.error('Failed to resolve conflict:', err);
+                }
+            }
+        }
+
+        function scheduleMeeting() {
+            const datetime = document.getElementById('meetingDateTime').value;
+            const duration = document.getElementById('meetingDuration').value;
+            const agenda = document.getElementById('meetingAgenda').value;
+
+            if (!datetime) {
+                showToast('Please select date and time', 'warning');
+                return;
+            }
+
+            showToast('Alignment meeting scheduled successfully', 'success');
+
+            // In real app, send calendar invites
+            setTimeout(() => {
+                showToast('Calendar invites sent to all stakeholders', 'info');
+            }, 1500);
+        }
+
+        async function saveProgress() {
+            const data = {
+                title: 'Alignment: Timeline Conflict',
+                description: document.getElementById('resolutionNotes').value,
+                priority: 'critical',
+                status: 'in_progress',
+                metadata: {
+                    type: 'ALIGNMENT',
+                    conflictType: 'Timeline',
+                    resolution: document.querySelector('.resolution-option.selected')?.querySelector('.option-title')?.textContent
+                }
+            };
+
+            if (typeof api !== 'undefined') {
+                try {
+                    if (alignmentId) {
+                        await api.put(`/requirements/${alignmentId}`, data);
+                    } else {
+                        const result = await api.post('/requirements', data);
+                        alignmentId = result.id;
+                    }
+                    showToast('Progress saved', 'success');
+                } catch (err) {
+                    showToast('Save failed', 'error');
+                }
+            } else {
+                showToast('Progress saved (demo mode)', 'success');
+            }
+        }
+
+        async function proceedToImplementation() {
+            await saveProgress();
+            if (typeof api !== 'undefined' && alignmentId) {
+                try {
+                    await api.put(`/requirements/${alignmentId}`, { status: 'approved' });
+                    showToast('Alignment complete', 'success');
+                    setTimeout(() => {
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_MODULE',
+                            moduleNumber: 6,
+                            params: { alignmentId }
+                        }, '*');
+                    }, 1000);
+                } catch (err) {
+                    showToast('Failed to proceed', 'error');
+                }
+            } else {
+                showToast('Moving to implementation phase...', 'success');
+                setTimeout(() => {
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_MODULE',
+                        moduleNumber: 6
+                    }, '*');
+                }, 1000);
+            }
+        }
+
+        // AI Assistant Functions (Placeholder)
+        function suggestResolutions() {
+            showToast('AI analyzing conflict... (Feature coming soon)', 'info');
+            setTimeout(() => {
+                showToast('AI suggested 2 additional resolution options', 'success');
+            }, 2000);
+        }
+
+        function analyzeImpact() {
+            showToast('Running impact analysis... (Feature coming soon)', 'info');
+            setTimeout(() => {
+                showToast('Impact analysis complete', 'success');
+            }, 2000);
+        }
+
+        function findSimilarConflicts() {
+            showToast('Searching past conflicts... (Feature coming soon)', 'info');
+            setTimeout(() => {
+                showToast('Found 3 similar resolved conflicts', 'success');
+            }, 2000);
+        }
+
+        // Modal Functions
+        function showCreateConflictModal() {
+            document.getElementById('createConflictModal').classList.add('active');
+        }
+
+        function showReportModal() {
+            document.getElementById('reportModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function createConflict() {
+            const title = document.getElementById('newConflictTitle').value;
+            const type = document.getElementById('newConflictType').value;
+            const severity = document.getElementById('newConflictSeverity').value;
+            const description = document.getElementById('newConflictDescription').value;
+
+            if (!title || title.length < 10) {
+                showToast('Title must be at least 10 characters', 'error');
+                return;
+            }
+
+            if (!description || description.length < 50) {
+                showToast('Description must be at least 50 characters', 'error');
+                return;
+            }
+
+            const stakeholders = document.querySelectorAll('#selectedStakeholders .attendee-chip');
+            if (stakeholders.length < 2) {
+                showToast('At least 2 stakeholders required', 'error');
+                return;
+            }
+
+            // API call
+            if (typeof api !== 'undefined') {
+                api.post('/conflicts', {
+                    title, type, severity, description,
+                    stakeholders: Array.from(stakeholders).map(s => s.textContent.replace('×', '').trim())
+                }).then(() => {
+                    showToast('Conflict created successfully', 'success');
+                    closeModal('createConflictModal');
+                }).catch(() => {
+                    showToast('Failed to create conflict', 'error');
+                });
+            } else {
+                showToast('Conflict created (demo mode)', 'success');
+                closeModal('createConflictModal');
+            }
+        }
+
+        function exportConflictData() {
+            const data = {
+                conflict: 'BRD vs PRD: Timeline Conflict',
+                status: 'Voting',
+                stakeholders: 5,
+                options: 3,
+                votes: 3,
+                consensus: '60%'
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'conflict-data.json';
+            a.click();
+
+            showToast('Conflict data exported', 'success');
+        }
+
+        function exportReport(format) {
+            showToast(`Generating ${format.toUpperCase()} report...`, 'info');
+            setTimeout(() => {
+                showToast(`Report exported as ${format.toUpperCase()}`, 'success');
+                closeModal('reportModal');
+            }, 1500);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // WebSocket event handlers
+        if (typeof ws !== 'undefined') {
+            ws.on('conflict:created', (data) => {
+                showToast(`New conflict: ${data.title}`, 'info');
+                // Refresh conflict list
+            });
+
+            ws.on('conflict:vote-cast', (data) => {
+                showToast(`${data.username} voted on ${data.option}`, 'info');
+                // Update vote tally
+            });
+
+            ws.on('conflict:resolved', (data) => {
+                showToast(`Conflict resolved: ${data.resolution}`, 'success');
+                // Show celebration animation
+            });
+
+            ws.on('conflict:comment-added', (data) => {
+                showToast(`${data.username} commented`, 'info');
+                // Add comment to thread
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initRadarChart();
+
+            if (typeof ws !== 'undefined') {
+                ws.connect('user-' + Math.random().toString(36).substr(2, 9), 'Demo User');
+            }
+
+            // Set default meeting time to tomorrow 2pm
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(14, 0, 0, 0);
+            document.getElementById('meetingDateTime').value = tomorrow.toISOString().slice(0, 16);
+        });
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+
+    <script src="/demo/module-state-sync.js"></script>
+    <script>
+        if (typeof ConductorModuleState !== 'undefined') {
+            ConductorModuleState.init(5);
+            console.log('[Module 5] State sync initialized');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+{
+  "api": {
+    "passed": 11,
+    "failed": 7,
+    "tests": [
+      {
+        "name": "Health Check",
+        "method": "GET",
+        "path": "/health",
+        "expectedStatus": 200,
+        "actualStatus": 200,
+        "passed": true,
+        "body": {
+          "status": "ok",
+          "service": "project-conductor",
+          "version": "1.0.0",
+          "timestamp": "2025-10-04T17:04:41.184Z",
+          "database": "disconnected",
+          "environment": "development",
+          "presence": {
+            "totalUsers": 5,
+            "onlineUsers": 5,
+            "editingUsers": 0,
+            "requirementsWithUsers": 0
+          }
+        }
+      },
+      {
+        "name": "GET /api/v1/requirements",
+        "method": "GET",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 200,
+        "actualStatus": 200,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": [
+            {
+              "id": "REQ-20251004-0001",
+              "title": "High Cart Abandonment Rate Causing Revenue Loss",
+              "description": "68% of mobile users abandon checkout at payment screen, resulting in $2M annual revenue loss. Peak abandonment occurs on mobile devices during payment information entry. Customer feedback indicates confusion about shipping costs and security concerns.",
+              "status": "under_review",
+              "priority": "critical",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "revenue",
+                "mobile",
+                "checkout",
+                "ux"
+              ],
+              "metadata": {
+                "stakeholders": "Sales,Marketing,Engineering,Product",
+                "businessImpact": "$2M annual revenue loss, 68% cart abandonment rate",
+                "moduleSource": "business-input",
+                "submittedBy": "Sarah Chen (VP Product)",
+                "submittedAt": "2025-10-02T16:41:29.868Z"
+              },
+              "createdAt": "2025-10-04T16:41:30.877Z",
+              "updatedAt": "2025-10-04T16:41:30.877Z"
+            },
+            {
+              "id": "REQ-20251004-0002",
+              "title": "One-Click Checkout for Returning Customers",
+              "description": "Enable saved payment methods and addresses for faster checkout, similar to Amazon. Must support Apple Pay and Google Pay.",
+              "status": "draft",
+              "priority": "critical",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "checkout",
+                "ux",
+                "conversion"
+              ],
+              "metadata": {
+                "alignment": "aligned",
+                "alignedBy": "Sales Team",
+                "alignedAt": "2025-10-03T16:41:30.877Z",
+                "parentRequirement": "REQ-20251004-0001"
+              },
+              "createdAt": "2025-10-04T16:41:30.877Z",
+              "updatedAt": "2025-10-04T16:41:30.877Z"
+            },
+            {
+              "id": "REQ-20251004-0003",
+              "title": "Transparent Shipping Cost Calculator",
+              "description": "Show real-time shipping costs before payment screen. Display estimated delivery dates and multiple shipping options upfront.",
+              "status": "draft",
+              "priority": "high",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "shipping",
+                "transparency",
+                "ux"
+              ],
+              "metadata": {
+                "alignment": "aligned",
+                "alignedBy": "Marketing Team",
+                "alignedAt": "2025-10-03T16:41:30.877Z",
+                "parentRequirement": "REQ-20251004-0001"
+              },
+              "createdAt": "2025-10-04T16:41:30.877Z",
+              "updatedAt": "2025-10-04T16:41:30.877Z"
+            },
+            {
+              "id": "REQ-20251004-0004",
+              "title": "Security Trust Indicators",
+              "description": "Add SSL badges, payment security logos, and money-back guarantee messaging at checkout to reduce security concerns.",
+              "status": "draft",
+              "priority": "high",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "security",
+                "trust",
+                "conversion"
+              ],
+              "metadata": {
+                "alignment": "align-but",
+                "alignedBy": "Engineering Team",
+                "concerns": "Need to verify badge placement doesn't slow page load time",
+                "alignedAt": "2025-10-03T16:41:30.877Z",
+                "parentRequirement": "REQ-20251004-0001"
+              },
+              "createdAt": "2025-10-04T16:41:30.877Z",
+              "updatedAt": "2025-10-04T16:41:30.877Z"
+            },
+            {
+              "id": "REQ-20251004-0005",
+              "title": "Payment Gateway API Integration",
+              "description": "Integrate Stripe API with support for saved cards, Apple Pay, Google Pay. Must handle PCI compliance and tokenization.",
+              "status": "draft",
+              "priority": "critical",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "backend",
+                "payment",
+                "api"
+              ],
+              "metadata": {
+                "implementationStatus": "in-progress",
+                "assignedTo": "Backend Team",
+                "estimatedHours": 40
+              },
+              "createdAt": "2025-10-04T16:41:30.877Z",
+              "updatedAt": "2025-10-04T16:41:30.877Z"
+            },
+            {
+              "id": "REQ-20251004-0006",
+              "title": "Real-time Shipping Rate API",
+              "description": "Implement USPS, FedEx, and UPS API integration for real-time rate calculation based on cart weight and destination.",
+              "status": "draft",
+              "priority": "high",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "backend",
+                "shipping",
+                "api"
+              ],
+              "metadata": {
+                "implementationStatus": "in-progress",
+                "assignedTo": "Backend Team",
+                "estimatedHours": 24
+              },
+              "createdAt": "2025-10-04T16:41:30.878Z",
+              "updatedAt": "2025-10-04T16:41:30.878Z"
+            },
+            {
+              "id": "REQ-20251004-0007",
+              "title": "Mobile-Optimized Checkout UI",
+              "description": "Responsive checkout flow with large touch targets, auto-focus on inputs, and progress indicator. Must load under 2 seconds.",
+              "status": "draft",
+              "priority": "critical",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "frontend",
+                "mobile",
+                "performance"
+              ],
+              "metadata": {
+                "implementationStatus": "pending",
+                "assignedTo": "Frontend Team",
+                "estimatedHours": 32
+              },
+              "createdAt": "2025-10-04T16:41:30.878Z",
+              "updatedAt": "2025-10-04T16:41:30.878Z"
+            },
+            {
+              "id": "REQ-20251004-0008",
+              "title": "Analytics Event Tracking",
+              "description": "Track checkout funnel events: cart view, shipping info, payment info, completion. Monitor abandonment points.",
+              "status": "draft",
+              "priority": "medium",
+              "createdBy": "system",
+              "completionPercentage": 0,
+              "tags": [
+                "analytics",
+                "monitoring"
+              ],
+              "metadata": {
+                "implementationStatus": "pending",
+                "assignedTo": "Data Team",
+                "estimatedHours": 16
+              },
+              "createdAt": "2025-10-04T16:41:30.878Z",
+              "updatedAt": "2025-10-04T16:41:30.878Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 8,
+            "totalPages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          },
+          "message": "Requirements retrieved successfully"
+        }
+      },
+      {
+        "name": "POST /api/v1/requirements (Create BRD)",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 201,
+        "actualStatus": 201,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": {
+            "id": "REQ-20251004-0009",
+            "title": "Test BRD for Integration",
+            "description": "Integration test BRD",
+            "status": "draft",
+            "priority": "high",
+            "createdBy": "system",
+            "completionPercentage": 0,
+            "tags": [
+              "test",
+              "integration"
+            ],
+            "createdAt": "2025-10-04T17:04:41.307Z",
+            "updatedAt": "2025-10-04T17:04:41.307Z"
+          },
+          "message": "Requirement created successfully"
+        }
+      },
+      {
+        "name": "GET /api/v1/requirements/REQ-20251004-0009",
+        "method": "GET",
+        "path": "/api/v1/requirements/REQ-20251004-0009",
+        "expectedStatus": 200,
+        "actualStatus": 200,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": {
+            "id": "REQ-20251004-0009",
+            "title": "Test BRD for Integration",
+            "description": "Integration test BRD",
+            "status": "draft",
+            "priority": "high",
+            "createdBy": "system",
+            "completionPercentage": 0,
+            "tags": [
+              "test",
+              "integration"
+            ],
+            "createdAt": "2025-10-04T17:04:41.307Z",
+            "updatedAt": "2025-10-04T17:04:41.307Z"
+          },
+          "message": "Requirement retrieved successfully"
+        }
+      },
+      {
+        "name": "PATCH /api/v1/requirements/REQ-20251004-0009",
+        "method": "PATCH",
+        "path": "/api/v1/requirements/REQ-20251004-0009",
+        "expectedStatus": 200,
+        "actualStatus": 404,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/requirements/REQ-20251004-0009 not found",
+            "statusCode": 404
+          }
+        }
+      },
+      {
+        "name": "GET /api/v1/conflicts",
+        "method": "GET",
+        "path": "/api/v1/conflicts",
+        "expectedStatus": 200,
+        "actualStatus": 500,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "this.conflictService.getAllConflicts is not a function",
+            "statusCode": 500,
+            "stack": "TypeError: this.conflictService.getAllConflicts is not a function\n    at /Users/h0r03cw/Desktop/Coding/Project Conductor/dist/controllers/conflict.controller.js:33:58\n    at /Users/h0r03cw/Desktop/Coding/Project Conductor/dist/middleware/error-handler.js:116:25\n    at Layer.handle [as handle_request] (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/index.js:175:3)"
+          }
+        }
+      },
+      {
+        "name": "GET /api/v1/links",
+        "method": "GET",
+        "path": "/api/v1/links",
+        "expectedStatus": 200,
+        "actualStatus": 200,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": [
+            {
+              "id": "LINK-20251004-0001",
+              "sourceId": "REQ-20251004-0001",
+              "targetId": "REQ-20251004-0002",
+              "linkType": "related-to",
+              "isSuspect": false,
+              "createdBy": "Sarah Chen",
+              "createdAt": "2025-10-03T16:41:30.878Z",
+              "updatedAt": "2025-10-03T16:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0001",
+                "title": "High Cart Abandonment Rate Causing Revenue Loss",
+                "status": "under_review",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0002",
+                "title": "One-Click Checkout for Returning Customers",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "createdByUser": {
+                "id": "Sarah Chen",
+                "username": "Sarah Chen"
+              }
+            },
+            {
+              "id": "LINK-20251004-0002",
+              "sourceId": "REQ-20251004-0001",
+              "targetId": "REQ-20251004-0003",
+              "linkType": "related-to",
+              "isSuspect": false,
+              "createdBy": "Sarah Chen",
+              "createdAt": "2025-10-03T16:41:30.878Z",
+              "updatedAt": "2025-10-03T16:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0001",
+                "title": "High Cart Abandonment Rate Causing Revenue Loss",
+                "status": "under_review",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0003",
+                "title": "Transparent Shipping Cost Calculator",
+                "status": "draft",
+                "priority": "high"
+              },
+              "createdByUser": {
+                "id": "Sarah Chen",
+                "username": "Sarah Chen"
+              }
+            },
+            {
+              "id": "LINK-20251004-0003",
+              "sourceId": "REQ-20251004-0001",
+              "targetId": "REQ-20251004-0004",
+              "linkType": "related-to",
+              "isSuspect": false,
+              "createdBy": "Sarah Chen",
+              "createdAt": "2025-10-03T16:41:30.878Z",
+              "updatedAt": "2025-10-03T16:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0001",
+                "title": "High Cart Abandonment Rate Causing Revenue Loss",
+                "status": "under_review",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0004",
+                "title": "Security Trust Indicators",
+                "status": "draft",
+                "priority": "high"
+              },
+              "createdByUser": {
+                "id": "Sarah Chen",
+                "username": "Sarah Chen"
+              }
+            },
+            {
+              "id": "LINK-20251004-0004",
+              "sourceId": "REQ-20251004-0002",
+              "targetId": "REQ-20251004-0005",
+              "linkType": "implements",
+              "isSuspect": false,
+              "createdBy": "Tech Lead",
+              "createdAt": "2025-10-04T04:41:30.878Z",
+              "updatedAt": "2025-10-04T04:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0002",
+                "title": "One-Click Checkout for Returning Customers",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0005",
+                "title": "Payment Gateway API Integration",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "createdByUser": {
+                "id": "Tech Lead",
+                "username": "Tech Lead"
+              }
+            },
+            {
+              "id": "LINK-20251004-0005",
+              "sourceId": "REQ-20251004-0003",
+              "targetId": "REQ-20251004-0006",
+              "linkType": "implements",
+              "isSuspect": false,
+              "createdBy": "Tech Lead",
+              "createdAt": "2025-10-04T04:41:30.878Z",
+              "updatedAt": "2025-10-04T04:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0003",
+                "title": "Transparent Shipping Cost Calculator",
+                "status": "draft",
+                "priority": "high"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0006",
+                "title": "Real-time Shipping Rate API",
+                "status": "draft",
+                "priority": "high"
+              },
+              "createdByUser": {
+                "id": "Tech Lead",
+                "username": "Tech Lead"
+              }
+            },
+            {
+              "id": "LINK-20251004-0006",
+              "sourceId": "REQ-20251004-0002",
+              "targetId": "REQ-20251004-0007",
+              "linkType": "implements",
+              "isSuspect": false,
+              "createdBy": "UX Designer",
+              "createdAt": "2025-10-04T08:41:30.878Z",
+              "updatedAt": "2025-10-04T08:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0002",
+                "title": "One-Click Checkout for Returning Customers",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0007",
+                "title": "Mobile-Optimized Checkout UI",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "createdByUser": {
+                "id": "UX Designer",
+                "username": "UX Designer"
+              }
+            },
+            {
+              "id": "LINK-20251004-0007",
+              "sourceId": "REQ-20251004-0004",
+              "targetId": "REQ-20251004-0007",
+              "linkType": "implements",
+              "isSuspect": false,
+              "createdBy": "UX Designer",
+              "createdAt": "2025-10-04T08:41:30.878Z",
+              "updatedAt": "2025-10-04T08:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0004",
+                "title": "Security Trust Indicators",
+                "status": "draft",
+                "priority": "high"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0007",
+                "title": "Mobile-Optimized Checkout UI",
+                "status": "draft",
+                "priority": "critical"
+              },
+              "createdByUser": {
+                "id": "UX Designer",
+                "username": "UX Designer"
+              }
+            },
+            {
+              "id": "LINK-20251004-0008",
+              "sourceId": "REQ-20251004-0001",
+              "targetId": "REQ-20251004-0008",
+              "linkType": "related-to",
+              "isSuspect": false,
+              "createdBy": "Data Analyst",
+              "createdAt": "2025-10-04T10:41:30.878Z",
+              "updatedAt": "2025-10-04T10:41:30.878Z",
+              "sourceRequirement": {
+                "id": "REQ-20251004-0001",
+                "title": "High Cart Abandonment Rate Causing Revenue Loss",
+                "status": "under_review",
+                "priority": "critical"
+              },
+              "targetRequirement": {
+                "id": "REQ-20251004-0008",
+                "title": "Analytics Event Tracking",
+                "status": "draft",
+                "priority": "medium"
+              },
+              "createdByUser": {
+                "id": "Data Analyst",
+                "username": "Data Analyst"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "GET /api/v1/comments",
+        "method": "GET",
+        "path": "/api/v1/comments",
+        "expectedStatus": 200,
+        "actualStatus": 404,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/comments not found",
+            "statusCode": 404
+          }
+        }
+      },
+      {
+        "name": "GET /api/v1/quality/REQ-20251004-0009",
+        "method": "GET",
+        "path": "/api/v1/quality/REQ-20251004-0009",
+        "expectedStatus": 200,
+        "actualStatus": 404,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/quality/REQ-20251004-0009 not found",
+            "statusCode": 404
+          }
+        }
+      },
+      {
+        "name": "Create BRD",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 201,
+        "actualStatus": 201,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": {
+            "id": "REQ-20251004-0010",
+            "title": "Checkout Optimization BRD",
+            "description": "Reduce cart abandonment rate",
+            "status": "draft",
+            "priority": "critical",
+            "createdBy": "system",
+            "completionPercentage": 0,
+            "tags": [
+              "revenue",
+              "checkout"
+            ],
+            "metadata": {
+              "businessImpact": "$2M annual revenue loss",
+              "stakeholders": "Sales,Marketing,Engineering"
+            },
+            "createdAt": "2025-10-04T17:04:41.318Z",
+            "updatedAt": "2025-10-04T17:04:41.318Z"
+          },
+          "message": "Requirement created successfully"
+        }
+      },
+      {
+        "name": "Create PRD linked to BRD",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 201,
+        "actualStatus": 201,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": {
+            "id": "REQ-20251004-0011",
+            "title": "One-Click Checkout PRD",
+            "description": "Enable saved payment methods",
+            "status": "draft",
+            "priority": "critical",
+            "createdBy": "system",
+            "completionPercentage": 0,
+            "tags": [
+              "checkout",
+              "ux"
+            ],
+            "metadata": {
+              "parentRequirement": "REQ-20251004-0010",
+              "alignment": "aligned"
+            },
+            "createdAt": "2025-10-04T17:04:41.319Z",
+            "updatedAt": "2025-10-04T17:04:41.319Z"
+          },
+          "message": "Requirement created successfully"
+        }
+      },
+      {
+        "name": "Create Link BRD → PRD",
+        "method": "POST",
+        "path": "/api/v1/links",
+        "expectedStatus": 201,
+        "actualStatus": 404,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/links not found",
+            "statusCode": 404
+          }
+        }
+      },
+      {
+        "name": "Create Design linked to PRD",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 201,
+        "actualStatus": 201,
+        "passed": true,
+        "body": {
+          "success": true,
+          "data": {
+            "id": "REQ-20251004-0012",
+            "title": "Payment Gateway Integration Design",
+            "description": "Stripe API integration architecture",
+            "status": "draft",
+            "priority": "critical",
+            "createdBy": "system",
+            "completionPercentage": 0,
+            "tags": [
+              "backend",
+              "payment"
+            ],
+            "metadata": {
+              "parentRequirement": "REQ-20251004-0011",
+              "implementationStatus": "in-progress"
+            },
+            "createdAt": "2025-10-04T17:04:41.320Z",
+            "updatedAt": "2025-10-04T17:04:41.320Z"
+          },
+          "message": "Requirement created successfully"
+        }
+      },
+      {
+        "name": "Create Link PRD → Design",
+        "method": "POST",
+        "path": "/api/v1/links",
+        "expectedStatus": 201,
+        "actualStatus": 404,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/links not found",
+            "statusCode": 404
+          }
+        }
+      },
+      {
+        "name": "Validation: Missing title",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 400,
+        "actualStatus": 400,
+        "passed": true,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Validation failed",
+            "statusCode": 400,
+            "validationErrors": [
+              {
+                "field": "title",
+                "message": "Title is required"
+              },
+              {
+                "field": "title",
+                "message": "Title must be between 1 and 255 characters"
+              }
+            ],
+            "stack": "Error: Validation failed\n    at handleValidationErrors (/Users/h0r03cw/Desktop/Coding/Project Conductor/dist/middleware/validation.js:9:15)\n    at Layer.handle [as handle_request] (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          }
+        }
+      },
+      {
+        "name": "Validation: Invalid priority",
+        "method": "POST",
+        "path": "/api/v1/requirements",
+        "expectedStatus": 400,
+        "actualStatus": 400,
+        "passed": true,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Validation failed",
+            "statusCode": 400,
+            "validationErrors": [
+              {
+                "field": "priority",
+                "message": "Priority must be one of: low, medium, high, critical",
+                "value": "invalid_priority"
+              }
+            ],
+            "stack": "Error: Validation failed\n    at handleValidationErrors (/Users/h0r03cw/Desktop/Coding/Project Conductor/dist/middleware/validation.js:9:15)\n    at Layer.handle [as handle_request] (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          }
+        }
+      },
+      {
+        "name": "Error: 404 Not Found",
+        "method": "GET",
+        "path": "/api/v1/requirements/INVALID-ID-999",
+        "expectedStatus": 404,
+        "actualStatus": 400,
+        "passed": false,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Validation failed",
+            "statusCode": 400,
+            "validationErrors": [
+              {
+                "field": "id",
+                "message": "id must be a valid ID",
+                "value": "INVALID-ID-999"
+              }
+            ],
+            "stack": "Error: Validation failed\n    at handleValidationErrors (/Users/h0r03cw/Desktop/Coding/Project Conductor/dist/middleware/validation.js:9:15)\n    at Layer.handle [as handle_request] (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/Users/h0r03cw/Desktop/Coding/Project Conductor/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          }
+        }
+      },
+      {
+        "name": "Error: 404 Invalid Endpoint",
+        "method": "GET",
+        "path": "/api/v1/invalid-endpoint",
+        "expectedStatus": 404,
+        "actualStatus": 404,
+        "passed": true,
+        "body": {
+          "success": false,
+          "error": {
+            "message": "Route /api/v1/invalid-endpoint not found",
+            "statusCode": 404
+          }
+        }
+      }
+    ]
+  },
+  "validation": {
+    "passed": 0,
+    "failed": 0,
+    "tests": []
+  },
+  "workflow": {
+    "passed": 0,
+    "failed": 0,
+    "tests": []
+  },
+  "issues": [
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/requirements/REQ-20251004-0009",
+      "error": "Route /api/v1/requirements/REQ-20251004-0009 not found"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/conflicts",
+      "error": "this.conflictService.getAllConflicts is not a function"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/comments",
+      "error": "Route /api/v1/comments not found"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/quality/REQ-20251004-0009",
+      "error": "Route /api/v1/quality/REQ-20251004-0009 not found"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/links",
+      "error": "Route /api/v1/links not found"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/links",
+      "error": "Route /api/v1/links not found"
+    },
+    {
+      "type": "API Error",
+      "endpoint": "/api/v1/requirements/INVALID-ID-999",
+      "error": "Validation failed"
+    }
+  ]
+}

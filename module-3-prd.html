@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 3: Product Requirements Document (PRD) - Project Conductor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .alignment-bar {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alignment-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .alignment-progress {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .alignment-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.3s ease;
+        }
+
+        .alignment-percentage {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 420px;
+            min-height: calc(100vh - 240px);
+        }
+
+        .left-panel, .center-panel, .right-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 240px);
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+        }
+
+        .right-panel {
+            background: #f8f9fa;
+            border-left: 2px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-subtitle {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 16px 0 8px;
+            color: #6c757d;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .brd-selector {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .brd-info {
+            background: #e7f3ff;
+            padding: 14px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        .brd-info-label {
+            font-weight: 600;
+            color: #0066cc;
+            margin-bottom: 6px;
+        }
+
+        .brd-info-text {
+            color: #495057;
+            line-height: 1.5;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            cursor: move;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .feature-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-item.active {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .feature-item.dragging {
+            opacity: 0.5;
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 6px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .feature-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #6c757d;
+            font-size: 1rem;
+        }
+
+        .icon-btn:hover {
+            color: #495057;
+        }
+
+        .feature-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .feature-priority {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .priority-p0 { background: #fed7d7; color: #c53030; }
+        .priority-p1 { background: #feebc8; color: #c05621; }
+        .priority-p2 { background: #fefcbf; color: #975a16; }
+        .priority-p3 { background: #c6f6d5; color: #22543d; }
+
+        .effort-badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e9ecef;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .feature-group {
+            font-size: 0.75rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .acceptance-criteria {
+            list-style: none;
+        }
+
+        .criteria-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .criteria-item::before {
+            content: '✓';
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .criteria-item .remove-btn {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .dependency-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e9ecef;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            margin: 4px;
+            position: relative;
+        }
+
+        .dependency-chip .remove {
+            margin-left: 6px;
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .user-story-builder {
+            background: #fff9e6;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .story-template {
+            margin-bottom: 12px;
+        }
+
+        .story-template label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .story-template input {
+            margin-top: 4px;
+            border: 1px solid #ffc107;
+        }
+
+        .story-preview {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .story-preview strong {
+            color: #856404;
+        }
+
+        .template-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .template-btn {
+            padding: 6px 12px;
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .template-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .traceability-matrix {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .matrix-row {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.85rem;
+        }
+
+        .matrix-row:last-child {
+            border-bottom: none;
+        }
+
+        .matrix-checkbox {
+            margin-right: 8px;
+        }
+
+        .matrix-label {
+            flex: 1;
+        }
+
+        .alignment-status {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .alignment-status.aligned {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+        }
+
+        .alignment-status.needs-work {
+            background: #fed7aa;
+            border: 2px solid #f59e0b;
+        }
+
+        .alignment-status-text {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .alignment-gaps {
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .dependency-graph {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 200px;
+            margin-bottom: 16px;
+        }
+
+        .graph-canvas {
+            width: 100%;
+            height: 250px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .tech-tag {
+            padding: 4px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tech-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .api-endpoint {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .api-method {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .validation-errors {
+            background: #fee;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .validation-error {
+            color: #c53030;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .validation-error::before {
+            content: '⚠ ';
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Product Requirements Document (PRD)</h1>
+            <p>Define features, user stories, and technical requirements with BRD alignment tracking</p>
+            <div class="alignment-bar">
+                <span class="alignment-label">BRD Alignment:</span>
+                <div class="alignment-progress">
+                    <div class="alignment-fill" id="alignmentFill" style="width: 75%;"></div>
+                </div>
+                <span class="alignment-percentage" id="alignmentPercentage">75%</span>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left: Feature List -->
+            <div class="left-panel">
+                <div class="section-title">
+                    <span>Features</span>
+                    <button class="icon-btn" onclick="showDependencyGraph()" title="View Dependency Graph">🔗</button>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="openFeatureModal()">+ Add Feature</button>
+                <div class="feature-list" id="featureList"></div>
+            </div>
+
+            <!-- Center: Feature Details & User Story Builder -->
+            <div class="center-panel">
+                <!-- BRD Selector -->
+                <div class="brd-selector">
+                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Link to BRD (Required)</label>
+                    <select id="brdSelector" onchange="loadBRD()">
+                        <option value="">Select a BRD...</option>
+                    </select>
+                    <div id="brdInfo" style="display: none;">
+                        <div class="brd-info">
+                            <div class="brd-info-label">Problem Statement:</div>
+                            <div class="brd-info-text" id="brdProblem"></div>
+                        </div>
+                        <div class="brd-info" style="margin-top: 8px;">
+                            <div class="brd-info-label">Success Criteria:</div>
+                            <div class="brd-info-text" id="brdCriteria"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="featureDetails" style="display: none;">
+                    <div class="section-title">Feature Details</div>
+
+                    <div class="form-group">
+                        <label>Feature Name</label>
+                        <input type="text" id="featureName" placeholder="e.g., User Authentication" onchange="updateCurrentFeature()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="featureDescription" placeholder="Detailed feature description..." onchange="updateCurrentFeature()"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="featurePriority" onchange="updateCurrentFeature()">
+                                <option value="p0">P0 - Critical</option>
+                                <option value="p1">P1 - High</option>
+                                <option value="p2" selected>P2 - Medium</option>
+                                <option value="p3">P3 - Low</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Effort Estimate</label>
+                            <select id="featureEffort" onchange="updateCurrentFeature()">
+                                <option value="S">S - Small (1-3 days)</option>
+                                <option value="M" selected>M - Medium (1 week)</option>
+                                <option value="L">L - Large (2 weeks)</option>
+                                <option value="XL">XL - Extra Large (3+ weeks)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Feature Group/Epic</label>
+                        <input type="text" id="featureGroup" placeholder="e.g., Authentication, Analytics" onchange="updateCurrentFeature()">
+                    </div>
+
+                    <!-- User Story Builder -->
+                    <div class="section-subtitle">User Story Builder</div>
+                    <div class="user-story-builder">
+                        <div class="story-template">
+                            <label>As a (user role):</label>
+                            <input type="text" id="storyRole" placeholder="e.g., authenticated user" oninput="updateStoryPreview()">
+                        </div>
+                        <div class="story-template">
+                            <label>I want (goal):</label>
+                            <input type="text" id="storyGoal" placeholder="e.g., to securely log into the system" oninput="updateStoryPreview()">
+                        </div>
+                        <div class="story-template">
+                            <label>So that (benefit):</label>
+                            <input type="text" id="storyBenefit" placeholder="e.g., I can access my personalized dashboard" oninput="updateStoryPreview()">
+                        </div>
+                        <div class="story-preview" id="storyPreview">
+                            <strong>As a</strong> <span id="previewRole">user</span><br>
+                            <strong>I want</strong> <span id="previewGoal">to perform an action</span><br>
+                            <strong>So that</strong> <span id="previewBenefit">I get value</span>
+                        </div>
+                        <div class="template-buttons">
+                            <button class="template-btn" onclick="applyTemplate('login')">Login/Auth</button>
+                            <button class="template-btn" onclick="applyTemplate('crud')">CRUD Operations</button>
+                            <button class="template-btn" onclick="applyTemplate('search')">Search/Filter</button>
+                            <button class="template-btn" onclick="applyTemplate('notification')">Notifications</button>
+                            <button class="template-btn" onclick="applyTemplate('admin')">Admin Panel</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Acceptance Criteria</label>
+                        <ul class="acceptance-criteria" id="acceptanceCriteria"></ul>
+                        <button class="btn btn-secondary btn-small" onclick="addCriteria()">+ Add Criteria</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dependencies (Other Features)</label>
+                        <div id="dependencies"></div>
+                        <button class="btn btn-secondary btn-small" onclick="addDependency()">+ Add Dependency</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mockups/Wireframes</label>
+                        <input type="text" id="mockupUrl" placeholder="URL to mockup or design file" onchange="updateCurrentFeature()">
+                    </div>
+                </div>
+
+                <div id="emptyState" style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">📋</div>
+                    <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;">No Feature Selected</div>
+                    <div>Select a feature from the list or create a new one</div>
+                </div>
+            </div>
+
+            <!-- Right: BRD Alignment & Technical Requirements -->
+            <div class="right-panel">
+                <div class="section-title">BRD Alignment Status</div>
+                <div id="alignmentStatus"></div>
+
+                <div class="section-subtitle">Traceability Matrix</div>
+                <div class="traceability-matrix" id="traceabilityMatrix">
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        Select a BRD to view alignment
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">Technical Requirements</div>
+
+                <div class="form-group">
+                    <label>Tech Stack</label>
+                    <div class="tech-tags" id="techTags"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="techInput" placeholder="Add technology..." style="flex: 1;">
+                        <button class="btn btn-secondary btn-small" onclick="addTechTag()">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>API Endpoints</label>
+                    <div id="apiEndpoints"></div>
+                    <button class="btn btn-secondary btn-small" onclick="addApiEndpoint()">+ Add Endpoint</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Security Requirements</label>
+                    <textarea id="securityReqs" placeholder="Security considerations and requirements..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Performance SLAs</label>
+                    <textarea id="performanceSlas" placeholder="e.g., API response time < 200ms, 99.9% uptime..."></textarea>
+                </div>
+
+                <button class="btn btn-primary btn-block" onclick="validatePRD()">Validate PRD</button>
+                <div id="validationErrors" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="savePRD()">Save Draft</button>
+            <button class="btn btn-secondary" onclick="viewDependencyGraph()">View Dependencies</button>
+            <button class="btn btn-primary" style="margin-left: auto;" onclick="submitPRD()">Submit for Engineering Design</button>
+        </div>
+    </div>
+
+    <!-- Feature Modal -->
+    <div class="modal" id="featureModal">
+        <div class="modal-content">
+            <div class="modal-header">Add New Feature</div>
+            <div class="form-group">
+                <label>Feature Name</label>
+                <input type="text" id="modalFeatureName" placeholder="e.g., User Authentication">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="modalFeatureDescription" placeholder="Brief description of the feature..."></textarea>
+            </div>
+            <div class="input-group">
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="modalFeaturePriority">
+                        <option value="p0">P0 - Critical</option>
+                        <option value="p1">P1 - High</option>
+                        <option value="p2" selected>P2 - Medium</option>
+                        <option value="p3">P3 - Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Effort</label>
+                    <select id="modalFeatureEffort">
+                        <option value="S">S - Small</option>
+                        <option value="M" selected>M - Medium</option>
+                        <option value="L">L - Large</option>
+                        <option value="XL">XL - Extra Large</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Feature Group/Epic</label>
+                <input type="text" id="modalFeatureGroup" placeholder="e.g., Authentication">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeFeatureModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewFeature()">Create Feature</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependency Graph Modal -->
+    <div class="modal" id="graphModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">Feature Dependency Graph</div>
+            <div class="dependency-graph">
+                <canvas class="graph-canvas" id="graphCanvas"></canvas>
+            </div>
+            <div id="graphWarnings"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeGraphModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        // State Management
+        let prdId = null;
+        let currentBrd = null;
+        let features = [];
+        let currentFeatureIndex = -1;
+        let techStack = [];
+        let apiEndpoints = [];
+        let draggedFeatureIndex = null;
+
+        // User Story Templates
+        const templates = {
+            login: {
+                role: 'user',
+                goal: 'securely log into the system',
+                benefit: 'I can access my personalized dashboard and data'
+            },
+            crud: {
+                role: 'authenticated user',
+                goal: 'create, read, update, and delete records',
+                benefit: 'I can manage my data effectively'
+            },
+            search: {
+                role: 'user',
+                goal: 'search and filter through large datasets',
+                benefit: 'I can quickly find the information I need'
+            },
+            notification: {
+                role: 'user',
+                goal: 'receive real-time notifications',
+                benefit: 'I stay informed about important updates'
+            },
+            admin: {
+                role: 'administrator',
+                goal: 'manage users and system settings',
+                benefit: 'I can maintain control over the application'
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadBRDs();
+            renderFeatureList();
+            updateAlignmentStatus();
+
+            if (typeof ws !== 'undefined') {
+                ws.connect('user-' + Math.random().toString(36).substr(2, 9), 'Demo User');
+                setupWebSocketListeners();
+            }
+
+            // Add some demo features
+            features = [
+                {
+                    id: 'feat-1',
+                    name: 'User Authentication',
+                    description: 'Implement secure user authentication with JWT tokens and OAuth 2.0 support',
+                    priority: 'p0',
+                    effort: 'M',
+                    group: 'Security',
+                    userStory: { role: 'user', goal: 'securely log into the system', benefit: 'I can access my personalized dashboard' },
+                    acceptanceCriteria: ['Support email/password login', 'Implement OAuth 2.0 (Google, GitHub)', 'JWT token refresh mechanism'],
+                    dependencies: [],
+                    linkedBrdCriteria: ['crit-1'],
+                    mockupUrl: ''
+                }
+            ];
+            renderFeatureList();
+        });
+
+        // BRD Management
+        async function loadBRDs() {
+            const selector = document.getElementById('brdSelector');
+
+            if (typeof api !== 'undefined') {
+                try {
+                    const brds = await api.get('/requirements?type=BRD');
+                    brds.data.forEach(brd => {
+                        const option = document.createElement('option');
+                        option.value = brd.id;
+                        option.textContent = `${brd.title} (${brd.id})`;
+                        selector.appendChild(option);
+                    });
+                } catch (err) {
+                    console.error('Failed to load BRDs:', err);
+                }
+            }
+
+            // Add demo BRD
+            const demoOption = document.createElement('option');
+            demoOption.value = 'brd-demo';
+            demoOption.textContent = 'BRD-2024-001: Enhanced Security Platform';
+            selector.appendChild(demoOption);
+        }
+
+        async function loadBRD() {
+            const brdId = document.getElementById('brdSelector').value;
+            if (!brdId) {
+                document.getElementById('brdInfo').style.display = 'none';
+                currentBrd = null;
+                updateAlignmentStatus();
+                return;
+            }
+
+            if (typeof api !== 'undefined' && brdId !== 'brd-demo') {
+                try {
+                    currentBrd = await api.get(`/requirements/${brdId}`);
+                } catch (err) {
+                    console.error('Failed to load BRD:', err);
+                }
+            } else {
+                // Demo BRD
+                currentBrd = {
+                    id: 'brd-demo',
+                    title: 'Enhanced Security Platform',
+                    metadata: {
+                        problemStatement: 'Current authentication system lacks modern security features and OAuth support, leading to security vulnerabilities and poor user experience.',
+                        successCriteria: [
+                            { id: 'crit-1', text: 'Support multi-factor authentication' },
+                            { id: 'crit-2', text: 'Integrate OAuth 2.0 providers' },
+                            { id: 'crit-3', text: 'Implement secure session management' },
+                            { id: 'crit-4', text: 'Provide audit logging for security events' }
+                        ]
+                    }
+                };
+            }
+
+            // Display BRD info
+            document.getElementById('brdInfo').style.display = 'block';
+            document.getElementById('brdProblem').textContent = currentBrd.metadata?.problemStatement || 'No problem statement available';
+
+            const criteriaList = currentBrd.metadata?.successCriteria || [];
+            document.getElementById('brdCriteria').innerHTML = criteriaList
+                .map(c => `• ${c.text || c}`)
+                .join('<br>');
+
+            updateTraceabilityMatrix();
+            updateAlignmentStatus();
+        }
+
+        // Feature Management
+        function openFeatureModal() {
+            document.getElementById('featureModal').classList.add('active');
+            document.getElementById('modalFeatureName').value = '';
+            document.getElementById('modalFeatureDescription').value = '';
+        }
+
+        function closeFeatureModal() {
+            document.getElementById('featureModal').classList.remove('active');
+        }
+
+        function saveNewFeature() {
+            const name = document.getElementById('modalFeatureName').value.trim();
+            const description = document.getElementById('modalFeatureDescription').value.trim();
+
+            if (!name) {
+                showToast('Feature name is required', 'error');
+                return;
+            }
+
+            const feature = {
+                id: 'feat-' + Date.now(),
+                name,
+                description,
+                priority: document.getElementById('modalFeaturePriority').value,
+                effort: document.getElementById('modalFeatureEffort').value,
+                group: document.getElementById('modalFeatureGroup').value.trim(),
+                userStory: { role: '', goal: '', benefit: '' },
+                acceptanceCriteria: [],
+                dependencies: [],
+                linkedBrdCriteria: [],
+                mockupUrl: ''
+            };
+
+            features.push(feature);
+            renderFeatureList();
+            closeFeatureModal();
+            selectFeature(features.length - 1);
+            showToast('Feature created', 'success');
+
+            // WebSocket broadcast
+            if (typeof ws !== 'undefined') {
+                ws.emit('prd:feature-added', { prdId, feature });
+            }
+        }
+
+        function selectFeature(index) {
+            currentFeatureIndex = index;
+            const feature = features[index];
+
+            // Update UI
+            document.querySelectorAll('.feature-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('featureDetails').style.display = 'block';
+
+            // Load feature data
+            document.getElementById('featureName').value = feature.name;
+            document.getElementById('featureDescription').value = feature.description;
+            document.getElementById('featurePriority').value = feature.priority;
+            document.getElementById('featureEffort').value = feature.effort;
+            document.getElementById('featureGroup').value = feature.group || '';
+            document.getElementById('mockupUrl').value = feature.mockupUrl || '';
+
+            // User story
+            document.getElementById('storyRole').value = feature.userStory.role;
+            document.getElementById('storyGoal').value = feature.userStory.goal;
+            document.getElementById('storyBenefit').value = feature.userStory.benefit;
+            updateStoryPreview();
+
+            // Acceptance criteria
+            renderAcceptanceCriteria();
+
+            // Dependencies
+            renderDependencies();
+        }
+
+        function updateCurrentFeature() {
+            if (currentFeatureIndex === -1) return;
+
+            const feature = features[currentFeatureIndex];
+            feature.name = document.getElementById('featureName').value;
+            feature.description = document.getElementById('featureDescription').value;
+            feature.priority = document.getElementById('featurePriority').value;
+            feature.effort = document.getElementById('featureEffort').value;
+            feature.group = document.getElementById('featureGroup').value;
+            feature.mockupUrl = document.getElementById('mockupUrl').value;
+
+            feature.userStory = {
+                role: document.getElementById('storyRole').value,
+                goal: document.getElementById('storyGoal').value,
+                benefit: document.getElementById('storyBenefit').value
+            };
+
+            renderFeatureList();
+        }
+
+        function deleteFeature(index) {
+            if (!confirm('Delete this feature?')) return;
+
+            features.splice(index, 1);
+            if (currentFeatureIndex === index) {
+                currentFeatureIndex = -1;
+                document.getElementById('featureDetails').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+            }
+            renderFeatureList();
+            updateAlignmentStatus();
+            showToast('Feature deleted', 'success');
+        }
+
+        function renderFeatureList() {
+            const list = document.getElementById('featureList');
+            list.innerHTML = '';
+
+            features.forEach((feature, index) => {
+                const item = document.createElement('div');
+                item.className = 'feature-item';
+                if (index === currentFeatureIndex) item.classList.add('active');
+                item.draggable = true;
+
+                item.innerHTML = `
+                    <div class="feature-header">
+                        <div class="feature-title">${feature.name}</div>
+                        <div class="feature-actions">
+                            <button class="icon-btn" onclick="event.stopPropagation(); deleteFeature(${index})" title="Delete">×</button>
+                        </div>
+                    </div>
+                    <div class="feature-meta">
+                        <span class="feature-priority priority-${feature.priority}">${feature.priority.toUpperCase()}</span>
+                        <span class="effort-badge">${feature.effort}</span>
+                        ${feature.group ? `<span class="feature-group">${feature.group}</span>` : ''}
+                    </div>
+                `;
+
+                item.onclick = () => selectFeature(index);
+
+                // Drag and drop
+                item.addEventListener('dragstart', () => {
+                    draggedFeatureIndex = index;
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (draggedFeatureIndex !== null && draggedFeatureIndex !== index) {
+                        const draggedFeature = features[draggedFeatureIndex];
+                        features.splice(draggedFeatureIndex, 1);
+                        features.splice(index, 0, draggedFeature);
+                        renderFeatureList();
+                        currentFeatureIndex = index;
+                        selectFeature(index);
+                    }
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        // User Story Builder
+        function updateStoryPreview() {
+            const role = document.getElementById('storyRole').value || 'user';
+            const goal = document.getElementById('storyGoal').value || 'to perform an action';
+            const benefit = document.getElementById('storyBenefit').value || 'I get value';
+
+            document.getElementById('previewRole').textContent = role;
+            document.getElementById('previewGoal').textContent = goal;
+            document.getElementById('previewBenefit').textContent = benefit;
+
+            updateCurrentFeature();
+        }
+
+        function applyTemplate(type) {
+            const template = templates[type];
+            if (!template) return;
+
+            document.getElementById('storyRole').value = template.role;
+            document.getElementById('storyGoal').value = template.goal;
+            document.getElementById('storyBenefit').value = template.benefit;
+            updateStoryPreview();
+            showToast(`Applied ${type} template`, 'success');
+        }
+
+        // Acceptance Criteria
+        function addCriteria() {
+            const text = prompt('Acceptance criteria:');
+            if (!text || currentFeatureIndex === -1) return;
+
+            features[currentFeatureIndex].acceptanceCriteria.push(text);
+            renderAcceptanceCriteria();
+        }
+
+        function removeCriteria(index) {
+            if (currentFeatureIndex === -1) return;
+            features[currentFeatureIndex].acceptanceCriteria.splice(index, 1);
+            renderAcceptanceCriteria();
+        }
+
+        function renderAcceptanceCriteria() {
+            if (currentFeatureIndex === -1) return;
+
+            const list = document.getElementById('acceptanceCriteria');
+            list.innerHTML = '';
+
+            features[currentFeatureIndex].acceptanceCriteria.forEach((criteria, index) => {
+                const li = document.createElement('li');
+                li.className = 'criteria-item';
+                li.innerHTML = `
+                    <span>${criteria}</span>
+                    <button class="remove-btn" onclick="removeCriteria(${index})">×</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // Dependencies
+        function addDependency() {
+            if (currentFeatureIndex === -1) return;
+
+            const availableFeatures = features
+                .filter((f, i) => i !== currentFeatureIndex)
+                .map((f, i) => `${i === currentFeatureIndex ? i + 1 : i}. ${f.name}`)
+                .join('\n');
+
+            const index = prompt('Select feature to depend on:\n\n' + availableFeatures);
+            if (!index) return;
+
+            const depIndex = parseInt(index);
+            if (isNaN(depIndex) || depIndex < 0 || depIndex >= features.length) {
+                showToast('Invalid feature index', 'error');
+                return;
+            }
+
+            if (!features[currentFeatureIndex].dependencies.includes(features[depIndex].id)) {
+                features[currentFeatureIndex].dependencies.push(features[depIndex].id);
+                renderDependencies();
+            }
+        }
+
+        function removeDependency(featureId) {
+            if (currentFeatureIndex === -1) return;
+            const deps = features[currentFeatureIndex].dependencies;
+            const index = deps.indexOf(featureId);
+            if (index > -1) {
+                deps.splice(index, 1);
+                renderDependencies();
+            }
+        }
+
+        function renderDependencies() {
+            if (currentFeatureIndex === -1) return;
+
+            const container = document.getElementById('dependencies');
+            container.innerHTML = '';
+
+            features[currentFeatureIndex].dependencies.forEach(depId => {
+                const depFeature = features.find(f => f.id === depId);
+                if (depFeature) {
+                    const chip = document.createElement('span');
+                    chip.className = 'dependency-chip';
+                    chip.innerHTML = `
+                        ${depFeature.name}
+                        <span class="remove" onclick="removeDependency('${depId}')">×</span>
+                    `;
+                    container.appendChild(chip);
+                }
+            });
+        }
+
+        // BRD Alignment & Traceability
+        function updateTraceabilityMatrix() {
+            const matrix = document.getElementById('traceabilityMatrix');
+
+            if (!currentBrd || !currentBrd.metadata?.successCriteria) {
+                matrix.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">Select a BRD to view alignment</div>';
+                return;
+            }
+
+            matrix.innerHTML = '';
+            currentBrd.metadata.successCriteria.forEach(criterion => {
+                const row = document.createElement('div');
+                row.className = 'matrix-row';
+
+                const isLinked = currentFeatureIndex !== -1 &&
+                    features[currentFeatureIndex].linkedBrdCriteria.includes(criterion.id);
+
+                row.innerHTML = `
+                    <input type="checkbox" class="matrix-checkbox"
+                        ${isLinked ? 'checked' : ''}
+                        onchange="toggleBrdCriteria('${criterion.id}')"
+                        ${currentFeatureIndex === -1 ? 'disabled' : ''}>
+                    <span class="matrix-label">${criterion.text}</span>
+                `;
+                matrix.appendChild(row);
+            });
+        }
+
+        function toggleBrdCriteria(criteriaId) {
+            if (currentFeatureIndex === -1) return;
+
+            const linked = features[currentFeatureIndex].linkedBrdCriteria;
+            const index = linked.indexOf(criteriaId);
+
+            if (index > -1) {
+                linked.splice(index, 1);
+            } else {
+                linked.push(criteriaId);
+            }
+
+            updateAlignmentStatus();
+        }
+
+        function calculateAlignment(brd, prdFeatures) {
+            if (!brd || !brd.metadata?.successCriteria) {
+                return { percentage: 0, gaps: 0, status: 'needs_work' };
+            }
+
+            const brdCriteria = brd.metadata.successCriteria.length;
+            const addressedCriteria = new Set();
+
+            prdFeatures.forEach(feature => {
+                feature.linkedBrdCriteria.forEach(critId => {
+                    addressedCriteria.add(critId);
+                });
+            });
+
+            const percentage = brdCriteria > 0
+                ? Math.round((addressedCriteria.size / brdCriteria) * 100)
+                : 0;
+
+            return {
+                percentage,
+                gaps: brdCriteria - addressedCriteria.size,
+                status: percentage >= 80 ? 'aligned' : 'needs_work'
+            };
+        }
+
+        function updateAlignmentStatus() {
+            const alignment = calculateAlignment(currentBrd, features);
+
+            // Update header bar
+            document.getElementById('alignmentPercentage').textContent = `${alignment.percentage}%`;
+            document.getElementById('alignmentFill').style.width = `${alignment.percentage}%`;
+
+            // Update right panel status
+            const statusDiv = document.getElementById('alignmentStatus');
+            statusDiv.innerHTML = `
+                <div class="alignment-status ${alignment.status}">
+                    <div class="alignment-status-text">
+                        ${alignment.status === 'aligned' ? '✓ Aligned with BRD' : '⚠ Needs Improvement'}
+                    </div>
+                    <div class="alignment-gaps">
+                        ${alignment.percentage}% of BRD criteria addressed<br>
+                        ${alignment.gaps > 0 ? `${alignment.gaps} criteria gap(s) remaining` : 'All criteria covered'}
+                    </div>
+                </div>
+            `;
+
+            // Update traceability matrix when feature changes
+            if (currentFeatureIndex !== -1) {
+                updateTraceabilityMatrix();
+            }
+        }
+
+        // Tech Stack Management
+        function addTechTag() {
+            const input = document.getElementById('techInput');
+            const tech = input.value.trim();
+
+            if (tech && !techStack.includes(tech)) {
+                techStack.push(tech);
+                renderTechTags();
+                input.value = '';
+            }
+        }
+
+        function removeTechTag(tech) {
+            techStack = techStack.filter(t => t !== tech);
+            renderTechTags();
+        }
+
+        function renderTechTags() {
+            const container = document.getElementById('techTags');
+            container.innerHTML = '';
+
+            techStack.forEach(tech => {
+                const tag = document.createElement('div');
+                tag.className = 'tech-tag';
+                tag.innerHTML = `
+                    <span>${tech}</span>
+                    <span class="remove" onclick="removeTechTag('${tech}')">×</span>
+                `;
+                container.appendChild(tag);
+            });
+        }
+
+        // API Endpoints
+        function addApiEndpoint() {
+            const method = prompt('HTTP Method (GET/POST/PUT/DELETE):');
+            if (!method) return;
+
+            const path = prompt('Endpoint path (e.g., /api/v1/auth/login):');
+            if (!path) return;
+
+            apiEndpoints.push({ method: method.toUpperCase(), path });
+            renderApiEndpoints();
+        }
+
+        function removeApiEndpoint(index) {
+            apiEndpoints.splice(index, 1);
+            renderApiEndpoints();
+        }
+
+        function renderApiEndpoints() {
+            const container = document.getElementById('apiEndpoints');
+            container.innerHTML = '';
+
+            apiEndpoints.forEach((endpoint, index) => {
+                const div = document.createElement('div');
+                div.className = 'api-endpoint';
+                div.innerHTML = `
+                    <span class="api-method">${endpoint.method}</span>
+                    <span>${endpoint.path}</span>
+                    <button class="icon-btn" onclick="removeApiEndpoint(${index})" style="float: right;">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Dependency Graph Visualization
+        function showDependencyGraph() {
+            document.getElementById('graphModal').classList.add('active');
+            drawDependencyGraph();
+        }
+
+        function closeGraphModal() {
+            document.getElementById('graphModal').classList.remove('active');
+        }
+
+        function viewDependencyGraph() {
+            showDependencyGraph();
+        }
+
+        function drawDependencyGraph() {
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            const warnings = document.getElementById('graphWarnings');
+
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (features.length === 0) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('No features to display', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Simple graph layout
+            const nodes = features.map((f, i) => ({
+                id: f.id,
+                name: f.name,
+                x: (i % 3) * 200 + 100,
+                y: Math.floor(i / 3) * 80 + 50
+            }));
+
+            // Check for circular dependencies
+            const circularDeps = detectCircularDependencies();
+            if (circularDeps.length > 0) {
+                warnings.innerHTML = `
+                    <div class="validation-errors">
+                        <div class="validation-error">Circular dependencies detected: ${circularDeps.join(', ')}</div>
+                    </div>
+                `;
+            } else {
+                warnings.innerHTML = '';
+            }
+
+            // Draw edges
+            features.forEach((feature, i) => {
+                const fromNode = nodes.find(n => n.id === feature.id);
+                feature.dependencies.forEach(depId => {
+                    const toNode = nodes.find(n => n.id === depId);
+                    if (fromNode && toNode) {
+                        ctx.beginPath();
+                        ctx.moveTo(fromNode.x, fromNode.y);
+                        ctx.lineTo(toNode.x, toNode.y);
+                        ctx.strokeStyle = '#667eea';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+
+                        // Arrow head
+                        const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x);
+                        ctx.beginPath();
+                        ctx.moveTo(toNode.x, toNode.y);
+                        ctx.lineTo(toNode.x - 10 * Math.cos(angle - Math.PI / 6), toNode.y - 10 * Math.sin(angle - Math.PI / 6));
+                        ctx.lineTo(toNode.x - 10 * Math.cos(angle + Math.PI / 6), toNode.y - 10 * Math.sin(angle + Math.PI / 6));
+                        ctx.closePath();
+                        ctx.fillStyle = '#667eea';
+                        ctx.fill();
+                    }
+                });
+            });
+
+            // Draw nodes
+            nodes.forEach((node, i) => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 30, 0, 2 * Math.PI);
+                ctx.fillStyle = i === currentFeatureIndex ? '#764ba2' : '#667eea';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText((i + 1).toString(), node.x, node.y);
+
+                // Feature name
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '12px sans-serif';
+                ctx.fillText(node.name.substring(0, 15) + (node.name.length > 15 ? '...' : ''), node.x, node.y + 45);
+            });
+        }
+
+        function detectCircularDependencies() {
+            const circular = [];
+            const visited = new Set();
+            const recStack = new Set();
+
+            function hasCycle(featureId, path = []) {
+                if (recStack.has(featureId)) {
+                    circular.push([...path, featureId].join(' → '));
+                    return true;
+                }
+
+                if (visited.has(featureId)) return false;
+
+                visited.add(featureId);
+                recStack.add(featureId);
+
+                const feature = features.find(f => f.id === featureId);
+                if (feature) {
+                    for (const depId of feature.dependencies) {
+                        if (hasCycle(depId, [...path, feature.name])) {
+                            recStack.delete(featureId);
+                            return true;
+                        }
+                    }
+                }
+
+                recStack.delete(featureId);
+                return false;
+            }
+
+            features.forEach(f => hasCycle(f.id));
+            return circular;
+        }
+
+        // Validation
+        function validatePRD() {
+            const errors = [];
+
+            // Check BRD linkage
+            if (!currentBrd) {
+                errors.push('Must link to a BRD');
+            }
+
+            // Check minimum features
+            if (features.length < 3) {
+                errors.push('Minimum 3 features required');
+            }
+
+            // Check feature completeness
+            features.forEach((feature, i) => {
+                if (feature.acceptanceCriteria.length === 0) {
+                    errors.push(`Feature "${feature.name}" missing acceptance criteria`);
+                }
+                if (!feature.userStory.role || !feature.userStory.goal || !feature.userStory.benefit) {
+                    errors.push(`Feature "${feature.name}" has incomplete user story`);
+                }
+            });
+
+            // Check BRD alignment
+            const alignment = calculateAlignment(currentBrd, features);
+            if (alignment.percentage < 80) {
+                errors.push(`BRD alignment is ${alignment.percentage}% (minimum 80% required)`);
+            }
+
+            // Check for circular dependencies
+            const circular = detectCircularDependencies();
+            if (circular.length > 0) {
+                errors.push('Circular dependencies detected');
+            }
+
+            // Display results
+            const errorsDiv = document.getElementById('validationErrors');
+            if (errors.length > 0) {
+                errorsDiv.style.display = 'block';
+                errorsDiv.innerHTML = `
+                    <div class="validation-errors">
+                        ${errors.map(e => `<div class="validation-error">${e}</div>`).join('')}
+                    </div>
+                `;
+                showToast('Validation failed', 'error');
+                return false;
+            } else {
+                errorsDiv.style.display = 'none';
+                showToast('PRD validation passed!', 'success');
+                return true;
+            }
+        }
+
+        // Save & Submit
+        async function savePRD() {
+            const data = {
+                title: 'PRD: ' + (currentBrd ? currentBrd.title : 'Untitled'),
+                description: 'Product Requirements Document',
+                priority: 'high',
+                status: 'draft',
+                metadata: {
+                    type: 'PRD',
+                    brdId: currentBrd?.id,
+                    features,
+                    techStack,
+                    apiEndpoints,
+                    securityReqs: document.getElementById('securityReqs').value,
+                    performanceSlas: document.getElementById('performanceSlas').value,
+                    alignment: calculateAlignment(currentBrd, features)
+                }
+            };
+
+            if (typeof api !== 'undefined') {
+                try {
+                    if (prdId) {
+                        await api.put(`/requirements/${prdId}`, data);
+                    } else {
+                        const result = await api.post('/requirements', data);
+                        prdId = result.id;
+                    }
+                    showToast('PRD saved successfully', 'success');
+                    return true;
+                } catch (err) {
+                    console.error('Save failed:', err);
+                    showToast('Failed to save PRD', 'error');
+                    return false;
+                }
+            } else {
+                console.log('[Module 3] PRD data:', data);
+                showToast('PRD saved (demo mode)', 'success');
+                return true;
+            }
+        }
+
+        async function submitPRD() {
+            if (!validatePRD()) {
+                return;
+            }
+
+            const saved = await savePRD();
+            if (!saved) return;
+
+            if (prdId && typeof api !== 'undefined') {
+                try {
+                    await api.put(`/requirements/${prdId}`, { status: 'submitted' });
+
+                    // Submit alignment tracking
+                    await api.post(`/requirements/${prdId}/align`, {
+                        brdId: currentBrd.id,
+                        alignment: calculateAlignment(currentBrd, features)
+                    });
+
+                    showToast('PRD submitted for engineering design', 'success');
+
+                    setTimeout(() => {
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_MODULE',
+                            moduleNumber: 4,
+                            params: { prdId }
+                        }, '*');
+                    }, 1500);
+                } catch (err) {
+                    console.error('Submit failed:', err);
+                    showToast('Failed to submit PRD', 'error');
+                }
+            } else {
+                showToast('PRD ready for engineering design (demo mode)', 'success');
+                setTimeout(() => {
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_MODULE',
+                        moduleNumber: 4,
+                        params: { prdId: 'demo-prd' }
+                    }, '*');
+                }, 1500);
+            }
+        }
+
+        // WebSocket Handlers
+        function setupWebSocketListeners() {
+            ws.on('prd:feature-added', (data) => {
+                if (data.prdId !== prdId) return;
+                showToast('Feature added by another user', 'info');
+                // Optionally reload features
+            });
+
+            ws.on('brd:updated', (data) => {
+                if (currentBrd && data.brdId === currentBrd.id) {
+                    showToast('Linked BRD has been updated. Please review alignment.', 'warning');
+                }
+            });
+        }
+
+        // Utility Functions
+        function showToast(message, type = 'info') {
+            console.log(`[Module 3] ${type.toUpperCase()}: ${message}`);
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; top: 20px; right: 20px; padding: 12px 24px;
+                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+                color: white; border-radius: 8px; z-index: 10000; font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Add demo tech stack and endpoints
+        techStack = ['Node.js', 'TypeScript', 'Express', 'PostgreSQL', 'JWT', 'OAuth 2.0'];
+        apiEndpoints = [
+            { method: 'POST', path: '/api/v1/auth/login' },
+            { method: 'POST', path: '/api/v1/auth/register' },
+            { method: 'POST', path: '/api/v1/auth/refresh' },
+            { method: 'POST', path: '/api/v1/auth/logout' }
+        ];
+        renderTechTags();
+        renderApiEndpoints();
+    </script>
+
+    <script src="/demo/module-state-sync.js"></script>
+    <script>
+        if (typeof ConductorModuleState !== 'undefined') {
+            ConductorModuleState.init(3);
+            console.log('[Module 3] State sync initialized');
+        }
+    </script>
+</body>
+</html>

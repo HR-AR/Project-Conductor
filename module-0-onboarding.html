@@ -1698,7 +1698,7 @@
             <!-- Interactive Video Tutorial -->
             <section class="video-section">
                 <h3 class="section-title">See It In Action</h3>
-                <p style="text-align: center; color: #666; margin-bottom: 20px;">2-minute overview of the complete workflow</p>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">35-second interactive overview - Click anywhere to advance</p>
 
                 <div class="video-container">
                     <div class="video-player" id="videoPlayer">
@@ -1707,61 +1707,61 @@
                         </div>
 
                         <!-- Video Slide 1: Introduction -->
-                        <div class="video-content" id="videoSlide0" data-duration="20">
-                            <div class="video-timer" id="videoTimer">0:00 / 2:00</div>
+                        <div class="video-content" id="videoSlide0" data-duration="7" onclick="nextVideoSlide()" style="cursor: pointer;">
+                            <div class="video-timer" id="videoTimer">0:00 / 0:35</div>
                             <div class="video-slide-icon">🎯</div>
                             <div class="video-slide-title">Welcome to Project Conductor</div>
                             <div class="video-slide-content">
                                 Transform business problems into aligned PRDs in days, not months.<br>
-                                Let's see how it works in 2 minutes.
+                                <em style="opacity: 0.7; font-size: 0.9em; margin-top: 20px; display: block;">Click anywhere or wait to continue →</em>
                             </div>
                         </div>
 
                         <!-- Video Slide 2: Problem Input -->
-                        <div class="video-content" id="videoSlide1" data-duration="30">
-                            <div class="video-timer" id="videoTimer">0:20 / 2:00</div>
+                        <div class="video-content" id="videoSlide1" data-duration="8" onclick="nextVideoSlide()" style="cursor: pointer;">
+                            <div class="video-timer" id="videoTimer">0:07 / 0:35</div>
                             <div class="video-slide-icon">💡</div>
                             <div class="video-slide-title">Step 1: Input Your Business Problem</div>
                             <div class="video-slide-content">
                                 Describe your challenge in plain language.<br>
-                                No technical jargon required.<br>
-                                AI helps structure your thoughts into actionable requirements.
+                                No technical jargon required. Auto-saves as you type.<br>
+                                <em style="opacity: 0.7; font-size: 0.9em; margin-top: 20px; display: block;">Click to continue →</em>
                             </div>
                         </div>
 
                         <!-- Video Slide 3: Stakeholder Collaboration -->
-                        <div class="video-content" id="videoSlide2" data-duration="45">
-                            <div class="video-timer" id="videoTimer">0:50 / 2:00</div>
+                        <div class="video-content" id="videoSlide2" data-duration="8" onclick="nextVideoSlide()" style="cursor: pointer;">
+                            <div class="video-timer" id="videoTimer">0:15 / 0:35</div>
                             <div class="video-slide-icon">👥</div>
                             <div class="video-slide-title">Step 2: Real-Time Collaboration</div>
                             <div class="video-slide-content">
                                 Invite stakeholders with one click.<br>
                                 Everyone sees updates live - no email chains.<br>
-                                Comment, discuss, and align in real-time.
+                                <em style="opacity: 0.7; font-size: 0.9em; margin-top: 20px; display: block;">Click to continue →</em>
                             </div>
                         </div>
 
                         <!-- Video Slide 4: PRD Generation -->
-                        <div class="video-content" id="videoSlide3" data-duration="30">
-                            <div class="video-timer" id="videoTimer">1:35 / 2:00</div>
+                        <div class="video-content" id="videoSlide3" data-duration="7" onclick="nextVideoSlide()" style="cursor: pointer;">
+                            <div class="video-timer" id="videoTimer">0:23 / 0:35</div>
                             <div class="video-slide-icon">📋</div>
                             <div class="video-slide-title">Step 3: Auto-Generate PRD</div>
                             <div class="video-slide-content">
                                 Automatically creates 3-tier requirements:<br>
-                                Business → Functional → Technical<br>
-                                Always aligned. Always traceable.
+                                Business → Functional → Technical with full traceability.<br>
+                                <em style="opacity: 0.7; font-size: 0.9em; margin-top: 20px; display: block;">Click to continue →</em>
                             </div>
                         </div>
 
                         <!-- Video Slide 5: Implementation & Impact -->
-                        <div class="video-content" id="videoSlide4" data-duration="15">
-                            <div class="video-timer" id="videoTimer">2:05 / 2:00</div>
+                        <div class="video-content" id="videoSlide4" data-duration="5" onclick="skipVideo()" style="cursor: pointer;">
+                            <div class="video-timer" id="videoTimer">0:30 / 0:35</div>
                             <div class="video-slide-icon">🚀</div>
                             <div class="video-slide-title">Step 4: Track & Analyze</div>
                             <div class="video-slide-content">
-                                Track implementation progress.<br>
-                                See change impact instantly.<br>
-                                Know exactly what affects what.
+                                Track implementation progress. See change impact instantly.<br>
+                                Integrates with Jira, Slack, and more.<br>
+                                <em style="opacity: 0.7; font-size: 0.9em; margin-top: 20px; display: block;">Click to get started! →</em>
                             </div>
                         </div>
                     </div>
@@ -2132,9 +2132,14 @@
                         <div class="demo-preview-content" id="demoPreviewContent"></div>
                     </div>
 
-                    <button class="demo-submit-btn" id="demoSubmitBtn" onclick="submitDemo()" disabled>
-                        Generate Draft PRD
-                    </button>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button class="demo-submit-btn" style="flex: 1; background: linear-gradient(135deg, #95a5a6, #7f8c8d);" onclick="loadExampleData()" type="button">
+                            📋 Load Example
+                        </button>
+                        <button class="demo-submit-btn" id="demoSubmitBtn" style="flex: 2;" onclick="submitDemo()" disabled>
+                            Create BRD & Start Journey →
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -2239,14 +2244,27 @@
         let videoPlaying = false;
         let videoInterval = null;
         let videoElapsedTime = 0;
-        const totalVideoDuration = 140; // 2:20 total
+        const totalVideoDuration = 35; // 35 seconds total
         const videoSlides = [
-            { id: 0, start: 0, duration: 20 },
-            { id: 1, start: 20, duration: 30 },
-            { id: 2, start: 50, duration: 45 },
-            { id: 3, start: 95, duration: 30 },
-            { id: 4, start: 125, duration: 15 }
+            { id: 0, start: 0, duration: 7 },
+            { id: 1, start: 7, duration: 8 },
+            { id: 2, start: 15, duration: 8 },
+            { id: 3, start: 23, duration: 7 },
+            { id: 4, start: 30, duration: 5 }
         ];
+
+        // Add next slide function for click-to-advance
+        function nextVideoSlide() {
+            if (currentVideoSlide < videoSlides.length - 1) {
+                currentVideoSlide++;
+                videoElapsedTime = videoSlides[currentVideoSlide].start;
+                showVideoSlide(currentVideoSlide);
+                updateVideoProgress();
+            } else {
+                // Last slide clicked - end tour
+                skipVideo();
+            }
+        }
 
         function playVideo() {
             const player = document.getElementById('videoPlayer');
@@ -2634,19 +2652,112 @@
         }
 
         function submitDemo() {
-            alert(`Demo PRD Created Successfully!\n\n` +
-                  `Problem: ${demoData.problem.substring(0, 60)}...\n` +
-                  `Stakeholders: ${demoData.stakeholders.join(', ')}\n` +
-                  `Success: ${demoData.success.substring(0, 60)}...\n\n` +
-                  `In a live system, this would:\n` +
-                  `✓ Generate 3-tier requirements\n` +
-                  `✓ Send invitations to all stakeholders\n` +
-                  `✓ Create traceability matrix\n` +
-                  `✓ Set up real-time collaboration\n\n` +
-                  `You'd be redirected to the PRD dashboard.`);
-
             // Store demo data
             localStorage.setItem('demoCompleted', JSON.stringify(demoData));
+            localStorage.setItem('demoJourneyActive', 'true');
+            localStorage.setItem('demoJourneyStep', '1');
+
+            // Use pre-populated e-commerce cart abandonment scenario
+            const demoJourneyData = {
+                problem: 'High Cart Abandonment Rate Causing Revenue Loss',
+                problemDescription: '68% of mobile users abandon checkout at payment screen, resulting in $2M annual revenue loss. Peak abandonment occurs on mobile devices during payment information entry. Customer feedback indicates confusion about shipping costs and security concerns.',
+                stakeholders: ['sarah.chen@company.com', 'alex.kumar@company.com', 'emily.brown@company.com', 'john.chen@company.com'],
+                success: 'Reduce cart abandonment by 50%, increase mobile conversion rate by 30%, and recover $1M in annual revenue within 6 months.',
+                requirements: [
+                    {
+                        id: 'REQ-001',
+                        title: 'One-Click Checkout for Returning Customers',
+                        description: 'Enable saved payment methods and addresses for faster checkout, similar to Amazon. Must support Apple Pay and Google Pay.',
+                        priority: 'critical',
+                        status: 'approved'
+                    },
+                    {
+                        id: 'REQ-002',
+                        title: 'Real-time Shipping Calculator',
+                        description: 'Display shipping costs and delivery estimates before payment screen. Update dynamically as user enters address.',
+                        priority: 'high',
+                        status: 'approved'
+                    },
+                    {
+                        id: 'REQ-003',
+                        title: 'Security Trust Indicators',
+                        description: 'Show SSL badges, payment security logos, and money-back guarantee prominently on checkout pages.',
+                        priority: 'medium',
+                        status: 'under_review'
+                    }
+                ]
+            };
+
+            localStorage.setItem('demoJourneyData', JSON.stringify(demoJourneyData));
+
+            // Show confirmation and navigate
+            const confirmMessage = document.createElement('div');
+            confirmMessage.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 3rem;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                z-index: 10000;
+                max-width: 500px;
+                text-align: center;
+                animation: scaleIn 0.3s ease-out;
+            `;
+            confirmMessage.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <h2 style="color: #667eea; margin-bottom: 1rem;">BRD Created! Journey Starting...</h2>
+                <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+                    Your Business Requirements Document has been created.<br>
+                    You'll now be guided through the complete workflow:
+                </p>
+                <div style="text-align: left; margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 10px; font-size: 0.95rem;">
+                    <div style="margin-bottom: 0.5rem;">📖 Overview & Learn - Introduction</div>
+                    <div style="margin-bottom: 0.5rem;">💡 Business Problem (BRD) - Pre-filled with your data</div>
+                    <div style="margin-bottom: 0.5rem;">✅ PRD Alignment - Stakeholder consensus</div>
+                    <div style="margin-bottom: 0.5rem;">🔨 Implementation - Development tracking</div>
+                    <div style="margin-bottom: 0.5rem;">📊 Change Impact - Analysis & traceability</div>
+                </div>
+                <p style="color: #999; font-size: 0.9rem;">Starting in <span id="countdown">3</span> seconds...</p>
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes scaleIn {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(confirmMessage);
+
+            // Countdown
+            let countdown = 3;
+            const countdownEl = document.getElementById('countdown');
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdownEl) {
+                    countdownEl.textContent = countdown;
+                }
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    // Navigate to Module 1 (Present/Overview Dashboard)
+                    if (window.parent && window.parent.navigateToModule) {
+                        window.parent.navigateToModule(1);
+                    } else {
+                        // Fallback: navigate directly
+                        window.location.href = '/demo';
+                    }
+                }
+            }, 1000);
         }
 
         // Keyboard navigation for video
@@ -2654,6 +2765,26 @@
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 playVideo();
+            }
+        });
+
+        // Add keyboard controls for advancing slides
+        document.addEventListener('keydown', (e) => {
+            if (!videoPlaying) return;
+
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextVideoSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentVideoSlide > 0) {
+                    currentVideoSlide--;
+                    videoElapsedTime = videoSlides[currentVideoSlide].start;
+                    showVideoSlide(currentVideoSlide);
+                    updateVideoProgress();
+                }
+            } else if (e.key === 'Escape') {
+                skipVideo();
             }
         });
 
@@ -2743,27 +2874,76 @@
 
         // Navigation Functions
         function skipToDashboard() {
-            alert('Navigation to unified dashboard would happen here.\n\nThis would show:\n- Active PRDs\n- Recent updates\n- Pending approvals\n- Traceability status\n- Team activity');
+            // Navigate to home dashboard
+            if (window.parent && window.parent.showHome) {
+                window.parent.showHome();
+            } else {
+                window.location.href = '/';
+            }
         }
 
         function startInteractiveTour() {
-            alert('Interactive tour starting...\n\nThis would provide a step-by-step walkthrough of:\n\n1. Creating your first requirement\n2. Inviting stakeholders\n3. Reviewing 3-tier alignment\n4. Tracking implementation\n5. Analyzing change impact\n\nEach step would be interactive with sample data.');
+            // Start the demo walkthrough tour - try parent first, then fallback to demo journey
+            if (window.parent && window.parent.demoWalkthrough && typeof window.parent.demoWalkthrough.start === 'function') {
+                console.log('[Learn] Starting demo walkthrough via parent');
+                window.parent.demoWalkthrough.start();
+            } else if (window.parent && window.parent.DemoJourney && typeof window.parent.DemoJourney.start === 'function') {
+                console.log('[Learn] Starting demo journey via parent');
+                window.parent.DemoJourney.start();
+            } else if (window.demoWalkthrough && typeof window.demoWalkthrough.start === 'function') {
+                console.log('[Learn] Starting demo walkthrough locally');
+                window.demoWalkthrough.start();
+            } else {
+                console.log('[Learn] No walkthrough system found, using fallback');
+                // Fallback: navigate to module 0 and show tour UI
+                alert('Interactive tour will guide you through:\n\n📖 Overview & Introduction\n💡 Creating Business Requirements\n✅ Stakeholder Alignment\n🔨 Implementation Tracking\n📊 Change Impact Analysis\n\nClick OK to start!');
+                if (window.parent && window.parent.navigateToModule) {
+                    window.parent.navigateToModule(0);
+                }
+            }
         }
 
         function loadExamplePRD() {
             const example = {
-                problem: 'Customer support team receives 200+ daily questions about order status, costing 15 hours/day',
-                stakeholders: 'product@example.com, support@example.com, dev@example.com',
-                success: 'Customers can self-serve order status, reducing support tickets by 40% and saving 6 hours/day'
+                problem: 'High cart abandonment rate (68%) on mobile checkout, causing $2M annual revenue loss. Users confused about shipping costs and payment security.',
+                stakeholders: 'sarah.chen@company.com, alex.kumar@company.com, emily.brown@company.com, john.chen@company.com',
+                success: 'Reduce cart abandonment by 50%, increase mobile conversion by 30%, recover $1M annual revenue within 6 months.'
             };
 
-            if (confirm('Load example PRD?\n\nThis will populate the Quick Start Wizard with sample data from a real use case.')) {
-                document.getElementById('wizard-problem').value = example.problem;
-                document.getElementById('wizard-stakeholders').value = example.stakeholders;
-                document.getElementById('wizard-success').value = example.success;
-
-                document.querySelector('.quick-start-wizard').scrollIntoView({ behavior: 'smooth' });
+            // Populate wizard fields
+            document.getElementById('wizard-problem').value = example.problem;
+            const stakeholdersField = document.getElementById('wizard-stakeholders');
+            if (stakeholdersField) {
+                stakeholdersField.value = example.stakeholders;
             }
+            const successField = document.getElementById('wizard-success');
+            if (successField) {
+                successField.value = example.success;
+            }
+
+            // Scroll to wizard
+            document.querySelector('.quick-start-wizard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function loadExampleData() {
+            const example = {
+                problem: '68% of mobile users abandon checkout at payment screen, resulting in $2M annual revenue loss. Peak abandonment occurs on mobile devices during payment information entry. Customer feedback indicates confusion about shipping costs and security concerns.',
+                stakeholders: 'sarah.chen@company.com, alex.kumar@company.com, emily.brown@company.com, john.chen@company.com',
+                success: 'Reduce cart abandonment by 50%, increase mobile conversion rate by 30%, and recover $1M in annual revenue within 6 months. Enable one-click checkout, real-time shipping calculator, and prominent security trust indicators.'
+            };
+
+            // Populate the demo form fields
+            document.getElementById('demoProblem').value = example.problem;
+            document.getElementById('demoStakeholders').value = example.stakeholders;
+            document.getElementById('demoSuccess').value = example.success;
+
+            // Trigger validation to enable button
+            validateDemoProblem();
+            validateDemoStakeholders();
+            validateDemoSuccess();
+
+            // Scroll to the form
+            document.querySelector('.try-it-live').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Keyboard navigation

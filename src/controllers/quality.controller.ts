@@ -93,8 +93,8 @@ export class QualityController {
   getQualityReport = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       // Parse query parameters for filtering
-      const startDate = req.query['startDate'] as string;
-      const endDate = req.query['endDate'] as string;
+      const startDate = req.query['startDate'] as string | undefined;
+      const endDate = req.query['endDate'] as string | undefined;
       const minScore = req.query['minScore'] ? parseInt(req.query['minScore'] as string) : undefined;
       const maxScore = req.query['maxScore'] ? parseInt(req.query['maxScore'] as string) : undefined;
       const includeDetails = req.query['includeDetails'] === 'true';

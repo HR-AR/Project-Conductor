@@ -15,8 +15,8 @@ export class MetricsController {
   async getQualityMetrics(req: Request, res: Response): Promise<void> {
     try {
       const filters: QualityFilters = {};
-      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string;
-      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string;
+      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string | undefined;
+      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string | undefined;
       if (req.query['status']) filters.status = (req.query['status'] as string).split(',');
       if (req.query['priority']) filters.priority = (req.query['priority'] as string).split(',');
       if (req.query['scoreMin']) filters.scoreMin = parseInt(req.query['scoreMin'] as string);
@@ -85,8 +85,8 @@ export class MetricsController {
   async getIssueDistribution(req: Request, res: Response): Promise<void> {
     try {
       const filters: QualityFilters = {};
-      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string;
-      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string;
+      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string | undefined;
+      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string | undefined;
       if (req.query['status']) filters.status = (req.query['status'] as string).split(',');
       if (req.query['priority']) filters.priority = (req.query['priority'] as string).split(',');
       if (req.query['assignedTo']) filters.assignedTo = (req.query['assignedTo'] as string).split(',');
@@ -216,8 +216,8 @@ export class MetricsController {
   async getQualityDashboard(req: Request, res: Response): Promise<void> {
     try {
       const filters: QualityFilters = {};
-      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string;
-      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string;
+      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string | undefined;
+      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string | undefined;
       if (req.query['status']) filters.status = (req.query['status'] as string).split(',');
       if (req.query['priority']) filters.priority = (req.query['priority'] as string).split(',');
       if (req.query['scoreMin']) filters.scoreMin = parseInt(req.query['scoreMin'] as string);
@@ -248,8 +248,8 @@ export class MetricsController {
   async getDetailedQualityReport(req: Request, res: Response): Promise<void> {
     try {
       const options: QualityReportOptions = {};
-      if (req.query['dateFrom']) options.dateFrom = req.query['dateFrom'] as string;
-      if (req.query['dateTo']) options.dateTo = req.query['dateTo'] as string;
+      if (req.query['dateFrom']) options.dateFrom = req.query['dateFrom'] as string | undefined;
+      if (req.query['dateTo']) options.dateTo = req.query['dateTo'] as string | undefined;
       if (req.query['status']) options.status = (req.query['status'] as string).split(',');
       if (req.query['priority']) options.priority = (req.query['priority'] as string).split(',');
       if (req.query['scoreMin']) options.scoreMin = parseInt(req.query['scoreMin'] as string);
@@ -282,8 +282,8 @@ export class MetricsController {
   async getRequirementsByQuality(req: Request, res: Response): Promise<void> {
     try {
       const filters: QualityFilters = {};
-      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string;
-      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string;
+      if (req.query['dateFrom']) filters.dateFrom = req.query['dateFrom'] as string | undefined;
+      if (req.query['dateTo']) filters.dateTo = req.query['dateTo'] as string | undefined;
       if (req.query['status']) filters.status = (req.query['status'] as string).split(',');
       if (req.query['priority']) filters.priority = (req.query['priority'] as string).split(',');
       if (req.query['assignedTo']) filters.assignedTo = (req.query['assignedTo'] as string).split(',');

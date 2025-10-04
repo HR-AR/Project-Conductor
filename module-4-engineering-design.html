@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 4: Engineering Design - Project Conductor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+        }
+
+        .header p {
+            color: #00ccff;
+            margin-top: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00ff41;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            color: #00ff41;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            background: rgba(0, 255, 65, 0.1);
+            border-bottom-color: #00ff41;
+        }
+
+        .tab:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid-full {
+            grid-column: 1 / -1;
+        }
+
+        .section {
+            background: rgba(26, 26, 26, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #00ccff;
+        }
+
+        .code-block {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 10px 0;
+            white-space: pre;
+        }
+
+        .api-endpoint {
+            background: #1a1a1a;
+            border-left: 4px solid #00ff41;
+            padding: 12px;
+            margin: 8px 0;
+            position: relative;
+        }
+
+        .endpoint-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 4px 8px;
+            background: #00ff41;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .btn-icon:hover {
+            background: #00ccff;
+        }
+
+        .method {
+            color: #00ccff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .method.GET { color: #00ff41; }
+        .method.POST { color: #00ccff; }
+        .method.PUT { color: #ffaa00; }
+        .method.DELETE { color: #ff0044; }
+
+        .path {
+            color: #00ff41;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 6px;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            margin: 8px 0;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #00ff41;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: #00ff41;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #00ccff;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: #00ff41;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .schema-field {
+            background: #1a1a1a;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-name {
+            color: #00ff41;
+        }
+
+        .field-type {
+            color: #00ccff;
+            font-size: 0.9em;
+        }
+
+        /* Canvas for architecture diagram */
+        #architecture-canvas {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: crosshair;
+            width: 100%;
+            height: 400px;
+        }
+
+        .component-library {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .component-btn {
+            padding: 10px;
+            background: #1a1a1a;
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            cursor: pointer;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .component-btn:hover {
+            background: rgba(0, 255, 65, 0.2);
+        }
+
+        .component-btn.selected {
+            background: #00ff41;
+            color: #000;
+        }
+
+        .actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff41;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.pending {
+            background: #ffaa00;
+        }
+
+        .status-indicator.approved {
+            background: #00ff41;
+        }
+
+        .status-indicator.rejected {
+            background: #ff0044;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px currentColor; }
+            50% { opacity: 0.5; }
+        }
+
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .coverage-item {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #333;
+        }
+
+        .coverage-item.covered {
+            border-left-color: #00ff41;
+        }
+
+        .coverage-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: #333;
+        }
+
+        .coverage-badge.covered {
+            background: #00ff41;
+            color: #000;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: #ff0044;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            color: #00ccff;
+            margin-bottom: 5px;
+        }
+
+        .table-relationship {
+            background: #1a1a1a;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .decision-log {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00ccff;
+        }
+
+        .decision-title {
+            color: #00ff41;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .decision-meta {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .review-checklist {
+            list-style: none;
+        }
+
+        .review-checklist li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #1a1a1a;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .review-checklist li:hover {
+            background: #222;
+        }
+
+        .review-checklist input[type="checkbox"] {
+            margin-right: 10px;
+            width: auto;
+        }
+
+        .tech-stack-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .tech-category {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .tech-category h4 {
+            color: #00ccff;
+            margin-bottom: 10px;
+        }
+
+        .prd-preview {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .prd-feature {
+            padding: 8px;
+            margin: 5px 0;
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Engineering Design Document</h1>
+            <p>Architecture, API Contracts & Technical Specifications</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')">Overview & PRD</button>
+            <button class="tab" onclick="switchTab('architecture')">Architecture</button>
+            <button class="tab" onclick="switchTab('api')">API Contracts</button>
+            <button class="tab" onclick="switchTab('database')">Database</button>
+            <button class="tab" onclick="switchTab('tech-stack')">Tech Stack</button>
+            <button class="tab" onclick="switchTab('decisions')">Design Decisions</button>
+            <button class="tab" onclick="switchTab('review')">Review</button>
+        </div>
+
+        <!-- Tab Content: Overview & PRD Linking -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="grid">
+                <div class="section grid-full">
+                    <div class="section-title">PRD Linking & Coverage</div>
+                    <div class="form-group">
+                        <label>Source PRD</label>
+                        <select id="prd-selector" onchange="loadPRD()">
+                            <option value="">-- Select PRD --</option>
+                        </select>
+                    </div>
+                    <div id="prd-preview" class="prd-preview" style="display: none;">
+                        <strong style="color: #00ccff;">PRD Features:</strong>
+                        <div id="prd-features"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Design Overview</div>
+                    <div class="form-group">
+                        <label>Design Title</label>
+                        <input type="text" id="design-title" placeholder="e.g., User Authentication System">
+                    </div>
+                    <div class="form-group">
+                        <label>Design Summary</label>
+                        <textarea id="design-summary" placeholder="High-level overview of the engineering design..."></textarea>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Coverage Tracking</div>
+                    <div id="coverage-list">
+                        <p style="color: #888;">Select a PRD to see feature coverage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Architecture -->
+        <div id="tab-architecture" class="tab-content">
+            <div class="grid">
+                <div class="section grid-full">
+                    <div class="section-title">System Architecture Diagram</div>
+                    <div class="component-library">
+                        <div class="component-btn" onclick="selectComponent('frontend')">Frontend</div>
+                        <div class="component-btn" onclick="selectComponent('backend')">Backend</div>
+                        <div class="component-btn" onclick="selectComponent('database')">Database</div>
+                        <div class="component-btn" onclick="selectComponent('cache')">Cache</div>
+                        <div class="component-btn" onclick="selectComponent('queue')">Queue</div>
+                        <div class="component-btn" onclick="selectComponent('api')">External API</div>
+                        <div class="component-btn" onclick="selectComponent('lb')">Load Balancer</div>
+                        <div class="component-btn" onclick="selectComponent('cdn')">CDN</div>
+                    </div>
+                    <canvas id="architecture-canvas"></canvas>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn" onclick="clearCanvas()">Clear</button>
+                        <button class="btn" onclick="exportDiagram('png')">Export PNG</button>
+                        <button class="btn" onclick="exportDiagram('svg')">Export SVG</button>
+                        <button class="btn btn-secondary" onclick="saveDiagram()">Save Diagram</button>
+                        <button class="btn btn-secondary" onclick="loadDiagram()">Load Diagram</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Architecture Pattern</div>
+                    <select id="arch-pattern">
+                        <option value="">-- Select Pattern --</option>
+                        <option value="mvc">MVC (Model-View-Controller)</option>
+                        <option value="microservices">Microservices</option>
+                        <option value="serverless">Serverless</option>
+                        <option value="event-driven">Event-Driven</option>
+                        <option value="layered">Layered Architecture</option>
+                        <option value="hexagonal">Hexagonal (Ports & Adapters)</option>
+                    </select>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Layer Description</div>
+                    <textarea id="arch-layers" placeholder="Describe architecture layers:
+- Presentation Layer
+- Business Logic Layer
+- Data Layer
+- etc."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: API Contracts -->
+        <div id="tab-api" class="tab-content">
+            <div class="section">
+                <div class="section-title">API Endpoints</div>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn" onclick="openEndpointModal()">+ Add Endpoint</button>
+                    <button class="btn btn-secondary" onclick="exportOpenAPI()">Export OpenAPI/Swagger</button>
+                </div>
+                <div id="endpoints-list">
+                    <!-- Endpoints will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Database Schema -->
+        <div id="tab-database" class="tab-content">
+            <div class="grid">
+                <div class="section">
+                    <div class="section-title">Database Tables</div>
+                    <button class="btn" onclick="openTableModal()">+ Add Table</button>
+                    <div id="tables-list">
+                        <!-- Tables will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Relationships</div>
+                    <button class="btn" onclick="openRelationshipModal()">+ Add Relationship</button>
+                    <div id="relationships-list">
+                        <!-- Relationships will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="section grid-full">
+                    <div class="section-title">Generate SQL</div>
+                    <button class="btn" onclick="generateSQL()">Generate Migration Script</button>
+                    <div class="code-block" id="sql-output" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Tech Stack -->
+        <div id="tab-tech-stack" class="tab-content">
+            <div class="section">
+                <div class="section-title">Technology Stack Specifications</div>
+                <div class="tech-stack-grid">
+                    <div class="tech-category">
+                        <h4>Frontend</h4>
+                        <div class="form-group">
+                            <label>Framework</label>
+                            <input type="text" id="tech-frontend-framework" placeholder="e.g., React 18">
+                        </div>
+                        <div class="form-group">
+                            <label>Libraries</label>
+                            <input type="text" id="tech-frontend-libs" placeholder="e.g., Redux, React Router">
+                        </div>
+                        <div class="form-group">
+                            <label>Build Tools</label>
+                            <input type="text" id="tech-frontend-build" placeholder="e.g., Vite, Webpack">
+                        </div>
+                    </div>
+
+                    <div class="tech-category">
+                        <h4>Backend</h4>
+                        <div class="form-group">
+                            <label>Language</label>
+                            <input type="text" id="tech-backend-lang" placeholder="e.g., TypeScript">
+                        </div>
+                        <div class="form-group">
+                            <label>Framework</label>
+                            <input type="text" id="tech-backend-framework" placeholder="e.g., Express.js">
+                        </div>
+                        <div class="form-group">
+                            <label>ORM</label>
+                            <input type="text" id="tech-backend-orm" placeholder="e.g., TypeORM, Prisma">
+                        </div>
+                    </div>
+
+                    <div class="tech-category">
+                        <h4>Database</h4>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <input type="text" id="tech-db-type" placeholder="e.g., PostgreSQL">
+                        </div>
+                        <div class="form-group">
+                            <label>Version</label>
+                            <input type="text" id="tech-db-version" placeholder="e.g., 15">
+                        </div>
+                        <div class="form-group">
+                            <label>Clustering</label>
+                            <input type="text" id="tech-db-cluster" placeholder="e.g., Primary-Replica">
+                        </div>
+                    </div>
+
+                    <div class="tech-category">
+                        <h4>Infrastructure</h4>
+                        <div class="form-group">
+                            <label>Cloud Provider</label>
+                            <input type="text" id="tech-infra-cloud" placeholder="e.g., AWS, Azure, GCP">
+                        </div>
+                        <div class="form-group">
+                            <label>Containers</label>
+                            <input type="text" id="tech-infra-containers" placeholder="e.g., Docker">
+                        </div>
+                        <div class="form-group">
+                            <label>Orchestration</label>
+                            <input type="text" id="tech-infra-orch" placeholder="e.g., Kubernetes">
+                        </div>
+                    </div>
+
+                    <div class="tech-category">
+                        <h4>Security</h4>
+                        <div class="form-group">
+                            <label>Auth Method</label>
+                            <input type="text" id="tech-security-auth" placeholder="e.g., JWT, OAuth 2.0">
+                        </div>
+                        <div class="form-group">
+                            <label>Encryption</label>
+                            <input type="text" id="tech-security-encryption" placeholder="e.g., AES-256, TLS 1.3">
+                        </div>
+                        <div class="form-group">
+                            <label>Compliance</label>
+                            <input type="text" id="tech-security-compliance" placeholder="e.g., GDPR, SOC 2">
+                        </div>
+                    </div>
+
+                    <div class="tech-category">
+                        <h4>Monitoring</h4>
+                        <div class="form-group">
+                            <label>Logging</label>
+                            <input type="text" id="tech-monitor-logging" placeholder="e.g., Winston, ELK Stack">
+                        </div>
+                        <div class="form-group">
+                            <label>Metrics</label>
+                            <input type="text" id="tech-monitor-metrics" placeholder="e.g., Prometheus, Grafana">
+                        </div>
+                        <div class="form-group">
+                            <label>Alerting</label>
+                            <input type="text" id="tech-monitor-alerting" placeholder="e.g., PagerDuty, Slack">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Design Decisions -->
+        <div id="tab-decisions" class="tab-content">
+            <div class="section">
+                <div class="section-title">Technical Design Decisions</div>
+                <button class="btn" onclick="openDecisionModal()">+ Add Decision</button>
+                <div id="decisions-list">
+                    <!-- Decisions will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Review -->
+        <div id="tab-review" class="tab-content">
+            <div class="grid">
+                <div class="section">
+                    <div class="section-title">Design Review Checklist</div>
+                    <ul class="review-checklist">
+                        <li><input type="checkbox" id="check-scalability"> Architecture scalability</li>
+                        <li><input type="checkbox" id="check-security"> Security considerations</li>
+                        <li><input type="checkbox" id="check-performance"> Performance optimization</li>
+                        <li><input type="checkbox" id="check-error"> Error handling</li>
+                        <li><input type="checkbox" id="check-testing"> Testing strategy</li>
+                        <li><input type="checkbox" id="check-monitoring"> Monitoring & observability</li>
+                        <li><input type="checkbox" id="check-docs"> Documentation completeness</li>
+                    </ul>
+                    <button class="btn btn-block" onclick="submitForReview()">Submit for Review</button>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Review Status</div>
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px;">
+                        <div style="margin: 10px 0;">
+                            <span class="status-indicator pending"></span>
+                            <strong style="margin-left: 10px;">Architecture Review:</strong> <span id="arch-review-status">Pending</span>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <span class="status-indicator pending"></span>
+                            <strong style="margin-left: 10px;">Security Review:</strong> <span id="security-review-status">Pending</span>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <span class="status-indicator pending"></span>
+                            <strong style="margin-left: 10px;">Tech Lead Approval:</strong> <span id="lead-review-status">Pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section grid-full">
+                    <div class="section-title">Comments & Discussion</div>
+                    <div id="review-comments">
+                        <p style="color: #888;">No comments yet</p>
+                    </div>
+                    <textarea id="new-comment" placeholder="Add a comment..."></textarea>
+                    <button class="btn" onclick="addComment()">Post Comment</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn" onclick="saveDesign()">Save Design</button>
+            <button class="btn" onclick="generateCode()">Generate Code</button>
+            <button class="btn" onclick="validateDesign()">Validate</button>
+            <button class="btn" style="margin-left: auto;" onclick="submitDesign()">Submit for Alignment</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="endpoint-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #00ff41;">Add API Endpoint</h3>
+                <button class="modal-close" onclick="closeModal('endpoint-modal')">Close</button>
+            </div>
+            <div class="form-group">
+                <label>HTTP Method</label>
+                <select id="endpoint-method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Path</label>
+                <input type="text" id="endpoint-path" placeholder="/api/v1/users">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="endpoint-description" placeholder="List all users">
+            </div>
+            <div class="form-group">
+                <label>Request Body (JSON)</label>
+                <textarea id="endpoint-request" placeholder='{ "field": "type" }'></textarea>
+            </div>
+            <div class="form-group">
+                <label>Response Body (JSON)</label>
+                <textarea id="endpoint-response" placeholder='{ "success": true, "data": [] }'></textarea>
+            </div>
+            <div class="form-group">
+                <label>Status Codes</label>
+                <input type="text" id="endpoint-statuses" placeholder="200, 400, 401, 404, 500" value="200, 400, 401, 404, 500">
+            </div>
+            <button class="btn btn-block" onclick="addEndpoint()">Add Endpoint</button>
+        </div>
+    </div>
+
+    <div id="table-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #00ff41;">Add Database Table</h3>
+                <button class="modal-close" onclick="closeModal('table-modal')">Close</button>
+            </div>
+            <div class="form-group">
+                <label>Table Name</label>
+                <input type="text" id="table-name" placeholder="users">
+            </div>
+            <div class="form-group">
+                <label>Fields (one per line: name:type:constraints)</label>
+                <textarea id="table-fields" placeholder="id:UUID:PRIMARY KEY
+email:VARCHAR(255):UNIQUE NOT NULL
+created_at:TIMESTAMP:DEFAULT CURRENT_TIMESTAMP"></textarea>
+            </div>
+            <button class="btn btn-block" onclick="addTable()">Add Table</button>
+        </div>
+    </div>
+
+    <div id="relationship-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #00ff41;">Add Relationship</h3>
+                <button class="modal-close" onclick="closeModal('relationship-modal')">Close</button>
+            </div>
+            <div class="form-group">
+                <label>From Table</label>
+                <input type="text" id="rel-from-table" placeholder="users">
+            </div>
+            <div class="form-group">
+                <label>To Table</label>
+                <input type="text" id="rel-to-table" placeholder="posts">
+            </div>
+            <div class="form-group">
+                <label>Relationship Type</label>
+                <select id="rel-type">
+                    <option value="1:1">One-to-One (1:1)</option>
+                    <option value="1:N">One-to-Many (1:N)</option>
+                    <option value="N:M">Many-to-Many (N:M)</option>
+                </select>
+            </div>
+            <button class="btn btn-block" onclick="addRelationship()">Add Relationship</button>
+        </div>
+    </div>
+
+    <div id="decision-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #00ff41;">Add Design Decision</h3>
+                <button class="modal-close" onclick="closeModal('decision-modal')">Close</button>
+            </div>
+            <div class="form-group">
+                <label>Decision Title</label>
+                <input type="text" id="decision-title" placeholder="e.g., Use PostgreSQL instead of MongoDB">
+            </div>
+            <div class="form-group">
+                <label>Context</label>
+                <textarea id="decision-context" placeholder="What situation led to this decision?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Options Considered</label>
+                <textarea id="decision-options" placeholder="List alternatives considered..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Decision Made</label>
+                <input type="text" id="decision-made" placeholder="Selected option">
+            </div>
+            <div class="form-group">
+                <label>Rationale</label>
+                <textarea id="decision-rationale" placeholder="Why was this decision made?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Consequences</label>
+                <textarea id="decision-consequences" placeholder="What are the implications?"></textarea>
+            </div>
+            <button class="btn btn-block" onclick="addDecision()">Add Decision</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        let designId = null;
+        let selectedPRD = null;
+        let endpoints = [];
+        let tables = [];
+        let relationships = [];
+        let decisions = [];
+        let diagramComponents = [];
+        let selectedComponent = null;
+        let canvas, ctx;
+
+        // Tab management
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // PRD Linking
+        async function loadPRDs() {
+            if (typeof api === 'undefined') return;
+
+            try {
+                const prds = await api.get('/requirements?type=PRD');
+                const selector = document.getElementById('prd-selector');
+
+                prds.data.forEach(prd => {
+                    const option = document.createElement('option');
+                    option.value = prd.id;
+                    option.textContent = prd.title;
+                    selector.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Failed to load PRDs:', err);
+            }
+        }
+
+        async function loadPRD() {
+            const selector = document.getElementById('prd-selector');
+            const prdId = selector.value;
+
+            if (!prdId) {
+                document.getElementById('prd-preview').style.display = 'none';
+                document.getElementById('coverage-list').innerHTML = '<p style="color: #888;">Select a PRD to see feature coverage</p>';
+                return;
+            }
+
+            if (typeof api === 'undefined') return;
+
+            try {
+                const prd = await api.get(`/requirements/${prdId}`);
+                selectedPRD = prd.data;
+
+                // Display PRD features
+                const preview = document.getElementById('prd-preview');
+                const featuresDiv = document.getElementById('prd-features');
+                preview.style.display = 'block';
+
+                const features = prd.data.metadata?.features || [];
+                featuresDiv.innerHTML = features.map((f, i) =>
+                    `<div class="prd-feature">${i+1}. ${f}</div>`
+                ).join('');
+
+                // Update coverage tracking
+                updateCoverageTracking(features);
+            } catch (err) {
+                console.error('Failed to load PRD:', err);
+            }
+        }
+
+        function updateCoverageTracking(features) {
+            const coverageDiv = document.getElementById('coverage-list');
+            const coverage = features.map((feature, i) => {
+                const covered = Math.random() > 0.3; // Demo: random coverage
+                return `
+                    <div class="coverage-grid">
+                        <div class="coverage-item ${covered ? 'covered' : ''}">
+                            ${feature}
+                        </div>
+                        <div class="coverage-badge ${covered ? 'covered' : ''}">
+                            ${covered ? 'Designed' : 'Pending'}
+                        </div>
+                    </div>
+                `;
+            });
+            coverageDiv.innerHTML = coverage.join('');
+        }
+
+        // Architecture Canvas
+        function initCanvas() {
+            canvas = document.getElementById('architecture-canvas');
+            if (!canvas) return;
+
+            ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 400;
+
+            // Draw grid
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < canvas.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+
+            canvas.addEventListener('click', handleCanvasClick);
+        }
+
+        function selectComponent(type) {
+            document.querySelectorAll('.component-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            selectedComponent = type;
+        }
+
+        function handleCanvasClick(e) {
+            if (!selectedComponent) {
+                showToast('Select a component first', 'error');
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const component = {
+                type: selectedComponent,
+                x: x,
+                y: y,
+                width: 120,
+                height: 60
+            };
+
+            diagramComponents.push(component);
+            drawComponent(component);
+        }
+
+        function drawComponent(comp) {
+            ctx.fillStyle = '#00ff41';
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = 2;
+
+            ctx.strokeRect(comp.x - comp.width/2, comp.y - comp.height/2, comp.width, comp.height);
+
+            ctx.fillStyle = '#00ff41';
+            ctx.font = '12px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText(comp.type.toUpperCase(), comp.x, comp.y);
+        }
+
+        function clearCanvas() {
+            diagramComponents = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            initCanvas();
+        }
+
+        function saveDiagram() {
+            const diagramData = JSON.stringify(diagramComponents);
+            localStorage.setItem('architecture-diagram', diagramData);
+            showToast('Diagram saved', 'success');
+        }
+
+        function loadDiagram() {
+            const diagramData = localStorage.getItem('architecture-diagram');
+            if (diagramData) {
+                diagramComponents = JSON.parse(diagramData);
+                clearCanvas();
+                diagramComponents.forEach(comp => drawComponent(comp));
+                showToast('Diagram loaded', 'success');
+            }
+        }
+
+        function exportDiagram(format) {
+            if (format === 'png') {
+                const link = document.createElement('a');
+                link.download = 'architecture-diagram.png';
+                link.href = canvas.toDataURL();
+                link.click();
+                showToast('Diagram exported as PNG', 'success');
+            } else if (format === 'svg') {
+                showToast('SVG export coming soon', 'info');
+            }
+        }
+
+        // API Endpoints
+        function openEndpointModal() {
+            document.getElementById('endpoint-modal').classList.add('active');
+        }
+
+        function addEndpoint() {
+            const endpoint = {
+                method: document.getElementById('endpoint-method').value,
+                path: document.getElementById('endpoint-path').value,
+                description: document.getElementById('endpoint-description').value,
+                request: document.getElementById('endpoint-request').value,
+                response: document.getElementById('endpoint-response').value,
+                statuses: document.getElementById('endpoint-statuses').value
+            };
+
+            if (!endpoint.path) {
+                showToast('Path is required', 'error');
+                return;
+            }
+
+            endpoints.push(endpoint);
+            renderEndpoints();
+            closeModal('endpoint-modal');
+            showToast('Endpoint added', 'success');
+
+            // Clear form
+            document.getElementById('endpoint-path').value = '';
+            document.getElementById('endpoint-description').value = '';
+            document.getElementById('endpoint-request').value = '';
+            document.getElementById('endpoint-response').value = '';
+        }
+
+        function renderEndpoints() {
+            const container = document.getElementById('endpoints-list');
+            if (endpoints.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No endpoints defined yet</p>';
+                return;
+            }
+
+            container.innerHTML = endpoints.map((ep, i) => `
+                <div class="api-endpoint">
+                    <div class="endpoint-actions">
+                        <button class="btn-icon" onclick="editEndpoint(${i})">Edit</button>
+                        <button class="btn-icon" onclick="deleteEndpoint(${i})">Del</button>
+                    </div>
+                    <div>
+                        <span class="method ${ep.method}">${ep.method}</span>
+                        <span class="path">${ep.path}</span>
+                    </div>
+                    <div style="color: #888; margin-top: 5px;">${ep.description}</div>
+                    ${ep.request ? `<div class="code-block">${ep.request}</div>` : ''}
+                    ${ep.response ? `<div class="code-block">${ep.response}</div>` : ''}
+                    <div style="color: #00ccff; margin-top: 5px;">Status codes: ${ep.statuses}</div>
+                </div>
+            `).join('');
+        }
+
+        function editEndpoint(index) {
+            // Populate modal with endpoint data
+            const ep = endpoints[index];
+            document.getElementById('endpoint-method').value = ep.method;
+            document.getElementById('endpoint-path').value = ep.path;
+            document.getElementById('endpoint-description').value = ep.description;
+            document.getElementById('endpoint-request').value = ep.request;
+            document.getElementById('endpoint-response').value = ep.response;
+            document.getElementById('endpoint-statuses').value = ep.statuses;
+
+            // Remove old endpoint
+            endpoints.splice(index, 1);
+            openEndpointModal();
+        }
+
+        function deleteEndpoint(index) {
+            if (confirm('Delete this endpoint?')) {
+                endpoints.splice(index, 1);
+                renderEndpoints();
+                showToast('Endpoint deleted', 'success');
+            }
+        }
+
+        function exportOpenAPI() {
+            const openapi = {
+                openapi: '3.0.0',
+                info: {
+                    title: document.getElementById('design-title').value || 'API',
+                    version: '1.0.0'
+                },
+                paths: {}
+            };
+
+            endpoints.forEach(ep => {
+                if (!openapi.paths[ep.path]) {
+                    openapi.paths[ep.path] = {};
+                }
+
+                openapi.paths[ep.path][ep.method.toLowerCase()] = {
+                    description: ep.description,
+                    responses: {
+                        '200': {
+                            description: 'Successful response'
+                        }
+                    }
+                };
+            });
+
+            const blob = new Blob([JSON.stringify(openapi, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'openapi.json';
+            link.click();
+            showToast('OpenAPI spec exported', 'success');
+        }
+
+        // Database Schema
+        function openTableModal() {
+            document.getElementById('table-modal').classList.add('active');
+        }
+
+        function addTable() {
+            const name = document.getElementById('table-name').value;
+            const fieldsText = document.getElementById('table-fields').value;
+
+            if (!name || !fieldsText) {
+                showToast('Table name and fields required', 'error');
+                return;
+            }
+
+            const fields = fieldsText.split('\n').map(line => {
+                const [name, type, constraints] = line.split(':');
+                return { name: name?.trim(), type: type?.trim(), constraints: constraints?.trim() || '' };
+            }).filter(f => f.name);
+
+            tables.push({ name, fields });
+            renderTables();
+            closeModal('table-modal');
+            showToast('Table added', 'success');
+
+            document.getElementById('table-name').value = '';
+            document.getElementById('table-fields').value = '';
+        }
+
+        function renderTables() {
+            const container = document.getElementById('tables-list');
+            if (tables.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No tables defined yet</p>';
+                return;
+            }
+
+            container.innerHTML = tables.map((table, i) => `
+                <div style="margin: 15px 0;">
+                    <strong style="color: #00ccff;">Table: ${table.name}</strong>
+                    <button class="btn-icon" style="margin-left: 10px;" onclick="deleteTable(${i})">Delete</button>
+                    ${table.fields.map(field => `
+                        <div class="schema-field">
+                            <span class="field-name">${field.name}</span>
+                            <span class="field-type">${field.type} ${field.constraints}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function deleteTable(index) {
+            if (confirm('Delete this table?')) {
+                tables.splice(index, 1);
+                renderTables();
+                showToast('Table deleted', 'success');
+            }
+        }
+
+        function openRelationshipModal() {
+            document.getElementById('relationship-modal').classList.add('active');
+        }
+
+        function addRelationship() {
+            const rel = {
+                from: document.getElementById('rel-from-table').value,
+                to: document.getElementById('rel-to-table').value,
+                type: document.getElementById('rel-type').value
+            };
+
+            if (!rel.from || !rel.to) {
+                showToast('Both tables required', 'error');
+                return;
+            }
+
+            relationships.push(rel);
+            renderRelationships();
+            closeModal('relationship-modal');
+            showToast('Relationship added', 'success');
+
+            document.getElementById('rel-from-table').value = '';
+            document.getElementById('rel-to-table').value = '';
+        }
+
+        function renderRelationships() {
+            const container = document.getElementById('relationships-list');
+            if (relationships.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No relationships defined yet</p>';
+                return;
+            }
+
+            container.innerHTML = relationships.map((rel, i) => `
+                <div class="table-relationship">
+                    <span>${rel.from} → ${rel.to} (${rel.type})</span>
+                    <button class="btn-icon" onclick="deleteRelationship(${i})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteRelationship(index) {
+            relationships.splice(index, 1);
+            renderRelationships();
+            showToast('Relationship deleted', 'success');
+        }
+
+        function generateSQL() {
+            let sql = '-- Generated SQL Migration\n\n';
+
+            tables.forEach(table => {
+                sql += `CREATE TABLE ${table.name} (\n`;
+                sql += table.fields.map(f =>
+                    `  ${f.name} ${f.type}${f.constraints ? ' ' + f.constraints : ''}`
+                ).join(',\n');
+                sql += '\n);\n\n';
+            });
+
+            relationships.forEach(rel => {
+                if (rel.type === 'N:M') {
+                    sql += `-- Many-to-many: Create junction table\n`;
+                    sql += `CREATE TABLE ${rel.from}_${rel.to} (\n`;
+                    sql += `  ${rel.from}_id UUID REFERENCES ${rel.from}(id),\n`;
+                    sql += `  ${rel.to}_id UUID REFERENCES ${rel.to}(id),\n`;
+                    sql += `  PRIMARY KEY (${rel.from}_id, ${rel.to}_id)\n`;
+                    sql += ');\n\n';
+                }
+            });
+
+            const output = document.getElementById('sql-output');
+            output.textContent = sql;
+            output.style.display = 'block';
+            showToast('SQL generated', 'success');
+        }
+
+        // Design Decisions
+        function openDecisionModal() {
+            document.getElementById('decision-modal').classList.add('active');
+        }
+
+        function addDecision() {
+            const decision = {
+                title: document.getElementById('decision-title').value,
+                context: document.getElementById('decision-context').value,
+                options: document.getElementById('decision-options').value,
+                made: document.getElementById('decision-made').value,
+                rationale: document.getElementById('decision-rationale').value,
+                consequences: document.getElementById('decision-consequences').value,
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            if (!decision.title || !decision.made) {
+                showToast('Title and decision required', 'error');
+                return;
+            }
+
+            decisions.push(decision);
+            renderDecisions();
+            closeModal('decision-modal');
+            showToast('Decision added', 'success');
+
+            // Clear form
+            document.getElementById('decision-title').value = '';
+            document.getElementById('decision-context').value = '';
+            document.getElementById('decision-options').value = '';
+            document.getElementById('decision-made').value = '';
+            document.getElementById('decision-rationale').value = '';
+            document.getElementById('decision-consequences').value = '';
+        }
+
+        function renderDecisions() {
+            const container = document.getElementById('decisions-list');
+            if (decisions.length === 0) {
+                container.innerHTML = '<p style="color: #888;">No design decisions recorded yet</p>';
+                return;
+            }
+
+            container.innerHTML = decisions.map((dec, i) => `
+                <div class="decision-log">
+                    <div class="decision-title">${dec.title}</div>
+                    <div class="decision-meta">Date: ${dec.date}</div>
+                    <p><strong>Context:</strong> ${dec.context}</p>
+                    <p><strong>Options Considered:</strong><br>${dec.options}</p>
+                    <p><strong>Decision:</strong> ${dec.made}</p>
+                    <p><strong>Rationale:</strong> ${dec.rationale}</p>
+                    <p><strong>Consequences:</strong> ${dec.consequences}</p>
+                    <button class="btn-icon" onclick="deleteDecision(${i})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteDecision(index) {
+            if (confirm('Delete this decision?')) {
+                decisions.splice(index, 1);
+                renderDecisions();
+                showToast('Decision deleted', 'success');
+            }
+        }
+
+        // Code Generation
+        function generateCode() {
+            const codeModal = confirm('Generate code scaffolding?\n\nChoose:\nOK = Models\nCancel = API Routes');
+
+            if (codeModal) {
+                generateModels();
+            } else {
+                generateRoutes();
+            }
+        }
+
+        function generateModels() {
+            let code = '// Generated TypeScript Models\n\n';
+
+            tables.forEach(table => {
+                const interfaceName = table.name.charAt(0).toUpperCase() + table.name.slice(1);
+                code += `export interface ${interfaceName} {\n`;
+
+                table.fields.forEach(field => {
+                    let tsType = 'string';
+                    if (field.type.includes('INT')) tsType = 'number';
+                    if (field.type.includes('BOOL')) tsType = 'boolean';
+                    if (field.type.includes('TIMESTAMP')) tsType = 'Date';
+                    if (field.type.includes('UUID')) tsType = 'string';
+
+                    code += `  ${field.name}: ${tsType};\n`;
+                });
+
+                code += '}\n\n';
+            });
+
+            downloadCode(code, 'models.ts');
+        }
+
+        function generateRoutes() {
+            let code = '// Generated Express.js Routes\n\n';
+            code += 'import { Router } from \'express\';\n';
+            code += 'const router = Router();\n\n';
+
+            endpoints.forEach(ep => {
+                const method = ep.method.toLowerCase();
+                code += `router.${method}('${ep.path}', async (req, res) => {\n`;
+                code += `  // TODO: Implement ${ep.description}\n`;
+                code += `  res.json({ success: true });\n`;
+                code += `});\n\n`;
+            });
+
+            code += 'export default router;\n';
+
+            downloadCode(code, 'routes.ts');
+        }
+
+        function downloadCode(code, filename) {
+            const blob = new Blob([code], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            showToast(`Code generated: ${filename}`, 'success');
+        }
+
+        // Review
+        function submitForReview() {
+            const checklist = [
+                'check-scalability',
+                'check-security',
+                'check-performance',
+                'check-error',
+                'check-testing',
+                'check-monitoring',
+                'check-docs'
+            ];
+
+            const completed = checklist.filter(id => document.getElementById(id).checked).length;
+            const total = checklist.length;
+
+            if (completed < total) {
+                if (!confirm(`Only ${completed}/${total} checklist items completed. Submit anyway?`)) {
+                    return;
+                }
+            }
+
+            showToast('Design review submitted', 'success');
+
+            // Simulate review notifications via WebSocket
+            if (typeof ws !== 'undefined') {
+                ws.emit('design:review-submitted', {
+                    designId: designId,
+                    reviewers: ['Tech Lead', 'Security Team', 'Architecture Board']
+                });
+            }
+        }
+
+        function addComment() {
+            const comment = document.getElementById('new-comment').value;
+            if (!comment) return;
+
+            const commentsDiv = document.getElementById('review-comments');
+            if (commentsDiv.textContent.includes('No comments yet')) {
+                commentsDiv.innerHTML = '';
+            }
+
+            const commentEl = document.createElement('div');
+            commentEl.className = 'decision-log';
+            commentEl.innerHTML = `
+                <div class="decision-title">Demo User</div>
+                <div class="decision-meta">${new Date().toLocaleString()}</div>
+                <p>${comment}</p>
+            `;
+            commentsDiv.appendChild(commentEl);
+
+            document.getElementById('new-comment').value = '';
+            showToast('Comment added', 'success');
+        }
+
+        // Validation
+        function validateDesign() {
+            const errors = [];
+
+            if (!selectedPRD) errors.push('No PRD linked');
+            if (diagramComponents.length === 0) errors.push('No architecture diagram');
+            if (endpoints.length < 5) errors.push('Less than 5 API endpoints defined');
+            if (tables.length === 0) errors.push('No database schema defined');
+
+            const techFields = [
+                'tech-frontend-framework', 'tech-backend-lang', 'tech-db-type',
+                'tech-infra-cloud', 'tech-security-auth', 'tech-monitor-logging'
+            ];
+
+            techFields.forEach(field => {
+                if (!document.getElementById(field).value) {
+                    errors.push(`Tech stack field missing: ${field.replace('tech-', '')}`);
+                }
+            });
+
+            if (errors.length > 0) {
+                alert('Validation Errors:\n\n' + errors.map((e, i) => `${i+1}. ${e}`).join('\n'));
+            } else {
+                showToast('Validation passed', 'success');
+            }
+        }
+
+        // Save/Submit Design
+        async function saveDesign() {
+            const data = {
+                title: document.getElementById('design-title').value || 'Engineering Design',
+                description: document.getElementById('design-summary').value,
+                priority: 'high',
+                status: 'draft',
+                metadata: {
+                    type: 'DESIGN',
+                    prdId: selectedPRD?.id,
+                    archPattern: document.getElementById('arch-pattern').value,
+                    archLayers: document.getElementById('arch-layers').value,
+                    diagram: JSON.stringify(diagramComponents),
+                    endpoints: endpoints,
+                    tables: tables,
+                    relationships: relationships,
+                    decisions: decisions,
+                    techStack: {
+                        frontend: {
+                            framework: document.getElementById('tech-frontend-framework').value,
+                            libraries: document.getElementById('tech-frontend-libs').value,
+                            build: document.getElementById('tech-frontend-build').value
+                        },
+                        backend: {
+                            language: document.getElementById('tech-backend-lang').value,
+                            framework: document.getElementById('tech-backend-framework').value,
+                            orm: document.getElementById('tech-backend-orm').value
+                        },
+                        database: {
+                            type: document.getElementById('tech-db-type').value,
+                            version: document.getElementById('tech-db-version').value,
+                            clustering: document.getElementById('tech-db-cluster').value
+                        },
+                        infrastructure: {
+                            cloud: document.getElementById('tech-infra-cloud').value,
+                            containers: document.getElementById('tech-infra-containers').value,
+                            orchestration: document.getElementById('tech-infra-orch').value
+                        },
+                        security: {
+                            auth: document.getElementById('tech-security-auth').value,
+                            encryption: document.getElementById('tech-security-encryption').value,
+                            compliance: document.getElementById('tech-security-compliance').value
+                        },
+                        monitoring: {
+                            logging: document.getElementById('tech-monitor-logging').value,
+                            metrics: document.getElementById('tech-monitor-metrics').value,
+                            alerting: document.getElementById('tech-monitor-alerting').value
+                        }
+                    }
+                }
+            };
+
+            if (typeof api !== 'undefined') {
+                try {
+                    if (designId) {
+                        await api.put(`/requirements/${designId}`, data);
+                    } else {
+                        const result = await api.post('/requirements', data);
+                        designId = result.id;
+                    }
+                    showToast('Design saved', 'success');
+                } catch (err) {
+                    console.error('Save failed:', err);
+                    showToast('Save failed', 'error');
+                }
+            } else {
+                console.log('Design data:', data);
+                showToast('Design saved (demo mode)', 'success');
+            }
+        }
+
+        async function submitDesign() {
+            await saveDesign();
+            if (designId && typeof api !== 'undefined') {
+                try {
+                    await api.put(`/requirements/${designId}`, { status: 'submitted' });
+                    showToast('Design submitted', 'success');
+                    setTimeout(() => {
+                        window.parent.postMessage({
+                            type: 'NAVIGATE_TO_MODULE',
+                            moduleNumber: 5,
+                            params: { designId }
+                        }, '*');
+                    }, 1000);
+                } catch (err) {
+                    showToast('Submit failed', 'error');
+                }
+            } else {
+                showToast('Design submitted (demo mode)', 'success');
+                setTimeout(() => {
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_MODULE',
+                        moduleNumber: 5,
+                        params: { designId: 'demo' }
+                    }, '*');
+                }, 1000);
+            }
+        }
+
+        // Modal management
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showToast(message, type) {
+            console.log(`[Module 4] ${type.toUpperCase()}: ${message}`);
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; top: 20px; right: 20px; padding: 12px 24px;
+                background: ${type === 'error' ? '#ff0044' : '#00ff41'};
+                color: ${type === 'error' ? '#fff' : '#000'};
+                border-radius: 8px; z-index: 10000; font-weight: bold;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // WebSocket collaboration
+        function setupWebSocket() {
+            if (typeof ws === 'undefined') return;
+
+            ws.on('design:diagram-updated', (data) => {
+                showToast(`Diagram updated by ${data.user}`, 'info');
+                if (data.components) {
+                    diagramComponents = data.components;
+                    clearCanvas();
+                    diagramComponents.forEach(comp => drawComponent(comp));
+                }
+            });
+
+            ws.on('design:review-submitted', (data) => {
+                showToast('Design review submitted', 'info');
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPRDs();
+            initCanvas();
+            renderEndpoints();
+            renderTables();
+            renderRelationships();
+            renderDecisions();
+
+            if (typeof ws !== 'undefined') {
+                ws.connect('user-' + Math.random().toString(36).substr(2, 9), 'Demo User');
+                setupWebSocket();
+            }
+        });
+
+        // Close modal on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+
+    <script src="/demo/module-state-sync.js"></script>
+    <script>
+        if (typeof ConductorModuleState !== 'undefined') {
+            ConductorModuleState.init(4);
+            console.log('[Module 4] State sync initialized');
+        }
+    </script>
+</body>
+</html>

@@ -57,7 +57,7 @@ export class RequirementsController {
       const pagination: PaginationParams = {
         page: parseInt(req.query['page'] as string) || 1,
         limit: parseInt(req.query['limit'] as string) || 20,
-        sortBy: req.query['sortBy'] as string,
+        sortBy: req.query['sortBy'] as string | undefined,
         sortOrder: (req.query['sortOrder'] as 'ASC' | 'DESC') || 'DESC',
       };
 
@@ -68,9 +68,9 @@ export class RequirementsController {
         assignedTo: req.query['assignedTo'] ? this.parseArrayParam(req.query['assignedTo']) : undefined,
         createdBy: req.query['createdBy'] ? this.parseArrayParam(req.query['createdBy']) : undefined,
         tags: req.query['tags'] ? this.parseArrayParam(req.query['tags']) : undefined,
-        dueDateFrom: req.query['dueDateFrom'] as string,
-        dueDateTo: req.query['dueDateTo'] as string,
-        search: req.query['search'] as string,
+        dueDateFrom: req.query['dueDateFrom'] as string | undefined,
+        dueDateTo: req.query['dueDateTo'] as string | undefined,
+        search: req.query['search'] as string | undefined,
       };
 
       const result = await this.requirementsService.getRequirements(filters, pagination);
@@ -126,7 +126,7 @@ export class RequirementsController {
 
       try {
         const requirement = await this.requirementsService.updateRequirement(
-          id as string,
+          id as string | undefined,
           data,
           updatedBy,
           changeReason
@@ -202,8 +202,8 @@ export class RequirementsController {
         assignedTo: req.query['assignedTo'] ? this.parseArrayParam(req.query['assignedTo']) : undefined,
         createdBy: req.query['createdBy'] ? this.parseArrayParam(req.query['createdBy']) : undefined,
         tags: req.query['tags'] ? this.parseArrayParam(req.query['tags']) : undefined,
-        dueDateFrom: req.query['dueDateFrom'] as string,
-        dueDateTo: req.query['dueDateTo'] as string,
+        dueDateFrom: req.query['dueDateFrom'] as string | undefined,
+        dueDateTo: req.query['dueDateTo'] as string | undefined,
       };
 
       const summary = await this.requirementsService.getRequirementsSummary(filters);
@@ -285,9 +285,9 @@ export class RequirementsController {
         assignedTo: req.query['assignedTo'] ? this.parseArrayParam(req.query['assignedTo']) : undefined,
         createdBy: req.query['createdBy'] ? this.parseArrayParam(req.query['createdBy']) : undefined,
         tags: req.query['tags'] ? this.parseArrayParam(req.query['tags']) : undefined,
-        dueDateFrom: req.query['dueDateFrom'] as string,
-        dueDateTo: req.query['dueDateTo'] as string,
-        search: req.query['search'] as string,
+        dueDateFrom: req.query['dueDateFrom'] as string | undefined,
+        dueDateTo: req.query['dueDateTo'] as string | undefined,
+        search: req.query['search'] as string | undefined,
       };
 
       // Get all requirements (with high limit for export)

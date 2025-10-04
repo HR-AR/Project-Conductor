@@ -6,6 +6,40 @@ import { Server } from 'socket.io';
 import { Requirement } from '../models/requirement.model';
 import { Link } from '../models/link.model';
 import logger from '../utils/logger';
+import {
+  WS_EVENTS,
+  BRDCreatedEventData,
+  BRDUpdatedEventData,
+  BRDApprovedEventData,
+  BRDRejectedEventData,
+  BRDStatusChangedEventData,
+  BRDFullyApprovedEventData,
+  PRDCreatedEventData,
+  PRDGeneratedEventData,
+  PRDUpdatedEventData,
+  PRDAlignedEventData,
+  PRDLockedEventData,
+  PRDFeatureAddedEventData,
+  PRDStoryAddedEventData,
+  PRDStatusChangedEventData,
+  DesignSubmittedEventData,
+  DesignUpdatedEventData,
+  DesignApprovedEventData,
+  DesignRejectedEventData,
+  DesignConflictDetectedEventData,
+  DesignStatusChangedEventData,
+  ConflictCreatedEventData,
+  ConflictCommentAddedEventData,
+  ConflictOptionAddedEventData,
+  ConflictVotedEventData,
+  ConflictResolvedEventData,
+  ConflictStatusChangedEventData,
+  ChangeLoggedEventData,
+  ChangeApprovedEventData,
+  ChangeRejectedEventData,
+  JoinProjectEventData,
+  LeaveProjectEventData
+} from '../models/websocket-events.model';
 
 export interface WebSocketEventData {
   requirement?: Requirement;
@@ -276,6 +310,290 @@ export class WebSocketService {
       timestamp: new Date()
     });
     logger.info({ message, type }, 'Broadcasting system notification');
+  }
+
+  // ========== BRD Events ==========
+
+  /**
+   * Emit BRD created event
+   */
+  emitBRDCreated(projectId: string, data: BRDCreatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_CREATED, data);
+    logger.debug({ projectId, brdId: data.brdId }, 'Broadcasting BRD created');
+  }
+
+  /**
+   * Emit BRD updated event
+   */
+  emitBRDUpdated(projectId: string, data: BRDUpdatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_UPDATED, data);
+    logger.debug({ projectId, brdId: data.brdId }, 'Broadcasting BRD updated');
+  }
+
+  /**
+   * Emit BRD approved event
+   */
+  emitBRDApproved(projectId: string, data: BRDApprovedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_APPROVED, data);
+    logger.debug({ projectId, brdId: data.brdId, stakeholder: data.stakeholder }, 'Broadcasting BRD approved');
+  }
+
+  /**
+   * Emit BRD rejected event
+   */
+  emitBRDRejected(projectId: string, data: BRDRejectedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_REJECTED, data);
+    logger.debug({ projectId, brdId: data.brdId, stakeholder: data.stakeholder }, 'Broadcasting BRD rejected');
+  }
+
+  /**
+   * Emit BRD status changed event
+   */
+  emitBRDStatusChanged(projectId: string, data: BRDStatusChangedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_STATUS_CHANGED, data);
+    logger.debug({ projectId, brdId: data.brdId, newStatus: data.newStatus }, 'Broadcasting BRD status changed');
+  }
+
+  /**
+   * Emit BRD fully approved event
+   */
+  emitBRDFullyApproved(projectId: string, data: BRDFullyApprovedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.BRD_FULLY_APPROVED, data);
+    logger.debug({ projectId, brdId: data.brdId }, 'Broadcasting BRD fully approved');
+  }
+
+  // ========== PRD Events ==========
+
+  /**
+   * Emit PRD created event
+   */
+  emitPRDCreated(projectId: string, data: PRDCreatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_CREATED, data);
+    logger.debug({ projectId, prdId: data.prdId }, 'Broadcasting PRD created');
+  }
+
+  /**
+   * Emit PRD generated event
+   */
+  emitPRDGenerated(projectId: string, data: PRDGeneratedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_GENERATED, data);
+    logger.debug({ projectId, prdId: data.prdId, brdId: data.brdId }, 'Broadcasting PRD generated');
+  }
+
+  /**
+   * Emit PRD updated event
+   */
+  emitPRDUpdated(projectId: string, data: PRDUpdatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_UPDATED, data);
+    logger.debug({ projectId, prdId: data.prdId }, 'Broadcasting PRD updated');
+  }
+
+  /**
+   * Emit PRD aligned event
+   */
+  emitPRDAligned(projectId: string, data: PRDAlignedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_ALIGNED, data);
+    logger.debug({ projectId, prdId: data.prdId, featureId: data.featureId }, 'Broadcasting PRD aligned');
+  }
+
+  /**
+   * Emit PRD locked event
+   */
+  emitPRDLocked(projectId: string, data: PRDLockedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_LOCKED, data);
+    logger.debug({ projectId, prdId: data.prdId }, 'Broadcasting PRD locked');
+  }
+
+  /**
+   * Emit PRD feature added event
+   */
+  emitPRDFeatureAdded(projectId: string, data: PRDFeatureAddedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_FEATURE_ADDED, data);
+    logger.debug({ projectId, prdId: data.prdId, featureId: data.featureId }, 'Broadcasting PRD feature added');
+  }
+
+  /**
+   * Emit PRD story added event
+   */
+  emitPRDStoryAdded(projectId: string, data: PRDStoryAddedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_STORY_ADDED, data);
+    logger.debug({ projectId, prdId: data.prdId, storyId: data.storyId }, 'Broadcasting PRD story added');
+  }
+
+  /**
+   * Emit PRD status changed event
+   */
+  emitPRDStatusChanged(projectId: string, data: PRDStatusChangedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.PRD_STATUS_CHANGED, data);
+    logger.debug({ projectId, prdId: data.prdId, newStatus: data.newStatus }, 'Broadcasting PRD status changed');
+  }
+
+  // ========== Engineering Design Events ==========
+
+  /**
+   * Emit design submitted event
+   */
+  emitDesignSubmitted(projectId: string, data: DesignSubmittedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_SUBMITTED, data);
+    logger.debug({ projectId, designId: data.designId, team: data.team }, 'Broadcasting design submitted');
+  }
+
+  /**
+   * Emit design updated event
+   */
+  emitDesignUpdated(projectId: string, data: DesignUpdatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_UPDATED, data);
+    logger.debug({ projectId, designId: data.designId, team: data.team }, 'Broadcasting design updated');
+  }
+
+  /**
+   * Emit design approved event
+   */
+  emitDesignApproved(projectId: string, data: DesignApprovedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_APPROVED, data);
+    logger.debug({ projectId, designId: data.designId, team: data.team }, 'Broadcasting design approved');
+  }
+
+  /**
+   * Emit design rejected event
+   */
+  emitDesignRejected(projectId: string, data: DesignRejectedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_REJECTED, data);
+    logger.debug({ projectId, designId: data.designId, team: data.team }, 'Broadcasting design rejected');
+  }
+
+  /**
+   * Emit design conflict detected event
+   */
+  emitDesignConflictDetected(projectId: string, data: DesignConflictDetectedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_CONFLICT_DETECTED, data);
+    logger.debug({ projectId, designId: data.designId, conflictType: data.conflictType }, 'Broadcasting design conflict detected');
+  }
+
+  /**
+   * Emit design status changed event
+   */
+  emitDesignStatusChanged(projectId: string, data: DesignStatusChangedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.DESIGN_STATUS_CHANGED, data);
+    logger.debug({ projectId, designId: data.designId, newStatus: data.newStatus }, 'Broadcasting design status changed');
+  }
+
+  // ========== Conflict Events ==========
+
+  /**
+   * Emit conflict created event
+   */
+  emitConflictCreated(projectId: string, data: ConflictCreatedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_CREATED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, type: data.type }, 'Broadcasting conflict created');
+  }
+
+  /**
+   * Emit conflict comment added event
+   */
+  emitConflictCommentAdded(projectId: string, data: ConflictCommentAddedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_COMMENT_ADDED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, commentId: data.commentId }, 'Broadcasting conflict comment added');
+  }
+
+  /**
+   * Emit conflict option added event
+   */
+  emitConflictOptionAdded(projectId: string, data: ConflictOptionAddedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_OPTION_ADDED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, optionId: data.optionId }, 'Broadcasting conflict option added');
+  }
+
+  /**
+   * Emit conflict voted event
+   */
+  emitConflictVoted(projectId: string, data: ConflictVotedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_VOTED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, optionId: data.optionId }, 'Broadcasting conflict vote');
+  }
+
+  /**
+   * Emit conflict resolved event
+   */
+  emitConflictResolved(projectId: string, data: ConflictResolvedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_RESOLVED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, resolution: data.resolution }, 'Broadcasting conflict resolved');
+  }
+
+  /**
+   * Emit conflict status changed event
+   */
+  emitConflictStatusChanged(projectId: string, data: ConflictStatusChangedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CONFLICT_STATUS_CHANGED, data);
+    logger.debug({ projectId, conflictId: data.conflictId, newStatus: data.newStatus }, 'Broadcasting conflict status changed');
+  }
+
+  // ========== Change Log Events ==========
+
+  /**
+   * Emit change logged event
+   */
+  emitChangeLogged(projectId: string, data: ChangeLoggedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CHANGE_LOGGED, data);
+    logger.debug({ projectId, changeId: data.changeId, phase: data.phase }, 'Broadcasting change logged');
+  }
+
+  /**
+   * Emit change approved event
+   */
+  emitChangeApproved(projectId: string, data: ChangeApprovedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CHANGE_APPROVED, data);
+    logger.debug({ projectId, changeId: data.changeId }, 'Broadcasting change approved');
+  }
+
+  /**
+   * Emit change rejected event
+   */
+  emitChangeRejected(projectId: string, data: ChangeRejectedEventData): void {
+    this.io.to(`project:${projectId}`).emit(WS_EVENTS.CHANGE_REJECTED, data);
+    logger.debug({ projectId, changeId: data.changeId }, 'Broadcasting change rejected');
+  }
+
+  // ========== Room Management ==========
+
+  /**
+   * Handle user joining a project room
+   */
+  joinProjectRoom(socket: any, projectId: string, userId: string, username: string): void {
+    const roomName = `project:${projectId}`;
+    socket.join(roomName);
+
+    const joinData: JoinProjectEventData = {
+      projectId,
+      userId,
+      username,
+      timestamp: new Date()
+    };
+
+    // Notify other users in the project room
+    socket.to(roomName).emit(WS_EVENTS.USER_JOINED, joinData);
+
+    logger.info({ username, userId, projectId, room: roomName }, 'User joined project room');
+  }
+
+  /**
+   * Handle user leaving a project room
+   */
+  leaveProjectRoom(socket: any, projectId: string, userId: string, username: string): void {
+    const roomName = `project:${projectId}`;
+    socket.leave(roomName);
+
+    const leaveData: LeaveProjectEventData = {
+      projectId,
+      userId,
+      username,
+      timestamp: new Date()
+    };
+
+    // Notify other users in the project room
+    socket.to(roomName).emit(WS_EVENTS.USER_LEFT, leaveData);
+
+    logger.info({ username, userId, projectId, room: roomName }, 'User left project room');
   }
 }
 

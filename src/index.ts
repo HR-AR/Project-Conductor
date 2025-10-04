@@ -48,6 +48,13 @@ import reviewRoutes from './routes/review.routes';
 import metricsRoutes from './routes/metrics.routes';
 // import orchestratorRoutes, { initializeOrchestrator } from './routes/orchestrator.routes'; // Temporarily disabled
 
+// Import enhanced workflow routes
+import brdRoutes from './routes/brd.routes';
+import prdRoutes from './routes/prd.routes';
+import engineeringDesignRoutes from './routes/engineering-design.routes';
+import conflictRoutes from './routes/conflict.routes';
+import changeLogRoutes from './routes/change-log.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -219,6 +226,13 @@ app.use('/api/v1', reviewRoutes);
 app.use('/api/v1', metricsRoutes);
 // app.use('/api/v1/orchestrator', orchestratorRoutes); // Temporarily disabled
 
+// Enhanced workflow routes
+app.use('/api/v1/brd', brdRoutes);
+app.use('/api/v1/prd', prdRoutes);
+app.use('/api/v1/engineering-design', engineeringDesignRoutes);
+app.use('/api/v1/conflicts', conflictRoutes);
+app.use('/api/v1/change-log', changeLogRoutes);
+
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {
   try {
@@ -271,6 +285,11 @@ app.get('/demo', (_req, res) => {
 });
 
 app.get('/demo/', (_req, res) => {
+  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
+});
+
+// Direct access to dashboard
+app.get('/conductor-unified-dashboard.html', (_req, res) => {
   res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
 });
 

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 1: Present - Project Conductor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px 32px;
+            margin-bottom: 40px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-actions-label {
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-right: 8px;
+        }
+
+        .quick-action-btn {
+            background: rgba(52, 152, 219, 0.3);
+            border: 2px solid rgba(52, 152, 219, 0.6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(52, 152, 219, 0.5);
+            border-color: rgba(52, 152, 219, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-action-btn.primary {
+            background: rgba(46, 204, 113, 0.3);
+            border-color: rgba(46, 204, 113, 0.6);
+        }
+
+        .quick-action-btn.primary:hover {
+            background: rgba(46, 204, 113, 0.5);
+            border-color: rgba(46, 204, 113, 1);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .quick-action-btn.warning {
+            background: rgba(241, 196, 15, 0.3);
+            border-color: rgba(241, 196, 15, 0.6);
+        }
+
+        .quick-action-btn.warning:hover {
+            background: rgba(241, 196, 15, 0.5);
+            border-color: rgba(241, 196, 15, 1);
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+        }
+
+        .quick-action-btn.danger {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: rgba(231, 76, 60, 0.6);
+        }
+
+        .quick-action-btn.danger:hover {
+            background: rgba(231, 76, 60, 0.5);
+            border-color: rgba(231, 76, 60, 1);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .active-users-badge {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .active-users-badge .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #2ecc71;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-trend {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .metric-trend.down {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        /* Workflow Visualization */
+        .workflow-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .workflow-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+        }
+
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .workflow-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-step:hover {
+            transform: translateY(-5px);
+        }
+
+        .workflow-step::after {
+            content: '→';
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        .workflow-step:last-child::after {
+            display: none;
+        }
+
+        .workflow-circle {
+            width: 80px;
+            height: 80px;
+            background: rgba(52, 152, 219, 0.3);
+            border: 3px solid rgba(52, 152, 219, 0.6);
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-step.complete .workflow-circle {
+            background: rgba(46, 204, 113, 0.3);
+            border-color: rgba(46, 204, 113, 1);
+        }
+
+        .workflow-step.active .workflow-circle {
+            background: rgba(241, 196, 15, 0.3);
+            border-color: rgba(241, 196, 15, 1);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(241, 196, 15, 0); }
+        }
+
+        .workflow-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .workflow-count {
+            margin-top: 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .workflow-step.complete .workflow-count {
+            color: #2ecc71;
+        }
+
+        .workflow-step.active .workflow-count {
+            color: #f1c40f;
+        }
+
+        .workflow-step.bottleneck .workflow-circle {
+            animation: pulse 2s infinite, shake 0.5s infinite;
+            background: rgba(231, 76, 60, 0.3);
+            border-color: rgba(231, 76, 60, 1);
+        }
+
+        .workflow-step.bottleneck .workflow-count {
+            color: #e74c3c;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        /* Activity Feed */
+        .activity-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .activity-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+        }
+
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .activity-item.create {
+            border-left-color: #2ecc71;
+        }
+
+        .activity-item.update {
+            border-left-color: #f39c12;
+        }
+
+        .activity-item.delete {
+            border-left-color: #e74c3c;
+        }
+
+        .activity-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(52, 152, 219, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .activity-meta {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+
+        /* Health Score */
+        .health-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .health-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+        }
+
+        .health-score-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .health-score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .health-score-number {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .health-score-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .health-indicators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .health-indicator {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .health-indicator-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .health-indicator-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .health-indicator.good .health-indicator-value {
+            color: #2ecc71;
+        }
+
+        .health-indicator.warning .health-indicator-value {
+            color: #f39c12;
+        }
+
+        .health-indicator.critical .health-indicator-value {
+            color: #e74c3c;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Project Conductor Dashboard</h1>
+            <p>Real-time Requirements Management & Traceability System</p>
+        </div>
+
+        <!-- Quick Actions Bar -->
+        <div class="quick-actions">
+            <span class="quick-actions-label">Quick Actions:</span>
+            <a href="/module-2-brd.html" class="quick-action-btn primary">Create BRD</a>
+            <a href="/module-3-prd.html" class="quick-action-btn primary">Create PRD</a>
+            <a href="/module-4-design.html" class="quick-action-btn">Create Design</a>
+            <a href="/module-5-change-impact.html" class="quick-action-btn warning">View Conflicts</a>
+            <button class="quick-action-btn" onclick="exportReport()">Export Report</button>
+            <div class="active-users-badge">
+                <span class="pulse-dot"></span>
+                <span id="activeUsersCount">0 users online</span>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">📋</div>
+                <div class="metric-value" id="totalRequirements">0</div>
+                <div class="metric-label">Total Requirements</div>
+                <div class="metric-trend" id="totalTrend">Loading...</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">📝</div>
+                <div class="metric-value" id="brdCount">0</div>
+                <div class="metric-label">BRD Count</div>
+                <div class="metric-trend" id="brdTrend">Business Requirements</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">📄</div>
+                <div class="metric-value" id="prdCount">0</div>
+                <div class="metric-label">PRD Count</div>
+                <div class="metric-trend" id="prdTrend">Product Requirements</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">🔧</div>
+                <div class="metric-value" id="designCount">0</div>
+                <div class="metric-label">Design Count</div>
+                <div class="metric-trend" id="designTrend">Engineering Designs</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">✅</div>
+                <div class="metric-value" id="approvedRequirements">0</div>
+                <div class="metric-label">Approved</div>
+                <div class="metric-trend" id="approvedTrend">Ready for Implementation</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">⚠️</div>
+                <div class="metric-value" id="conflictsCount">0</div>
+                <div class="metric-label">Active Conflicts</div>
+                <div class="metric-trend" id="conflictsTrend">Needs Attention</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-value" id="completionRate">0%</div>
+                <div class="metric-label">Completion Rate</div>
+                <div class="metric-trend" id="completionTrend">Overall Progress</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-value" id="healthScore">0</div>
+                <div class="metric-label">Health Score</div>
+                <div class="metric-trend" id="healthTrend">Project Health</div>
+            </div>
+        </div>
+
+        <!-- Workflow Visualization -->
+        <div class="workflow-section">
+            <h2>Workflow Pipeline</h2>
+            <div class="workflow-steps">
+                <div class="workflow-step" id="workflow-brd" onclick="navigateToModule(2)">
+                    <div class="workflow-circle">📝</div>
+                    <div class="workflow-label">BRD</div>
+                    <div class="workflow-count" id="workflow-brd-count">0</div>
+                </div>
+                <div class="workflow-step" id="workflow-prd" onclick="navigateToModule(3)">
+                    <div class="workflow-circle">📄</div>
+                    <div class="workflow-label">PRD</div>
+                    <div class="workflow-count" id="workflow-prd-count">0</div>
+                </div>
+                <div class="workflow-step" id="workflow-design" onclick="navigateToModule(4)">
+                    <div class="workflow-circle">🔧</div>
+                    <div class="workflow-label">Design</div>
+                    <div class="workflow-count" id="workflow-design-count">0</div>
+                </div>
+                <div class="workflow-step" id="workflow-alignment" onclick="navigateToModule(5)">
+                    <div class="workflow-circle">🤝</div>
+                    <div class="workflow-label">Alignment</div>
+                    <div class="workflow-count" id="workflow-alignment-count">0</div>
+                </div>
+                <div class="workflow-step" id="workflow-implementation" onclick="navigateToModule(6)">
+                    <div class="workflow-circle">🚀</div>
+                    <div class="workflow-label">Implementation</div>
+                    <div class="workflow-count" id="workflow-implementation-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="activity-section">
+            <h2>Recent Activity</h2>
+            <div class="activity-feed" id="activityFeed">
+                <div class="activity-item create">
+                    <div class="activity-icon">➕</div>
+                    <div class="activity-content">
+                        <div class="activity-title">New requirement created</div>
+                        <div class="activity-meta">REQ-2024-047: User Authentication System</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item update">
+                    <div class="activity-icon">✏️</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Requirement updated</div>
+                        <div class="activity-meta">REQ-2024-046: Payment Processing</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item create">
+                    <div class="activity-icon">✅</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Requirement approved</div>
+                        <div class="activity-meta">REQ-2024-045: Dashboard Analytics</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Score -->
+        <div class="health-section">
+            <h2>Project Health</h2>
+            <div class="health-score-circle">
+                <svg width="200" height="200">
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
+                    <circle id="healthCircle" cx="100" cy="100" r="90" fill="none" stroke="#2ecc71" stroke-width="20"
+                            stroke-dasharray="565" stroke-dashoffset="141" transform="rotate(-90 100 100)"
+                            stroke-linecap="round"/>
+                </svg>
+                <div class="health-score-value">
+                    <div class="health-score-number" id="healthScoreNumber">87</div>
+                    <div class="health-score-label">Health Score</div>
+                </div>
+            </div>
+
+            <div class="health-indicators">
+                <div class="health-indicator good">
+                    <div class="health-indicator-label">Requirements Coverage</div>
+                    <div class="health-indicator-value">92%</div>
+                </div>
+                <div class="health-indicator good">
+                    <div class="health-indicator-label">Traceability</div>
+                    <div class="health-indicator-value">88%</div>
+                </div>
+                <div class="health-indicator warning">
+                    <div class="health-indicator-label">Pending Reviews</div>
+                    <div class="health-indicator-value">7</div>
+                </div>
+                <div class="health-indicator critical">
+                    <div class="health-indicator-label">Blockers</div>
+                    <div class="health-indicator-value">2</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        // State
+        let allRequirements = [];
+        let allBRDs = [];
+        let allPRDs = [];
+        let allDesigns = [];
+        let allConflicts = [];
+        let activeUsers = 0;
+        let refreshInterval = null;
+        let activityLog = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = 'user-' + Math.random().toString(36).substr(2, 9);
+            const username = 'Demo User';
+
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, username);
+
+                // Listen for real-time updates
+                ws.on('requirement:created', handleRequirementCreated);
+                ws.on('requirement:updated', handleRequirementUpdated);
+                ws.on('requirement:deleted', () => loadDashboardData());
+                ws.on('presence:user-joined', handleUserJoined);
+                ws.on('presence:user-left', handleUserLeft);
+                ws.on('presence:list', handlePresenceList);
+                ws.on('conflict:created', () => loadConflicts());
+            }
+
+            // Load initial data
+            await loadDashboardData();
+
+            // Refresh every 30 seconds
+            refreshInterval = setInterval(loadDashboardData, 30000);
+        });
+
+        async function loadDashboardData() {
+            if (typeof api === 'undefined') {
+                console.log('[Module 1] API not loaded yet, skipping data load');
+                return;
+            }
+
+            try {
+                // Load all data in parallel
+                await Promise.all([
+                    loadRequirements(),
+                    loadBRDs(),
+                    loadPRDs(),
+                    loadDesigns(),
+                    loadConflicts()
+                ]);
+
+                updateDashboard();
+                console.log('[Module 1] Dashboard data loaded');
+            } catch (err) {
+                console.error('[Module 1] Failed to load data:', err);
+            }
+        }
+
+        async function loadRequirements() {
+            try {
+                const result = await api.get('/requirements', {
+                    limit: 100,
+                    sortBy: 'updated_at',
+                    sortOrder: 'DESC'
+                });
+                allRequirements = result.data || [];
+            } catch (err) {
+                console.error('[Module 1] Failed to load requirements:', err);
+                allRequirements = [];
+            }
+        }
+
+        async function loadBRDs() {
+            try {
+                const result = await api.get('/brds', { limit: 100 });
+                allBRDs = result.data || [];
+            } catch (err) {
+                console.error('[Module 1] Failed to load BRDs:', err);
+                allBRDs = [];
+            }
+        }
+
+        async function loadPRDs() {
+            try {
+                const result = await api.get('/prds', { limit: 100 });
+                allPRDs = result.data || [];
+            } catch (err) {
+                console.error('[Module 1] Failed to load PRDs:', err);
+                allPRDs = [];
+            }
+        }
+
+        async function loadDesigns() {
+            try {
+                const result = await api.get('/designs', { limit: 100 });
+                allDesigns = result.data || [];
+            } catch (err) {
+                console.error('[Module 1] Failed to load designs:', err);
+                allDesigns = [];
+            }
+        }
+
+        async function loadConflicts() {
+            try {
+                const result = await api.get('/conflicts');
+                allConflicts = (result.data || []).filter(c => c.status !== 'resolved');
+            } catch (err) {
+                console.error('[Module 1] Failed to load conflicts:', err);
+                allConflicts = [];
+            }
+        }
+
+        function updateDashboard() {
+            const total = allRequirements.length;
+            const brdCount = allBRDs.length;
+            const prdCount = allPRDs.length;
+            const designCount = allDesigns.length;
+            const approved = allRequirements.filter(r => r.status === 'approved').length;
+            const conflicts = allConflicts.length;
+            const completionRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+            const healthScore = calculateHealthScore();
+
+            // Update metrics
+            document.getElementById('totalRequirements').textContent = total;
+            document.getElementById('brdCount').textContent = brdCount;
+            document.getElementById('prdCount').textContent = prdCount;
+            document.getElementById('designCount').textContent = designCount;
+            document.getElementById('approvedRequirements').textContent = approved;
+            document.getElementById('conflictsCount').textContent = conflicts;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            document.getElementById('healthScore').textContent = healthScore;
+            document.getElementById('healthScoreNumber').textContent = healthScore;
+
+            // Update trend indicators
+            updateTrendIndicators(conflicts);
+
+            // Update health circle
+            updateHealthCircle(healthScore);
+
+            // Update workflow visualization
+            updateWorkflowVisualization();
+
+            // Update activity feed
+            updateActivityFeed();
+        }
+
+        function updateTrendIndicators(conflicts) {
+            document.getElementById('conflictsTrend').textContent =
+                conflicts > 0 ? `${conflicts} conflicts active` : 'All clear';
+
+            document.getElementById('conflictsTrend').parentElement.querySelector('.metric-trend')
+                .className = 'metric-trend ' + (conflicts > 0 ? 'down' : '');
+        }
+
+        function updateHealthCircle(healthScore) {
+            const circumference = 2 * Math.PI * 90;
+            const offset = circumference - (healthScore / 100) * circumference;
+            const circle = document.getElementById('healthCircle');
+
+            circle.setAttribute('stroke-dashoffset', offset);
+
+            // Change color based on health
+            if (healthScore >= 80) {
+                circle.setAttribute('stroke', '#2ecc71');
+            } else if (healthScore >= 60) {
+                circle.setAttribute('stroke', '#f1c40f');
+            } else {
+                circle.setAttribute('stroke', '#e74c3c');
+            }
+        }
+
+        function updateWorkflowVisualization() {
+            // Count items at each stage
+            const brdCount = allBRDs.length;
+            const prdCount = allPRDs.length;
+            const designCount = allDesigns.length;
+            const alignmentCount = allConflicts.length;
+            const implementationCount = allRequirements.filter(r => r.status === 'approved').length;
+
+            // Update counts
+            document.getElementById('workflow-brd-count').textContent = brdCount;
+            document.getElementById('workflow-prd-count').textContent = prdCount;
+            document.getElementById('workflow-design-count').textContent = designCount;
+            document.getElementById('workflow-alignment-count').textContent = alignmentCount;
+            document.getElementById('workflow-implementation-count').textContent = implementationCount;
+
+            // Update workflow step states
+            updateWorkflowStep('workflow-brd', brdCount);
+            updateWorkflowStep('workflow-prd', prdCount);
+            updateWorkflowStep('workflow-design', designCount);
+            updateWorkflowStep('workflow-alignment', alignmentCount);
+            updateWorkflowStep('workflow-implementation', implementationCount);
+        }
+
+        function updateWorkflowStep(stepId, count) {
+            const step = document.getElementById(stepId);
+            step.classList.remove('complete', 'active', 'bottleneck');
+
+            if (count > 10) {
+                step.classList.add('bottleneck');
+            } else if (count > 0) {
+                step.classList.add('active');
+            } else if (stepId === 'workflow-implementation') {
+                // Implementation is complete if we have approved items
+                if (count > 0) {
+                    step.classList.add('complete');
+                }
+            }
+        }
+
+        function calculateHealthScore() {
+            const total = allRequirements.length;
+            if (total === 0) return 85; // Default healthy state
+
+            const approved = allRequirements.filter(r => r.status === 'approved').length;
+            const conflicts = allConflicts.length;
+
+            const approvalRate = (approved / total) * 100;
+            const conflictPenalty = Math.min(conflicts * 5, 30); // Max 30 point penalty
+
+            const score = Math.max(0, Math.min(100, Math.round(approvalRate * 0.7 + 30 - conflictPenalty)));
+
+            return score;
+        }
+
+        function updateActivityFeed() {
+            const feed = document.getElementById('activityFeed');
+
+            // Combine all recent items
+            const recentItems = [
+                ...allRequirements.slice(0, 5).map(r => ({
+                    type: 'requirement',
+                    status: r.status,
+                    title: r.title,
+                    id: r.id,
+                    timestamp: new Date(r.updated_at)
+                })),
+                ...allBRDs.slice(0, 3).map(b => ({
+                    type: 'brd',
+                    status: b.status,
+                    title: b.title,
+                    id: b.id,
+                    timestamp: new Date(b.updated_at || b.created_at)
+                })),
+                ...allPRDs.slice(0, 3).map(p => ({
+                    type: 'prd',
+                    status: p.status,
+                    title: p.title,
+                    id: p.id,
+                    timestamp: new Date(p.updated_at || p.created_at)
+                }))
+            ];
+
+            // Sort by timestamp and take top 20
+            const sortedItems = recentItems
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 20);
+
+            const activities = sortedItems.map(item => {
+                const timeAgo = getTimeAgo(item.timestamp);
+                const icon = getActivityIcon(item);
+                const action = getActivityAction(item);
+                const cssClass = getActivityClass(item);
+
+                return `
+                    <div class="activity-item ${cssClass}">
+                        <div class="activity-icon">${icon}</div>
+                        <div class="activity-content">
+                            <div class="activity-title">${action}</div>
+                            <div class="activity-meta">${item.id}: ${item.title}</div>
+                            <div class="activity-time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (activities) {
+                feed.innerHTML = activities;
+            } else {
+                feed.innerHTML = '<p style="text-align: center; opacity: 0.6;">No recent activity</p>';
+            }
+        }
+
+        function getActivityIcon(item) {
+            if (item.status === 'approved') return '✅';
+            if (item.type === 'brd') return '📝';
+            if (item.type === 'prd') return '📄';
+            if (item.type === 'requirement') return '✏️';
+            return '📋';
+        }
+
+        function getActivityAction(item) {
+            if (item.status === 'approved') return `${item.type.toUpperCase()} approved`;
+            return `${item.type.toUpperCase()} updated`;
+        }
+
+        function getActivityClass(item) {
+            if (item.status === 'approved') return 'create';
+            return 'update';
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+            return Math.floor(diff / 86400) + ' days ago';
+        }
+
+        // WebSocket event handlers
+        function handleRequirementCreated(data) {
+            console.log('[Module 1] Requirement created:', data);
+            addToActivityLog('Requirement created', data);
+            loadDashboardData();
+        }
+
+        function handleRequirementUpdated(data) {
+            console.log('[Module 1] Requirement updated:', data);
+            addToActivityLog('Requirement updated', data);
+            loadDashboardData();
+        }
+
+        function handleUserJoined(data) {
+            console.log('[Module 1] User joined:', data.user.username);
+            activeUsers++;
+            updateActiveUsersCount();
+        }
+
+        function handleUserLeft(data) {
+            console.log('[Module 1] User left:', data.user.username);
+            activeUsers = Math.max(0, activeUsers - 1);
+            updateActiveUsersCount();
+        }
+
+        function handlePresenceList(data) {
+            activeUsers = data.users ? data.users.length : 0;
+            updateActiveUsersCount();
+        }
+
+        function updateActiveUsersCount() {
+            const badge = document.getElementById('activeUsersCount');
+            badge.textContent = activeUsers === 1 ? '1 user online' : `${activeUsers} users online`;
+        }
+
+        function addToActivityLog(action, data) {
+            activityLog.unshift({
+                action,
+                data,
+                timestamp: new Date()
+            });
+
+            // Keep only last 50 entries
+            if (activityLog.length > 50) {
+                activityLog = activityLog.slice(0, 50);
+            }
+        }
+
+        // Navigation functions
+        function navigateToModule(moduleNumber) {
+            const moduleMap = {
+                2: '/module-2-brd.html',
+                3: '/module-3-prd.html',
+                4: '/module-4-design.html',
+                5: '/module-5-change-impact.html',
+                6: '/module-6-implementation.html'
+            };
+
+            const url = moduleMap[moduleNumber];
+            if (url) {
+                window.location.href = url;
+            }
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                metrics: {
+                    totalRequirements: allRequirements.length,
+                    brdCount: allBRDs.length,
+                    prdCount: allPRDs.length,
+                    designCount: allDesigns.length,
+                    approvedCount: allRequirements.filter(r => r.status === 'approved').length,
+                    conflictsCount: allConflicts.length,
+                    healthScore: calculateHealthScore()
+                },
+                requirements: allRequirements,
+                brds: allBRDs,
+                prds: allPRDs,
+                designs: allDesigns,
+                conflicts: allConflicts
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conductor-report-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            console.log('[Module 1] Report exported');
+        }
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        });
+    </script>
+
+    <!-- State Synchronization -->
+    <script src="/demo/module-state-sync.js"></script>
+    <script>
+        // Initialize state sync for Module 1
+        if (typeof ConductorModuleState !== 'undefined') {
+            ConductorModuleState.init(1);
+            console.log('[Module 1] State synchronization initialized');
+        }
+    </script>
+</body>
+</html>

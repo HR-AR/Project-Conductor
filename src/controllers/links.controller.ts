@@ -108,12 +108,12 @@ class LinksController {
              ? req.query['linkType'] as LinkType[]
              : [req.query['linkType'] as LinkType])
           : undefined,
-        sourceId: req.query['sourceId'] as string,
-        targetId: req.query['targetId'] as string,
+        sourceId: req.query['sourceId'] as string | undefined,
+        targetId: req.query['targetId'] as string | undefined,
         isSuspect: req.query['isSuspect'] !== undefined
           ? req.query['isSuspect'] === 'true'
           : undefined,
-        createdBy: req.query['createdBy'] as string,
+        createdBy: req.query['createdBy'] as string | undefined,
         search: req.query['search'] as string
       };
 

@@ -42,7 +42,7 @@ export class ReviewController {
 
       try {
         const review = await this.reviewService.createReview(
-          requirementId as string,
+          requirementId as string | undefined,
           data.reviewerId,
           assignedBy,
           data.comments
@@ -88,7 +88,7 @@ export class ReviewController {
 
       try {
         const review = await this.reviewService.submitReview(
-          reviewId as string,
+          reviewId as string | undefined,
           reviewerId,
           data
         );
@@ -123,16 +123,16 @@ export class ReviewController {
 
       // Parse filter parameters
       const filters: ReviewFilters = {
-        reviewerId: req.query['reviewerId'] as string,
+        reviewerId: req.query['reviewerId'] as string | undefined,
         status: req.query['status'] ? this.parseArrayParam(req.query['status']) as any : undefined,
         decision: req.query['decision'] ? this.parseArrayParam(req.query['decision']) as any : undefined,
-        createdFrom: req.query['createdFrom'] as string,
-        createdTo: req.query['createdTo'] as string,
+        createdFrom: req.query['createdFrom'] as string | undefined,
+        createdTo: req.query['createdTo'] as string | undefined,
       };
 
       try {
         const reviews = await this.reviewService.getReviewsByRequirement(
-          requirementId as string,
+          requirementId as string | undefined,
           filters
         );
 
@@ -231,15 +231,15 @@ export class ReviewController {
       const { id: requirementId, status: newStatus } = req.params;
 
       const canTransition = await this.reviewService.canTransitionStatus(
-        requirementId as string,
+        requirementId as string | undefined,
         newStatus as string
       );
 
       res.json({
         success: true,
         data: {
-          requirementId: requirementId as string,
-          newStatus: newStatus as string,
+          requirementId: requirementId as string | undefined,
+          newStatus: newStatus as string | undefined,
           canTransition,
         },
         message: canTransition

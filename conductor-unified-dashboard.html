@@ -523,6 +523,202 @@
             color: #7f8c8d;
         }
 
+        /* Live Collaboration Feed */
+        .collaboration-feed {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 400px;
+            max-height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feed-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feed-minimize {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .feed-minimize:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .feed-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            max-height: 400px;
+        }
+
+        .feed-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            animation: slideIn 0.3s ease-out;
+            transition: all 0.2s ease;
+        }
+
+        .feed-item:hover {
+            background: #e8eaed;
+            transform: translateX(-3px);
+        }
+
+        .feed-item.new {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .feed-item.sales {
+            border-left-color: #3498db;
+        }
+
+        .feed-item.engineering {
+            border-left-color: #2ecc71;
+        }
+
+        .feed-item.marketing {
+            border-left-color: #9b59b6;
+        }
+
+        .feed-item.product {
+            border-left-color: #e67e22;
+        }
+
+        .feed-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feed-avatar.sales {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .feed-avatar.engineering {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .feed-avatar.marketing {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .feed-avatar.product {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .feed-details {
+            flex: 1;
+        }
+
+        .feed-user {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .feed-team {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-action {
+            font-size: 0.9rem;
+            color: #34495e;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-timestamp {
+            font-size: 0.75rem;
+            color: #95a5a6;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .collaboration-feed.minimized {
+            width: 60px;
+            max-height: 60px;
+        }
+
+        .collaboration-feed.minimized .feed-header {
+            border-radius: 12px;
+        }
+
+        .collaboration-feed.minimized .feed-content,
+        .collaboration-feed.minimized .feed-title {
+            display: none;
+        }
+
+        .feed-pulse {
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
         /* Breadcrumb */
         .breadcrumb {
             background: white;
@@ -920,6 +1116,18 @@
             .retry-button, .back-button {
                 width: 100%;
             }
+
+            .collaboration-feed {
+                width: calc(100% - 2rem);
+                right: 1rem;
+                bottom: 6rem;
+            }
+
+            .collaboration-feed.minimized {
+                width: 60px;
+                right: 1rem;
+                bottom: 1rem;
+            }
         }
 
         @media (max-width: 414px) {
@@ -1071,30 +1279,34 @@
 
             <div class="nav-tabs">
                 <a class="nav-tab" data-module="0" onclick="navigateToModule(0)">
-                    <span>0️⃣</span>
-                    <span>Learn</span>
+                    <span>🎓</span>
+                    <span>Onboarding</span>
                 </a>
-                <a class="nav-tab active" data-module="1" onclick="navigateToModule(1)">
-                    <span>1️⃣</span>
+                <a class="nav-tab" data-module="1" onclick="navigateToModule(1)">
+                    <span>📖</span>
                     <span>Present</span>
                 </a>
                 <a class="nav-tab" data-module="2" onclick="navigateToModule(2)">
-                    <span>2️⃣</span>
-                    <span>Problem</span>
+                    <span>💡</span>
+                    <span>BRD</span>
                 </a>
                 <a class="nav-tab" data-module="3" onclick="navigateToModule(3)">
-                    <span>3️⃣</span>
-                    <span>Align</span>
-                    <span class="nav-badge warning">3</span>
+                    <span>📋</span>
+                    <span>PRD</span>
                 </a>
                 <a class="nav-tab" data-module="4" onclick="navigateToModule(4)">
-                    <span>4️⃣</span>
-                    <span>Build</span>
-                    <span class="nav-badge success">2</span>
+                    <span>🔧</span>
+                    <span>Engineering Design</span>
                 </a>
                 <a class="nav-tab" data-module="5" onclick="navigateToModule(5)">
-                    <span>5️⃣</span>
-                    <span>Impact</span>
+                    <span>✅</span>
+                    <span>Alignment</span>
+                    <span class="nav-badge warning">3</span>
+                </a>
+                <a class="nav-tab" data-module="6" onclick="navigateToModule(6)">
+                    <span>🔨</span>
+                    <span>Implementation</span>
+                    <span class="nav-badge success">2</span>
                 </a>
             </div>
 
@@ -1231,16 +1443,16 @@
                 <div class="card">
                     <h2 class="card-title">Quick Start</h2>
                     <div class="quick-start">
-                        <button class="quick-start-btn" onclick="navigateToModule(3)">
-                            <span>Continue to Alignment</span>
+                        <button class="quick-start-btn" onclick="navigateToModule(2)">
+                            <span>Create BRD</span>
                             <span>→</span>
                         </button>
-                        <button class="quick-start-btn secondary" onclick="navigateToModule(4)">
-                            <span>View Implementation Progress</span>
+                        <button class="quick-start-btn secondary" onclick="navigateToModule(3)">
+                            <span>Create PRD</span>
                             <span>→</span>
                         </button>
                         <button class="quick-start-btn secondary" onclick="navigateToModule(5)">
-                            <span>Analyze Change Impact</span>
+                            <span>View Alignment</span>
                             <span>→</span>
                         </button>
                     </div>
@@ -1253,21 +1465,21 @@
                 <div class="card">
                     <h2 class="card-title">Action Items</h2>
                     <div class="action-items">
-                        <div class="action-item critical" onclick="navigateToModule(3)">
+                        <div class="action-item critical" onclick="navigateToModule(5)">
                             <span>🔴</span>
                             <div>
                                 <div style="font-weight: 600;">3 requirements need alignment</div>
                                 <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">High priority</div>
                             </div>
                         </div>
-                        <div class="action-item warning">
+                        <div class="action-item warning" onclick="navigateToModule(2)">
                             <span>🟡</span>
                             <div>
                                 <div style="font-weight: 600;">1 stakeholder hasn't responded</div>
                                 <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Follow up needed</div>
                             </div>
                         </div>
-                        <div class="action-item success" onclick="navigateToModule(4)">
+                        <div class="action-item success" onclick="navigateToModule(6)">
                             <span>🟢</span>
                             <div>
                                 <div style="font-weight: 600;">2 tests passing, ready to deploy</div>
@@ -1413,11 +1625,11 @@
     <!-- Notification Dropdown -->
     <div class="notification-dropdown" id="notificationDropdown">
         <div class="notification-header">Notifications</div>
-        <div class="notification-item" onclick="navigateToModule(3)">
+        <div class="notification-item" onclick="navigateToModule(5)">
             <div class="notification-text">Sarah marked REQ-007 as Align But</div>
             <div class="notification-time">1 hour ago</div>
         </div>
-        <div class="notification-item" onclick="navigateToModule(4)">
+        <div class="notification-item" onclick="navigateToModule(6)">
             <div class="notification-text">Implementation phase 3 complete ✅</div>
             <div class="notification-time">3 hours ago</div>
         </div>
@@ -1547,6 +1759,20 @@
     <!-- Help Button -->
     <button class="help-button" onclick="openHelp()">?</button>
 
+    <!-- Live Collaboration Feed -->
+    <div class="collaboration-feed" id="collaborationFeed">
+        <div class="feed-header">
+            <div class="feed-title">
+                <div class="feed-pulse"></div>
+                <span>Live Collaboration</span>
+            </div>
+            <button class="feed-minimize" onclick="toggleCollaborationFeed()">−</button>
+        </div>
+        <div class="feed-content" id="feedContent">
+            <!-- Feed items will be added dynamically -->
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
@@ -1560,12 +1786,13 @@
         // Module Configuration
         const CACHE_VERSION = 'v' + Date.now(); // Cache busting
         const MODULES = [
-            { id: 0, name: 'Learn', file: '/demo/module-0-onboarding.html?v=' + CACHE_VERSION },
-            { id: 1, name: 'Present', file: '/demo/PROJECT_CONDUCTOR_DEMO.html?v=' + CACHE_VERSION },
-            { id: 2, name: 'Problem Input', file: '/demo/module-2-business-input.html?v=' + CACHE_VERSION },
-            { id: 3, name: 'PRD Alignment', file: '/demo/module-3-prd-alignment.html?v=' + CACHE_VERSION },
-            { id: 4, name: 'Implementation', file: '/demo/module-4-implementation.html?v=' + CACHE_VERSION },
-            { id: 5, name: 'Change Impact', file: '/demo/module-5-change-impact.html?v=' + CACHE_VERSION }
+            { id: 0, name: 'Onboarding', file: '/demo/module-0-onboarding.html?v=' + CACHE_VERSION },
+            { id: 1, name: 'Present', file: '/demo/module-1-present.html?v=' + CACHE_VERSION },
+            { id: 2, name: 'BRD', file: '/demo/module-2-brd.html?v=' + CACHE_VERSION },
+            { id: 3, name: 'PRD', file: '/demo/module-3-prd.html?v=' + CACHE_VERSION },
+            { id: 4, name: 'Engineering Design', file: '/demo/module-4-engineering-design.html?v=' + CACHE_VERSION },
+            { id: 5, name: 'Alignment', file: '/demo/module-5-alignment.html?v=' + CACHE_VERSION },
+            { id: 6, name: 'Implementation', file: '/demo/module-6-implementation.html?v=' + CACHE_VERSION }
         ];
 
         // Module Cache Management
@@ -2275,12 +2502,301 @@
             version: '2.0.0 - Optimized with Caching'
         };
 
+        // Collaboration Feed Management
+        const CollaborationFeed = {
+            events: [],
+            maxEvents: 10,
+            minimized: false,
+            socket: null, // WebSocket connection
+
+            teams: {
+                sales: { name: 'Sales Team', users: ['Sarah Chen', 'Mark Davis', 'Lisa Wang'] },
+                engineering: { name: 'Engineering Team', users: ['Alex Kumar', 'Jordan Lee', 'Taylor Swift'] },
+                marketing: { name: 'Marketing Team', users: ['Emily Brown', 'Chris Martin', 'Diana Prince'] },
+                product: { name: 'Product Team', users: ['John Chen', 'Maya Patel', 'Sam Wilson'] },
+                business: { name: 'Business Team', users: ['Michael Scott', 'Dwight Schrute', 'Pam Beesly'] }
+            },
+
+            actions: [
+                { team: 'sales', action: 'approved requirement', requirement: 'One-Click Checkout' },
+                { team: 'engineering', action: 'added technical concern to', requirement: 'Payment Gateway Integration' },
+                { team: 'marketing', action: 'updated acceptance criteria for', requirement: 'Trust Badge Display' },
+                { team: 'product', action: 'changed priority to "critical" for', requirement: 'Mobile Checkout Flow' },
+                { team: 'sales', action: 'marked as "Aligned" for', requirement: 'Shipping Calculator' },
+                { team: 'engineering', action: 'started implementation of', requirement: 'API Integration' },
+                { team: 'marketing', action: 'added stakeholder feedback to', requirement: 'Security Indicators' },
+                { team: 'product', action: 'created traceability link for', requirement: 'Analytics Tracking' },
+                { team: 'sales', action: 'requested changes on', requirement: 'Checkout UX' },
+                { team: 'engineering', action: 'completed code review for', requirement: 'Payment Processing' }
+            ],
+
+            addEvent(team, user, action, requirement) {
+                const event = {
+                    id: Date.now(),
+                    team: team,
+                    user: user,
+                    action: action,
+                    requirement: requirement,
+                    timestamp: new Date(),
+                    isNew: true
+                };
+
+                this.events.unshift(event);
+                if (this.events.length > this.maxEvents) {
+                    this.events.pop();
+                }
+
+                this.renderEvent(event);
+
+                // Remove "new" flag after animation
+                setTimeout(() => {
+                    event.isNew = false;
+                    const element = document.getElementById(`feed-${event.id}`);
+                    if (element) {
+                        element.classList.remove('new');
+                    }
+                }, 3000);
+            },
+
+            renderEvent(event) {
+                const feedContent = document.getElementById('feedContent');
+                const initials = event.user.split(' ').map(n => n[0]).join('');
+
+                const eventEl = document.createElement('div');
+                eventEl.id = `feed-${event.id}`;
+                eventEl.className = `feed-item ${event.team} ${event.isNew ? 'new' : ''}`;
+                eventEl.innerHTML = `
+                    <div class="feed-avatar ${event.team}">${initials}</div>
+                    <div class="feed-details">
+                        <div class="feed-user">${event.user}</div>
+                        <div class="feed-team">${this.teams[event.team].name}</div>
+                        <div class="feed-action">${event.action} <strong>${event.requirement}</strong></div>
+                        <div class="feed-timestamp">${this.formatTime(event.timestamp)}</div>
+                    </div>
+                `;
+
+                feedContent.insertBefore(eventEl, feedContent.firstChild);
+
+                // Remove oldest if exceeding max
+                const items = feedContent.querySelectorAll('.feed-item');
+                if (items.length > this.maxEvents) {
+                    items[items.length - 1].remove();
+                }
+            },
+
+            formatTime(date) {
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000); // seconds
+
+                if (diff < 60) return 'Just now';
+                if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+                return `${Math.floor(diff / 86400)}d ago`;
+            },
+
+            simulateRandomEvent() {
+                const randomAction = this.actions[Math.floor(Math.random() * this.actions.length)];
+                const team = randomAction.team;
+                const users = this.teams[team].users;
+                const randomUser = users[Math.floor(Math.random() * users.length)];
+
+                this.addEvent(team, randomUser, randomAction.action, randomAction.requirement);
+            },
+
+            startSimulation() {
+                // Add initial events with staggered timestamps
+                const initialEvents = [
+                    { team: 'sales', user: 'Sarah Chen', action: 'approved requirement', requirement: 'One-Click Checkout', delay: 300000 },
+                    { team: 'engineering', user: 'Alex Kumar', action: 'started implementation of', requirement: 'Payment Gateway API', delay: 120000 },
+                    { team: 'product', user: 'John Chen', action: 'updated acceptance criteria for', requirement: 'Mobile Checkout Flow', delay: 60000 }
+                ];
+
+                initialEvents.forEach((event, index) => {
+                    const timestamp = new Date(Date.now() - event.delay);
+                    const evt = {
+                        id: Date.now() - index,
+                        team: event.team,
+                        user: event.user,
+                        action: event.action,
+                        requirement: event.requirement,
+                        timestamp: timestamp,
+                        isNew: false
+                    };
+                    this.events.push(evt);
+                    this.renderEvent(evt);
+                });
+
+                // Initialize WebSocket connection for real-time events
+                this.initializeWebSocket();
+
+                // Simulate new events every 8-15 seconds
+                setInterval(() => {
+                    this.simulateRandomEvent();
+                }, Math.random() * 7000 + 8000);
+            },
+
+            initializeWebSocket() {
+                // Check if socket.io is available
+                if (typeof io === 'undefined') {
+                    console.log('Socket.io not available, using simulation mode only');
+                    return;
+                }
+
+                try {
+                    // Connect to WebSocket server
+                    this.socket = io();
+
+                    // BRD Events
+                    this.socket.on('brd:created', (data) => {
+                        this.addEvent('business', data.createdBy, 'created BRD', data.title);
+                    });
+
+                    this.socket.on('brd:approved', (data) => {
+                        this.addEvent('business', data.stakeholderName, 'approved BRD', data.brdId);
+                    });
+
+                    this.socket.on('brd:rejected', (data) => {
+                        this.addEvent('business', data.stakeholderName, 'rejected BRD', data.brdId);
+                    });
+
+                    this.socket.on('brd:fully_approved', (data) => {
+                        this.addEvent('business', 'Team', 'fully approved BRD', data.title);
+                    });
+
+                    // PRD Events
+                    this.socket.on('prd:created', (data) => {
+                        this.addEvent('product', data.createdBy, 'created PRD', data.title);
+                    });
+
+                    this.socket.on('prd:generated', (data) => {
+                        this.addEvent('product', data.generatedBy, 'generated PRD from BRD', data.title);
+                    });
+
+                    this.socket.on('prd:aligned', (data) => {
+                        this.addEvent('product', data.alignedBy, 'aligned feature', data.featureName);
+                    });
+
+                    this.socket.on('prd:locked', (data) => {
+                        this.addEvent('product', data.lockedBy, 'locked PRD', data.reason);
+                    });
+
+                    this.socket.on('prd:feature_added', (data) => {
+                        this.addEvent('product', data.addedBy, 'added feature', data.featureName);
+                    });
+
+                    this.socket.on('prd:story_added', (data) => {
+                        this.addEvent('product', data.addedBy, 'added user story', data.storyTitle);
+                    });
+
+                    // Engineering Design Events
+                    this.socket.on('design:submitted', (data) => {
+                        this.addEvent('engineering', data.createdBy, 'submitted design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:approved', (data) => {
+                        this.addEvent('engineering', data.approvedBy, 'approved design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:rejected', (data) => {
+                        this.addEvent('engineering', data.rejectedBy, 'rejected design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:conflict_detected', (data) => {
+                        this.addEvent('engineering', data.detectedBy, 'detected conflict in', data.team + ' design');
+                    });
+
+                    // Conflict Events
+                    this.socket.on('conflict:created', (data) => {
+                        this.addEvent('engineering', data.raisedByName, 'raised concern about', data.title);
+                    });
+
+                    this.socket.on('conflict:comment_added', (data) => {
+                        this.addEvent('engineering', data.addedByName, 'commented on conflict', data.conflictId);
+                    });
+
+                    this.socket.on('conflict:voted', (data) => {
+                        this.addEvent('engineering', data.votedByName, 'voted on conflict resolution', data.conflictId);
+                    });
+
+                    this.socket.on('conflict:resolved', (data) => {
+                        this.addEvent('product', 'Team', 'resolved conflict', data.resolution);
+                    });
+
+                    // Change Log Events
+                    this.socket.on('change:logged', (data) => {
+                        this.addEvent('product', 'System', 'logged change in', data.item + ' (' + data.phase + ')');
+                    });
+
+                    this.socket.on('change:approved', (data) => {
+                        this.addEvent('product', data.approvedBy, 'approved change', data.changeId);
+                    });
+
+                    this.socket.on('change:rejected', (data) => {
+                        this.addEvent('product', data.rejectedBy, 'rejected change', data.changeId);
+                    });
+
+                    // Presence Events
+                    this.socket.on('user:joined', (data) => {
+                        console.log('User joined:', data.username);
+                    });
+
+                    this.socket.on('user:left', (data) => {
+                        console.log('User left:', data.username);
+                    });
+
+                    // Connection events
+                    this.socket.on('connect', () => {
+                        console.log('Connected to WebSocket server');
+                        // Join default project room
+                        this.socket.emit('join:project', {
+                            projectId: 'default',
+                            userId: 'dashboard-user',
+                            username: 'Dashboard'
+                        });
+                    });
+
+                    this.socket.on('disconnect', () => {
+                        console.log('Disconnected from WebSocket server');
+                    });
+
+                    this.socket.on('connect_error', (error) => {
+                        console.log('WebSocket connection error:', error.message);
+                    });
+
+                    console.log('WebSocket event listeners initialized');
+                } catch (error) {
+                    console.error('Error initializing WebSocket:', error);
+                }
+            }
+        };
+
+        function toggleCollaborationFeed() {
+            const feed = document.getElementById('collaborationFeed');
+            CollaborationFeed.minimized = !CollaborationFeed.minimized;
+            feed.classList.toggle('minimized');
+
+            const button = feed.querySelector('.feed-minimize');
+            button.textContent = CollaborationFeed.minimized ? '+' : '−';
+        }
+
         console.log('%c🎯 Project Conductor Dashboard v2.0.0', 'color: #2a5298; font-size: 16px; font-weight: bold;');
         console.log('%cOptimizations enabled: Module pre-loading, caching, lazy loading', 'color: #2ecc71; font-size: 12px;');
         console.log('%cType ConductorDebug for developer tools', 'color: #7f8c8d; font-size: 11px;');
+
+        // Start collaboration feed simulation after DOM load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => CollaborationFeed.startSimulation(), 2000);
+            });
+        } else {
+            setTimeout(() => CollaborationFeed.startSimulation(), 2000);
+        }
     </script>
 
     <!-- Demo Walkthrough System -->
     <script src="demo-walkthrough.js"></script>
+
+    <!-- Demo Journey Controller -->
+    <script src="demo-journey.js"></script>
 </body>
 </html>
