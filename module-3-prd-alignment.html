@@ -1677,9 +1677,186 @@
             </button>
         `;
 
+        // Backend Integration
+        let backendRequirements = [];
+        let currentRequirementId = null;
+
+        // Override init to load from backend
+        const originalInit = init;
+        init = async function() {
+            const userId = 'user-' + Math.random().toString(36).substr(2, 9);
+            const username = 'Demo User';
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, username);
+            }
+
+            // Get requirement ID from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            currentRequirementId = urlParams.get('requirementId');
+
+            if (currentRequirementId) {
+                await loadRequirementForAlignment(currentRequirementId);
+            } else {
+                await loadAllRequirements();
+            }
+
+            // Listen for real-time alignment updates
+            if (typeof ws !== 'undefined') {
+                ws.on('alignment:updated', (data) => {
+                    console.log('[Module 3] Alignment updated:', data);
+                    updateAlignmentUI(data);
+                });
+            }
+
+            originalInit();
+        };
+
+        async function loadRequirementForAlignment(requirementId) {
+            if (typeof api === 'undefined') {
+                console.log('[Module 3] API not loaded yet, skipping backend load');
+                return;
+            }
+
+            try {
+                const requirement = await api.get(`/requirements/${requirementId}`);
+                console.log('[Module 3] Loaded requirement:', requirement);
+
+                // Load all requirements that could be PRD items
+                const result = await api.get('/requirements', {
+                    limit: 50,
+                    sortBy: 'created_at',
+                    sortOrder: 'DESC'
+                });
+
+                backendRequirements = result.data;
+
+                // Transform for display
+                requirements = backendRequirements.slice(0, 5).map((req, idx) => ({
+                    id: req.id,
+                    title: req.title,
+                    description: req.description,
+                    priority: req.priority || 'medium',
+                    acceptanceCriteria: req.metadata?.acceptanceCriteria || [],
+                    dependencies: [],
+                    stakeholders: mockStakeholders.map(s => ({
+                        name: s.name,
+                        role: s.role,
+                        status: req.metadata?.alignment || 'pending'
+                    }))
+                }));
+
+                showToast('Requirements loaded from backend', 'success');
+            } catch (err) {
+                console.error('[Module 3] Failed to load:', err);
+                showToast('Failed to load requirements', 'error');
+            }
+        }
+
+        async function loadAllRequirements() {
+            if (typeof api === 'undefined') {
+                console.log('[Module 3] API not loaded yet, using mock data');
+                return;
+            }
+
+            try {
+                const result = await api.get('/requirements', {
+                    limit: 100,
+                    sortBy: 'updated_at',
+                    sortOrder: 'DESC'
+                });
+
+                backendRequirements = result.data;
+                requirements = backendRequirements.slice(0, 5).map((req, idx) => ({
+                    id: req.id,
+                    title: req.title,
+                    description: req.description,
+                    priority: req.priority || 'medium',
+                    acceptanceCriteria: req.metadata?.acceptanceCriteria || [],
+                    dependencies: [],
+                    stakeholders: mockStakeholders.map(s => ({
+                        name: s.name,
+                        role: s.role,
+                        status: req.metadata?.alignment || 'pending'
+                    }))
+                }));
+            } catch (err) {
+                console.error('[Module 3] Failed to load requirements:', err);
+            }
+        }
+
+        // Override setAlignment to save to backend
+        const originalSetAlignment = setAlignment;
+        setAlignment = async function(reqId, stakeholderIndex, newStatus) {
+            originalSetAlignment(reqId, stakeholderIndex, newStatus);
+
+            // Save alignment to backend
+            try {
+                const req = requirements.find(r => r.id === reqId);
+                await api.put(`/requirements/${reqId}`, {
+                    metadata: {
+                        ...(backendRequirements.find(r => r.id === reqId)?.metadata || {}),
+                        alignment: newStatus,
+                        alignedAt: new Date().toISOString(),
+                        alignedBy: 'Demo User'
+                    }
+                });
+
+                // Broadcast via WebSocket
+                if (typeof ws !== 'undefined') {
+                    ws.emit('alignment:updated', {
+                        requirementId: reqId,
+                        alignment: newStatus,
+                        userId: ws.userId,
+                        username: ws.username
+                    });
+                }
+
+                showToast(`Set to ${newStatus}`, 'success');
+            } catch (err) {
+                console.error('[Module 3] Failed to save alignment:', err);
+                showToast('Failed to save alignment', 'error');
+            }
+        };
+
+        function updateAlignmentUI(data) {
+            const req = requirements.find(r => r.id === data.requirementId);
+            if (req && req.stakeholders) {
+                req.stakeholders.forEach(s => {
+                    s.status = data.alignment;
+                });
+                if (currentRequirement && currentRequirement.id === data.requirementId) {
+                    renderRequirementDetail();
+                }
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            console.log(`[Module 3] ${type.toUpperCase()}: ${message}`);
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         // Initialize app
         init();
     </script>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
 
     <!-- State Synchronization -->
     <script src="/demo/module-state-sync.js"></script>

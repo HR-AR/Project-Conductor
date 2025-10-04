@@ -1161,31 +1161,188 @@
             alert('PRD Preview Modal - This would show a formatted PRD document with all entered information');
         }
 
-        function continueToModule3() {
-            saveDraft(true);
+        // Backend Integration
+        let autoSaveTimer = null;
+        let currentDraftId = null;
 
-            // Validate required fields
-            const problem = document.getElementById('problemDescription').value;
-            const emailInputs = document.querySelectorAll('#emailInputs input[type="email"]');
-            const hasValidEmail = Array.from(emailInputs).some(input =>
-                input.value.trim() && input.value.includes('@')
-            );
+        // Initialize WebSocket
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = 'user-' + Math.random().toString(36).substr(2, 9);
+            const username = 'Demo User';
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, username);
+            }
 
-            if (!problem.trim()) {
-                alert('Please describe the business problem before continuing.');
+            // Load draft from URL parameter if exists
+            const urlParams = new URLSearchParams(window.location.search);
+            const draftId = urlParams.get('draftId');
+            if (draftId) {
+                loadDraft(draftId);
+            }
+
+            // Setup auto-save every 3 seconds
+            const problemField = document.getElementById('problemDescription');
+            if (problemField) {
+                problemField.addEventListener('input', () => {
+                    clearTimeout(autoSaveTimer);
+                    autoSaveTimer = setTimeout(autoSaveDraft, 3000);
+                });
+            }
+        });
+
+        async function loadDraft(requirementId) {
+            try {
+                const requirement = await api.get(`/requirements/${requirementId}`);
+                currentDraftId = requirement.id;
+
+                // Populate form from metadata
+                const meta = requirement.metadata || {};
+                document.getElementById('problemDescription').value = requirement.description || '';
+
+                showToast('Draft loaded successfully', 'success');
+                updatePreview();
+            } catch (err) {
+                console.error('[Module 2] Failed to load draft:', err);
+                showToast('Failed to load draft', 'error');
+            }
+        }
+
+        async function autoSaveDraft() {
+            const formData = gatherFormData();
+            if (!formData.title && !formData.description) return;
+
+            try {
+                if (currentDraftId) {
+                    await api.put(`/requirements/${currentDraftId}`, {
+                        title: formData.title,
+                        description: formData.description,
+                        metadata: {
+                            stakeholders: Array.from(selectedStakeholders).join(','),
+                            criteria: formData.criteria,
+                            isDraft: true,
+                            moduleSource: 'business-input'
+                        }
+                    });
+                } else {
+                    const result = await api.post('/requirements', {
+                        title: formData.title || 'Untitled Business Problem',
+                        description: formData.description,
+                        priority: 'medium',
+                        status: 'draft',
+                        metadata: {
+                            stakeholders: Array.from(selectedStakeholders).join(','),
+                            criteria: formData.criteria,
+                            isDraft: true,
+                            moduleSource: 'business-input'
+                        }
+                    });
+                    currentDraftId = result.id;
+                }
+                console.log('[Module 2] Auto-saved draft:', currentDraftId);
+
+                // Update autosave indicator
+                const autosave = document.querySelector('.autosave span');
+                if (autosave) autosave.textContent = 'Auto-saved just now';
+            } catch (err) {
+                console.error('[Module 2] Auto-save failed:', err);
+            }
+        }
+
+        function gatherFormData() {
+            const problem = document.getElementById('problemDescription')?.value || '';
+            const criteria = Array.from(document.querySelectorAll('.criterion')).map(c => {
+                const inputs = c.querySelectorAll('input');
+                return {
+                    metric: inputs[0]?.value || '',
+                    current: inputs[1]?.value || '',
+                    target: inputs[2]?.value || '',
+                    timeframe: inputs[3]?.value || ''
+                };
+            });
+
+            return {
+                title: problem.substring(0, 100) || 'Business Problem',
+                description: problem,
+                criteria: criteria
+            };
+        }
+
+        async function continueToModule3() {
+            const formData = gatherFormData();
+
+            if (!formData.description.trim()) {
+                showToast('Please describe the business problem before continuing', 'error');
                 return;
             }
 
-            if (!hasValidEmail) {
-                alert('Please invite at least one stakeholder before continuing.');
-                return;
+            try {
+                let requirementId = currentDraftId;
+
+                if (currentDraftId) {
+                    await api.put(`/requirements/${currentDraftId}`, {
+                        title: formData.title,
+                        description: formData.description,
+                        status: 'submitted',
+                        metadata: {
+                            stakeholders: Array.from(selectedStakeholders).join(','),
+                            criteria: formData.criteria,
+                            isDraft: false,
+                            moduleSource: 'business-input',
+                            submittedAt: new Date().toISOString()
+                        }
+                    });
+                } else {
+                    const result = await api.post('/requirements', {
+                        title: formData.title,
+                        description: formData.description,
+                        priority: 'medium',
+                        status: 'submitted',
+                        metadata: {
+                            stakeholders: Array.from(selectedStakeholders).join(','),
+                            criteria: formData.criteria,
+                            isDraft: false,
+                            moduleSource: 'business-input',
+                            submittedAt: new Date().toISOString()
+                        }
+                    });
+                    requirementId = result.id;
+                }
+
+                showToast('Problem submitted successfully!', 'success');
+
+                // Navigate to Module 3
+                setTimeout(() => {
+                    window.parent.postMessage({
+                        type: 'NAVIGATE_TO_MODULE',
+                        moduleNumber: 3,
+                        params: { requirementId }
+                    }, '*');
+                }, 1000);
+
+            } catch (err) {
+                console.error('[Module 2] Submit failed:', err);
+                showToast('Failed to submit problem', 'error');
             }
+        }
 
-            // Send invitations
-            alert('Invitations sent! Redirecting to Module 3: Stakeholder Collaboration...');
-
-            // In production, this would navigate to module-3-stakeholder-collaboration.html
-            // window.location.href = 'module-3-stakeholder-collaboration.html';
+        function showToast(message, type = 'info') {
+            console.log(`[Module 2] ${type.toUpperCase()}: ${message}`);
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // Initialize auto-save timer display
@@ -1211,6 +1368,11 @@
             }
         });
     </script>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
 
     <!-- State Synchronization -->
     <script src="/demo/module-state-sync.js"></script>

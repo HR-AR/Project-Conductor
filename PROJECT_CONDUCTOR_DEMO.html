@@ -832,5 +832,117 @@ Auto-advancing when tests pass...
             });
         }, 1000);
     </script>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        // Backend Integration for Module 1
+        let allRequirements = [];
+        let refreshInterval = null;
+
+        // Initialize WebSocket and load live data
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = 'user-' + Math.random().toString(36).substr(2, 9);
+            const username = 'Demo User';
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, username);
+
+                // Listen for real-time updates
+                ws.on('requirement:created', handleRequirementCreated);
+                ws.on('requirement:updated', handleRequirementUpdated);
+                ws.on('requirement:deleted', handleRequirementDeleted);
+            }
+
+            // Load initial data
+            await loadLiveMetrics();
+
+            // Refresh every 30 seconds
+            refreshInterval = setInterval(loadLiveMetrics, 30000);
+        });
+
+        async function loadLiveMetrics() {
+            if (typeof api === 'undefined') {
+                console.log('[Module 1] API not loaded yet, skipping metrics load');
+                return;
+            }
+
+            try {
+                const result = await api.get('/requirements', {
+                    limit: 100,
+                    sortBy: 'updated_at',
+                    sortOrder: 'DESC'
+                });
+
+                allRequirements = result.data;
+                updateMetricsDashboard(allRequirements);
+                console.log('[Module 1] Loaded', allRequirements.length, 'requirements');
+            } catch (err) {
+                console.error('[Module 1] Failed to load metrics:', err);
+            }
+        }
+
+        function updateMetricsDashboard(requirements) {
+            const stats = {
+                total: requirements.length,
+                draft: requirements.filter(r => r.status === 'draft').length,
+                submitted: requirements.filter(r => r.status === 'submitted').length,
+                approved: requirements.filter(r => r.status === 'approved').length,
+                critical: requirements.filter(r => r.priority === 'critical').length,
+                high: requirements.filter(r => r.priority === 'high').length,
+                medium: requirements.filter(r => r.priority === 'medium').length,
+                low: requirements.filter(r => r.priority === 'low').length
+            };
+
+            // Update stats cards if they exist
+            const statsEl = document.querySelector('.demo-stats');
+            if (statsEl) {
+                statsEl.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px;">
+                        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #0284c7;">${stats.total}</div>
+                            <div style="color: #64748b; margin-top: 4px;">Total Requirements</div>
+                        </div>
+                        <div style="background: #f0fdf4; padding: 16px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${stats.approved}</div>
+                            <div style="color: #64748b; margin-top: 4px;">Approved</div>
+                        </div>
+                        <div style="background: #fef3c7; padding: 16px; border-radius: 8px;">
+                            <div style="font-size: 32px; font-weight: bold; color: #ca8a04;">${stats.critical + stats.high}</div>
+                            <div style="color: #64748b; margin-top: 4px;">High Priority</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            console.log('[Module 1] Updated metrics:', stats);
+        }
+
+        function handleRequirementCreated(data) {
+            console.log('[Module 1] New requirement created:', data);
+            loadLiveMetrics();
+        }
+
+        function handleRequirementUpdated(data) {
+            console.log('[Module 1] Requirement updated:', data);
+            const req = allRequirements.find(r => r.id === data.requirementId);
+            if (req) {
+                Object.assign(req, data.updates);
+                updateMetricsDashboard(allRequirements);
+            }
+        }
+
+        function handleRequirementDeleted(data) {
+            console.log('[Module 1] Requirement deleted:', data);
+            allRequirements = allRequirements.filter(r => r.id !== data.requirementId);
+            updateMetricsDashboard(allRequirements);
+        }
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        });
+    </script>
 </body>
 </html>
