@@ -621,8 +621,15 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>Business Requirements Document (BRD)</h1>
-            <p>Define business problems, objectives, and success criteria</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <h1>Business Requirements Document (BRD)</h1>
+                    <p>Define business problems, objectives, and success criteria</p>
+                </div>
+                <a href="/module-1.5-ai-generator.html" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(240, 147, 251, 0.6)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(240, 147, 251, 0.4)';">
+                    ✨ Generate with AI
+                </a>
+            </div>
             <div class="header-actions">
                 <div class="status-badge" id="statusBadge">Draft</div>
                 <div class="autosave">
@@ -1521,10 +1528,81 @@
 
             setupAutoSave();
 
-            // Initialize with one of each by default
-            addCriterion();
-            addStakeholder();
+            // Load demo data automatically
+            loadDemoData();
         });
+
+        // Load Demo Data
+        function loadDemoData() {
+            // Load product template as default demo
+            const template = templates.product;
+
+            // Fill Overview tab
+            document.getElementById('problemStatement').value = template.problemStatement;
+            document.getElementById('objectives').value = template.objectives;
+            document.getElementById('constraints').value = template.constraints;
+
+            // Fill Business Impact tab
+            document.getElementById('revenueImpact').value = template.revenueImpact;
+            document.getElementById('costImpact').value = template.costImpact;
+            impactTypes.revenue = 'increase';
+            impactTypes.cost = 'savings';
+
+            // Add Success Criteria with demo data
+            const demoCriteria = [
+                { description: 'Achieve 95% user satisfaction score in post-launch survey', metric: 'User satisfaction', target: '95%' },
+                { description: 'Reduce customer support tickets by 30% within 3 months', metric: 'Support tickets', target: '30% reduction' },
+                { description: 'Increase monthly active users (MAU) by 40%', metric: 'MAU growth', target: '40% increase' },
+                { description: 'Launch all 3 new features within 6-month timeline', metric: 'Feature completion', target: '100%' }
+            ];
+
+            demoCriteria.forEach(criterion => {
+                addCriterion();
+                const lastCriterion = document.querySelector('.criterion-item:last-child');
+                lastCriterion.querySelector('textarea').value = criterion.description;
+                lastCriterion.querySelectorAll('input')[0].value = criterion.metric;
+                lastCriterion.querySelectorAll('input')[1].value = criterion.target;
+            });
+
+            // Add Stakeholders with demo data
+            const demoStakeholders = [
+                { name: 'Sarah Chen', email: 'sarah.chen@company.com', role: 'sponsor' },
+                { name: 'Michael Rodriguez', email: 'michael.r@company.com', role: 'approver' },
+                { name: 'Emily Watson', email: 'emily.watson@company.com', role: 'approver' },
+                { name: 'David Kim', email: 'david.kim@company.com', role: 'contributor' }
+            ];
+
+            demoStakeholders.forEach(stakeholder => {
+                addStakeholder();
+                const lastStakeholder = document.querySelector('.stakeholder-item:last-child');
+                lastStakeholder.querySelectorAll('input')[0].value = stakeholder.name;
+                lastStakeholder.querySelectorAll('input')[1].value = stakeholder.email;
+                const roleSelect = lastStakeholder.querySelector('select');
+                roleSelect.value = stakeholder.role;
+                // Trigger change event to update validation
+                roleSelect.dispatchEvent(new Event('change'));
+            });
+
+            // Fill Timeline & Budget tab
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+            const endDate = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate() + 7);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            document.getElementById('budget').value = '500000';
+
+            // Trigger validations
+            validateProblemStatement();
+            validateCriteria();
+            validateStakeholders();
+            validateTimeline();
+            validateBudget();
+            calculateROI();
+            updatePreview();
+
+            console.log('[BRD Demo] Pre-filled with demo data');
+        }
     </script>
 
     <!-- State Synchronization -->

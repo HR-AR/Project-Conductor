@@ -55,6 +55,9 @@ import engineeringDesignRoutes from './routes/engineering-design.routes';
 import conflictRoutes from './routes/conflict.routes';
 import changeLogRoutes from './routes/change-log.routes';
 
+// Import AI generation routes
+import generationRoutes from './routes/generation.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -232,6 +235,9 @@ app.use('/api/v1/prd', prdRoutes);
 app.use('/api/v1/engineering-design', engineeringDesignRoutes);
 app.use('/api/v1/conflicts', conflictRoutes);
 app.use('/api/v1/change-log', changeLogRoutes);
+
+// AI generation routes
+app.use('/api/v1/generation', generationRoutes);
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {
