@@ -615,9 +615,77 @@
             font-size: 13px;
             color: #6b7280;
         }
+
+        /* Global Navigation */
+        .global-nav {
+            background: #1f2937;
+            color: white;
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .global-nav-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .global-nav-brand:hover {
+            color: #a5b4fc;
+        }
+
+        .global-nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .global-nav-link {
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .global-nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .global-nav-link.active {
+            background: #667eea;
+            color: white;
+            border-color: #818cf8;
+        }
     </style>
 </head>
 <body>
+    <!-- Global Navigation -->
+    <div class="global-nav">
+        <a href="/demo" class="global-nav-brand">
+            🎯 Project Conductor
+        </a>
+        <div class="global-nav-links">
+            <a href="/demo" class="global-nav-link">📊 Dashboard</a>
+            <a href="/demo/module-0-onboarding.html" class="global-nav-link">🚀 Onboarding</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="global-nav-link">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="global-nav-link active">📋 BRD</a>
+            <a href="/demo/module-3-prd.html" class="global-nav-link">📝 PRD</a>
+            <a href="/demo/module-4-implementation.html" class="global-nav-link">⚙️ Implementation</a>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -626,7 +694,7 @@
                     <h1>Business Requirements Document (BRD)</h1>
                     <p>Define business problems, objectives, and success criteria</p>
                 </div>
-                <a href="/module-1.5-ai-generator.html" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(240, 147, 251, 0.6)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(240, 147, 251, 0.4)';">
+                <a href="/demo/module-1.5-ai-generator.html" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(240, 147, 251, 0.6)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(240, 147, 251, 0.4)';">
                     ✨ Generate with AI
                 </a>
             </div>
@@ -965,8 +1033,10 @@
             // Update tab buttons
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                }
             });
-            event.target.classList.add('active');
 
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -1336,6 +1406,26 @@
                         showToast('Failed to save draft', 'error');
                     }
                 }
+            } else {
+                // Demo mode - local storage fallback
+                try {
+                    if (!currentDraftId) {
+                        currentDraftId = 'BRD-' + Date.now();
+                    }
+                    localStorage.setItem('brd_draft_' + currentDraftId, JSON.stringify(data));
+
+                    const now = new Date().toLocaleTimeString();
+                    document.getElementById('autosaveText').textContent = `Auto-saved at ${now}`;
+
+                    if (!isAutoSave) {
+                        showToast('Draft saved locally (demo mode)', 'success');
+                    }
+                } catch (err) {
+                    console.error('Local save failed:', err);
+                    if (!isAutoSave) {
+                        showToast('Failed to save draft locally', 'error');
+                    }
+                }
             }
         }
 
@@ -1348,17 +1438,19 @@
 
             await saveDraft();
 
+            // Update UI for submission
+            document.getElementById('statusBadge').textContent = 'Submitted';
+            showToast('BRD submitted for approval', 'success');
+
+            // Update approval workflow
+            const steps = document.querySelectorAll('.approval-step');
+            steps[0].classList.remove('active');
+            steps[0].classList.add('completed');
+            steps[1].classList.add('active');
+
             if (currentDraftId && typeof api !== 'undefined') {
                 try {
                     await api.put(`/requirements/${currentDraftId}`, { status: 'submitted' });
-                    document.getElementById('statusBadge').textContent = 'Submitted';
-                    showToast('BRD submitted for approval', 'success');
-
-                    // Update approval workflow
-                    const steps = document.querySelectorAll('.approval-step');
-                    steps[0].classList.remove('active');
-                    steps[0].classList.add('completed');
-                    steps[1].classList.add('active');
 
                     // Emit WebSocket event
                     if (typeof ws !== 'undefined' && ws.socket) {
@@ -1367,19 +1459,25 @@
                             userId: userId
                         });
                     }
-
-                    setTimeout(() => {
-                        window.parent.postMessage({
-                            type: 'NAVIGATE_TO_MODULE',
-                            moduleNumber: 3,
-                            params: { brdId: currentDraftId }
-                        }, '*');
-                    }, 1500);
                 } catch (err) {
                     console.error('Submit failed:', err);
-                    showToast('Failed to submit BRD', 'error');
                 }
             }
+
+            // Navigate to Module 3 (PRD) after submission
+            setTimeout(() => {
+                // Try postMessage first (if in iframe)
+                window.parent.postMessage({
+                    type: 'NAVIGATE_TO_MODULE',
+                    moduleNumber: 3,
+                    params: { brdId: currentDraftId }
+                }, '*');
+
+                // Also try direct navigation as fallback
+                setTimeout(() => {
+                    window.location.href = '/demo/module-3-prd.html?brdId=' + currentDraftId;
+                }, 500);
+            }, 1500);
         }
 
         // Template Management
@@ -1545,8 +1643,21 @@
             // Fill Business Impact tab
             document.getElementById('revenueImpact').value = template.revenueImpact;
             document.getElementById('costImpact').value = template.costImpact;
+            document.getElementById('customerImpact').value = '30'; // 30% improvement
+            document.getElementById('marketImpact').value = 'high'; // High impact
+
+            // Set impact types and trigger button states
             impactTypes.revenue = 'increase';
             impactTypes.cost = 'savings';
+
+            // Trigger button clicks to set visual state
+            setTimeout(() => {
+                const revenueButtons = document.querySelectorAll('.impact-item:nth-child(1) .impact-type button');
+                if (revenueButtons[0]) revenueButtons[0].classList.add('active');
+
+                const costButtons = document.querySelectorAll('.impact-item:nth-child(2) .impact-type button');
+                if (costButtons[0]) costButtons[0].classList.add('active');
+            }, 100);
 
             // Add Success Criteria with demo data
             const demoCriteria = [
@@ -1559,9 +1670,12 @@
             demoCriteria.forEach(criterion => {
                 addCriterion();
                 const lastCriterion = document.querySelector('.criterion-item:last-child');
-                lastCriterion.querySelector('textarea').value = criterion.description;
-                lastCriterion.querySelectorAll('input')[0].value = criterion.metric;
-                lastCriterion.querySelectorAll('input')[1].value = criterion.target;
+                const inputs = lastCriterion.querySelectorAll('input');
+                inputs[0].value = criterion.description; // First input is description
+                inputs[1].value = criterion.metric; // Second input is metric
+                // Set priority via select dropdown
+                const select = lastCriterion.querySelector('select');
+                if (select) select.value = 'high';
             });
 
             // Add Stakeholders with demo data

@@ -2,6 +2,7 @@
  * Simple Mock Service for Testing
  */
 
+import logger from '../utils/logger';
 import { generateUniqueId } from '../utils/id-generator';
 import { BaseLink, LinkFilters } from '../models/link.model';
 import {
@@ -32,6 +33,7 @@ import type { PRD } from '../models/prd.model';
 import type { EngineeringDesign } from '../models/engineering-design.model';
 import type { Conflict } from '../models/conflict.model';
 import type { ChangeLogEntry } from '../models/change-log.model';
+import type { Project, CreateProjectRequest, UpdateProjectRequest } from '../models/project.model';
 
 class SimpleMockService {
   private requirements: Map<string, Requirement> = new Map();
@@ -44,6 +46,7 @@ class SimpleMockService {
   private engineeringDesigns: Map<string, EngineeringDesign> = new Map();
   private conflicts: Map<string, Conflict> = new Map();
   private changeLog: Map<string, ChangeLogEntry> = new Map();
+  private projects: Map<string, Project> = new Map();
 
   async createRequirement(data: CreateRequirementRequest): Promise<Requirement> {
     const id = await generateUniqueId('REQ');
@@ -789,7 +792,7 @@ class SimpleMockService {
    * Initialize with sample demo data
    */
   async initializeDemoData(): Promise<void> {
-    console.log('[SimpleMockService] Initializing demo data...');
+    logger.info('[SimpleMockService] Initializing demo data...');
 
     // Demo Story: E-commerce Cart Abandonment Problem
     // This creates a realistic journey through all modules
@@ -1006,7 +1009,7 @@ class SimpleMockService {
       updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
     });
 
-    console.log(`[SimpleMockService] Created ${this.requirements.size} requirements and ${this.links.size} links`);
+    logger.info(`[SimpleMockService] Created ${this.requirements.size} requirements and ${this.links.size} links`);
 
     // ========================================
     // WORKFLOW DEMO DATA (BRD → PRD → Engineering → Conflict → Change Log)
@@ -1317,7 +1320,238 @@ class SimpleMockService {
     };
     this.changeLog.set(changeLogId, changeLogEntry);
 
-    console.log(`[SimpleMockService] Workflow demo data created: ${this.brds.size} BRDs, ${this.prds.size} PRDs, ${this.engineeringDesigns.size} designs, ${this.conflicts.size} conflicts, ${this.changeLog.size} change log entries`);
+    logger.info(`[SimpleMockService] Workflow demo data created: ${this.brds.size} BRDs, ${this.prds.size} PRDs, ${this.engineeringDesigns.size} designs, ${this.conflicts.size} conflicts, ${this.changeLog.size} change log entries`);
+
+    // ========================================
+    // PROJECT HISTORY DEMO DATA
+    // ========================================
+
+    // Project 1: E-commerce Cart Abandonment (linked to existing BRD/PRD)
+    const proj1Id = await generateUniqueId('PROJ');
+    const project1: Project = {
+      id: proj1Id,
+      title: 'E-commerce Cart Abandonment Crisis',
+      description: 'Reduce 68% cart abandonment rate on mobile checkout to recover $2M annual revenue',
+      scope: 'optimization',
+      status: 'implementation',
+      brdId: brdId,
+      prdId: prdId,
+      designIds: [frontendDesignId, backendDesignId],
+      conflictIds: [conflictId],
+      changeLogIds: [changeLogId],
+      businessImpact: '$2M annual revenue loss, 68% cart abandonment rate, negative customer experience',
+      budget: 500000,
+      timeline: {
+        startDate: new Date('2025-10-01'),
+        targetDate: new Date('2025-12-15'),
+      },
+      stakeholders: brd.stakeholders,
+      createdAt: new Date('2025-10-01'),
+      updatedAt: new Date('2025-10-08'),
+      createdBy: 'sarah.chen@company.com',
+      tags: ['revenue', 'mobile', 'checkout', 'ux', 'conversion'],
+    };
+    this.projects.set(proj1Id, project1);
+
+    // Project 2: Mobile Push Notifications (completed)
+    const proj2Id = await generateUniqueId('PROJ');
+    const project2: Project = {
+      id: proj2Id,
+      title: 'Mobile Push Notifications',
+      description: 'Implement real-time push notifications for iOS and Android apps to increase user engagement',
+      scope: 'feature',
+      status: 'completed',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Increase user engagement by 40%, reduce churn by 15%',
+      budget: 250000,
+      timeline: {
+        startDate: new Date('2025-07-01'),
+        targetDate: new Date('2025-09-30'),
+        actualCompletionDate: new Date('2025-09-28'),
+      },
+      stakeholders: [
+        { id: 'STK-101', name: 'Lisa Wang', email: 'lisa.wang@company.com', role: 'Product Manager', department: 'product', isOwner: true },
+        { id: 'STK-102', name: 'Tom Martinez', email: 'tom.martinez@company.com', role: 'Mobile Lead', department: 'engineering', isOwner: false },
+      ],
+      createdAt: new Date('2025-07-01'),
+      updatedAt: new Date('2025-09-28'),
+      completedAt: new Date('2025-09-28'),
+      createdBy: 'lisa.wang@company.com',
+      tags: ['mobile', 'notifications', 'engagement', 'retention'],
+    };
+    this.projects.set(proj2Id, project2);
+
+    // Project 3: Stripe Payment Integration (completed)
+    const proj3Id = await generateUniqueId('PROJ');
+    const project3: Project = {
+      id: proj3Id,
+      title: 'Stripe Payment Gateway Integration',
+      description: 'Replace legacy payment processor with Stripe for better conversion and lower fees',
+      scope: 'integration',
+      status: 'completed',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Save $500K annually in processing fees, improve checkout success rate by 25%',
+      budget: 150000,
+      timeline: {
+        startDate: new Date('2025-05-01'),
+        targetDate: new Date('2025-07-31'),
+        actualCompletionDate: new Date('2025-07-15'),
+      },
+      stakeholders: [
+        { id: 'STK-201', name: 'David Kim', email: 'david.kim@company.com', role: 'Engineering Manager', department: 'engineering', isOwner: true },
+        { id: 'STK-202', name: 'Rachel Green', email: 'rachel.green@company.com', role: 'Finance Director', department: 'business', isOwner: false },
+      ],
+      createdAt: new Date('2025-05-01'),
+      updatedAt: new Date('2025-07-15'),
+      completedAt: new Date('2025-07-15'),
+      createdBy: 'david.kim@company.com',
+      tags: ['payment', 'stripe', 'integration', 'revenue'],
+    };
+    this.projects.set(proj3Id, project3);
+
+    // Project 4: Database Performance Tuning (archived)
+    const proj4Id = await generateUniqueId('PROJ');
+    const project4: Project = {
+      id: proj4Id,
+      title: 'Database Performance Optimization',
+      description: 'Optimize slow database queries and add caching layer to improve API response times',
+      scope: 'optimization',
+      status: 'archived',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Reduce API response time from 2s to 200ms, improve user experience',
+      budget: 80000,
+      timeline: {
+        startDate: new Date('2025-03-01'),
+        targetDate: new Date('2025-04-30'),
+      },
+      stakeholders: [
+        { id: 'STK-301', name: 'Mike Johnson', email: 'mike.johnson@company.com', role: 'Backend Lead', department: 'engineering', isOwner: true },
+      ],
+      createdAt: new Date('2025-03-01'),
+      updatedAt: new Date('2025-04-15'),
+      createdBy: 'mike.johnson@company.com',
+      tags: ['performance', 'database', 'backend', 'caching'],
+    };
+    this.projects.set(proj4Id, project4);
+
+    // Project 5: Admin Dashboard v2 (design phase)
+    const proj5Id = await generateUniqueId('PROJ');
+    const project5: Project = {
+      id: proj5Id,
+      title: 'Admin Dashboard v2 Redesign',
+      description: 'Complete redesign of admin dashboard with modern UI, real-time analytics, and improved UX',
+      scope: 'feature',
+      status: 'design',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Improve admin productivity by 50%, reduce training time for new admins',
+      budget: 300000,
+      timeline: {
+        startDate: new Date('2025-11-01'),
+        targetDate: new Date('2026-02-28'),
+      },
+      stakeholders: [
+        { id: 'STK-401', name: 'Anna Schmidt', email: 'anna.schmidt@company.com', role: 'Product Designer', department: 'product', isOwner: true },
+        { id: 'STK-402', name: 'Chris Taylor', email: 'chris.taylor@company.com', role: 'Frontend Architect', department: 'engineering', isOwner: false },
+      ],
+      createdAt: new Date('2025-11-01'),
+      updatedAt: new Date('2025-11-05'),
+      createdBy: 'anna.schmidt@company.com',
+      tags: ['admin', 'dashboard', 'ui', 'analytics', 'redesign'],
+    };
+    this.projects.set(proj5Id, project5);
+
+    // Project 6: OAuth SSO Integration (PRD alignment)
+    const proj6Id = await generateUniqueId('PROJ');
+    const project6: Project = {
+      id: proj6Id,
+      title: 'OAuth SSO Integration',
+      description: 'Implement Single Sign-On with Google, Microsoft, and Okta for enterprise customers',
+      scope: 'integration',
+      status: 'prd_alignment',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Enable enterprise sales, reduce support tickets by 30%, improve security',
+      budget: 200000,
+      timeline: {
+        startDate: new Date('2025-11-15'),
+        targetDate: new Date('2026-01-31'),
+      },
+      stakeholders: [
+        { id: 'STK-501', name: 'James Wilson', email: 'james.wilson@company.com', role: 'Security Engineer', department: 'engineering', isOwner: true },
+        { id: 'STK-502', name: 'Patricia Lee', email: 'patricia.lee@company.com', role: 'Enterprise Sales', department: 'sales', isOwner: false },
+      ],
+      createdAt: new Date('2025-11-15'),
+      updatedAt: new Date('2025-11-18'),
+      createdBy: 'james.wilson@company.com',
+      tags: ['auth', 'sso', 'oauth', 'enterprise', 'security'],
+    };
+    this.projects.set(proj6Id, project6);
+
+    // Project 7: Code Refactoring Sprint (draft)
+    const proj7Id = await generateUniqueId('PROJ');
+    const project7: Project = {
+      id: proj7Id,
+      title: 'Technical Debt Reduction Sprint',
+      description: 'Refactor legacy codebase, update dependencies, improve test coverage from 40% to 80%',
+      scope: 'maintenance',
+      status: 'draft',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Reduce bugs by 50%, improve developer velocity by 30%, easier onboarding',
+      budget: 120000,
+      timeline: {
+        startDate: new Date('2026-01-01'),
+        targetDate: new Date('2026-03-31'),
+      },
+      stakeholders: [
+        { id: 'STK-601', name: 'Kevin Brown', email: 'kevin.brown@company.com', role: 'Tech Lead', department: 'engineering', isOwner: true },
+      ],
+      createdAt: new Date('2025-11-20'),
+      updatedAt: new Date('2025-11-20'),
+      createdBy: 'kevin.brown@company.com',
+      tags: ['refactoring', 'technical-debt', 'testing', 'quality'],
+    };
+    this.projects.set(proj7Id, project7);
+
+    // Project 8: AI Recommendation Engine (research)
+    const proj8Id = await generateUniqueId('PROJ');
+    const project8: Project = {
+      id: proj8Id,
+      title: 'AI-Powered Product Recommendations',
+      description: 'Research and prototype ML-based recommendation engine to increase cross-sell and upsell',
+      scope: 'research',
+      status: 'draft',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: 'Potential 20% increase in average order value, improve personalization',
+      budget: 180000,
+      timeline: {
+        startDate: new Date('2026-02-01'),
+        targetDate: new Date('2026-05-31'),
+      },
+      stakeholders: [
+        { id: 'STK-701', name: 'Dr. Susan Park', email: 'susan.park@company.com', role: 'ML Engineer', department: 'engineering', isOwner: true },
+        { id: 'STK-702', name: 'Robert Chen', email: 'robert.chen@company.com', role: 'Data Scientist', department: 'product', isOwner: false },
+      ],
+      createdAt: new Date('2025-11-25'),
+      updatedAt: new Date('2025-11-25'),
+      createdBy: 'susan.park@company.com',
+      tags: ['ai', 'ml', 'recommendations', 'research', 'personalization'],
+    };
+    this.projects.set(proj8Id, project8);
+
+    logger.info(`[SimpleMockService] Created ${this.projects.size} demo projects`);
   }
 
   // ========================================
@@ -1387,6 +1621,87 @@ class SimpleMockService {
   async getChangeLogById(id: string): Promise<ChangeLogEntry | null> {
     return this.changeLog.get(id) || null;
   }
+
+  // ========================================
+  // PROJECT MANAGEMENT METHODS
+  // ========================================
+
+  async createProject(data: CreateProjectRequest, createdBy: string): Promise<Project> {
+    const id = await generateUniqueId('PROJ');
+
+    const project: Project = {
+      id,
+      title: data.title,
+      description: data.description,
+      scope: data.scope,
+      status: 'draft',
+      designIds: [],
+      conflictIds: [],
+      changeLogIds: [],
+      businessImpact: data.businessImpact,
+      budget: data.budget,
+      timeline: {
+        startDate: new Date(data.timeline.startDate),
+        targetDate: new Date(data.timeline.targetDate),
+      },
+      stakeholders: data.stakeholders.map((s, i) => ({
+        id: `STK-${Date.now()}-${i}`,
+        ...s,
+      })),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy,
+      previousVersionId: data.previousVersionId,
+      tags: data.tags || [],
+    };
+
+    this.projects.set(id, project);
+    return project;
+  }
+
+  async getProjectById(id: string): Promise<Project | null> {
+    return this.projects.get(id) || null;
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return Array.from(this.projects.values());
+  }
+
+  async updateProject(id: string, data: UpdateProjectRequest): Promise<Project | null> {
+    const existing = this.projects.get(id);
+    if (!existing) return null;
+
+    const updated: Project = {
+      ...existing,
+      ...(data.title && { title: data.title }),
+      ...(data.description && { description: data.description }),
+      ...(data.scope && { scope: data.scope }),
+      ...(data.status && { status: data.status }),
+      ...(data.businessImpact && { businessImpact: data.businessImpact }),
+      ...(data.budget !== undefined && { budget: data.budget }),
+      ...(data.timeline && {
+        timeline: {
+          startDate: new Date(data.timeline.startDate),
+          targetDate: new Date(data.timeline.targetDate),
+          actualCompletionDate: existing.timeline.actualCompletionDate,
+        },
+      }),
+      ...(data.stakeholders && {
+        stakeholders: data.stakeholders.map((s, i) => ({
+          id: `STK-${Date.now()}-${i}`,
+          ...s,
+        })),
+      }),
+      ...(data.tags && { tags: data.tags }),
+      ...(data.brdId && { brdId: data.brdId }),
+      ...(data.prdId && { prdId: data.prdId }),
+      updatedAt: new Date(),
+      ...(data.status === 'completed' && !existing.completedAt && { completedAt: new Date() }),
+    };
+
+    this.projects.set(id, updated);
+    return updated;
+  }
 }
 
 // Create singleton and initialize with demo data immediately
@@ -1396,9 +1711,9 @@ const mockServiceInstance = new SimpleMockService();
 (async () => {
   try {
     await mockServiceInstance.initializeDemoData();
-    console.log('[SimpleMockService] Demo data initialization complete');
+    logger.info('[SimpleMockService] Demo data initialization complete');
   } catch (err) {
-    console.error('[SimpleMockService] Failed to initialize demo data:', err);
+    logger.error({ err }, '[SimpleMockService] Failed to initialize demo data');
   }
 })();
 

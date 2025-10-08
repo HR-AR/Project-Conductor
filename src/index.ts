@@ -58,6 +58,9 @@ import changeLogRoutes from './routes/change-log.routes';
 // Import AI generation routes
 import generationRoutes from './routes/generation.routes';
 
+// Import project history routes
+import projectHistoryRoutes from './routes/project-history.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -238,6 +241,9 @@ app.use('/api/v1/change-log', changeLogRoutes);
 
 // AI generation routes
 app.use('/api/v1/generation', generationRoutes);
+
+// Project history routes
+app.use('/api/v1/projects', projectHistoryRoutes);
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {

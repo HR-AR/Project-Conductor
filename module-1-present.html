@@ -474,9 +474,80 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
+
+        /* Global Navigation */
+        .global-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .global-nav-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .global-nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .global-nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .global-nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .global-nav-link.active {
+            color: white;
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        /* Adjust body to account for fixed nav */
+        body {
+            padding-top: 80px;
+        }
     </style>
 </head>
 <body>
+    <!-- Global Navigation -->
+    <div class="global-nav">
+        <a href="/demo" class="global-nav-brand">
+            🎯 Project Conductor
+        </a>
+        <div class="global-nav-links">
+            <a href="/demo" class="global-nav-link active">📊 Dashboard</a>
+            <a href="/demo/module-0-onboarding.html" class="global-nav-link">🚀 Onboarding</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="global-nav-link">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="global-nav-link">📋 BRD</a>
+            <a href="/demo/module-3-prd.html" class="global-nav-link">📝 PRD</a>
+            <a href="/demo/module-6-implementation.html" class="global-nav-link">⚙️ Implementation</a>
+            <a href="/demo/module-1.6-project-history.html" class="global-nav-link">📚 History</a>
+        </div>
+    </div>
+
     <div class="dashboard-container">
         <div class="header">
             <h1>Project Conductor Dashboard</h1>
@@ -486,11 +557,12 @@
         <!-- Quick Actions Bar -->
         <div class="quick-actions">
             <span class="quick-actions-label">Quick Actions:</span>
-            <a href="/module-1.5-ai-generator.html" class="quick-action-btn primary" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-color: #f093fb;">✨ AI Generator</a>
-            <a href="/module-2-brd.html" class="quick-action-btn primary">Create BRD</a>
-            <a href="/module-3-prd.html" class="quick-action-btn primary">Create PRD</a>
-            <a href="/module-4-design.html" class="quick-action-btn">Create Design</a>
-            <a href="/module-5-change-impact.html" class="quick-action-btn warning">View Conflicts</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="quick-action-btn primary" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-color: #f093fb;">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="quick-action-btn primary">Create BRD</a>
+            <a href="/demo/module-3-prd.html" class="quick-action-btn primary">Create PRD</a>
+            <a href="/demo/module-6-implementation.html" class="quick-action-btn">Implementation</a>
+            <a href="/demo/module-1.6-project-history.html" class="quick-action-btn">📚 Project History</a>
+            <a href="/demo/module-5-alignment.html" class="quick-action-btn warning">View Conflicts</a>
             <button class="quick-action-btn" onclick="exportReport()">Export Report</button>
             <div class="active-users-badge">
                 <span class="pulse-dot"></span>
@@ -556,7 +628,7 @@
                 <div class="metric-trend" id="healthTrend">Project Health</div>
             </div>
 
-            <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor: pointer;" onclick="window.location.href='/module-1.5-ai-generator.html'">
+            <div class="metric-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor: pointer;" onclick="window.location.href='/demo/module-1.5-ai-generator.html'">
                 <div class="metric-icon">✨</div>
                 <div class="metric-value">AI</div>
                 <div class="metric-label">Document Generator</div>
@@ -1031,11 +1103,11 @@
         // Navigation functions
         function navigateToModule(moduleNumber) {
             const moduleMap = {
-                2: '/module-2-brd.html',
-                3: '/module-3-prd.html',
-                4: '/module-4-design.html',
-                5: '/module-5-change-impact.html',
-                6: '/module-6-implementation.html'
+                2: '/demo/module-2-brd.html',
+                3: '/demo/module-3-prd.html',
+                4: '/demo/module-4-engineering-design.html',
+                5: '/demo/module-5-alignment.html',
+                6: '/demo/module-6-implementation.html'
             };
 
             const url = moduleMap[moduleNumber];

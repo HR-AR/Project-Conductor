@@ -8,7 +8,6 @@ import { PRDGeneratorService } from '../services/generation/prd-generator.servic
 import { getLLMFactory } from '../services/llm/llm-factory.service';
 import { ComplexityLevel, LLMProvider } from '../models/llm/llm.model';
 import { asyncHandler, BadRequestError } from '../middleware/error-handler';
-import logger from '../utils/logger';
 
 export class GenerationController {
   private brdGenerator: BRDGeneratorService;
@@ -26,7 +25,7 @@ export class GenerationController {
    */
   generateBRDFromIdea = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
-      const { idea, complexity, additionalContext } = req.body;
+      const { idea, complexity } = req.body;
       const createdBy = this.resolveUserId(req);
 
       if (!idea || idea.trim().length < 10) {

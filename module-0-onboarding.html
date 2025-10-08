@@ -16,6 +16,57 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #333;
             overflow-x: hidden;
+            padding-top: 80px;
+        }
+
+        /* Global Navigation */
+        .global-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .global-nav-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .global-nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .global-nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .global-nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .global-nav-link.active {
+            color: white;
+            background: rgba(102, 126, 234, 0.3);
         }
 
         .container {
@@ -1504,6 +1555,22 @@
     </style>
 </head>
 <body>
+    <!-- Global Navigation -->
+    <div class="global-nav">
+        <a href="/demo" class="global-nav-brand">
+            🎯 Project Conductor
+        </a>
+        <div class="global-nav-links">
+            <a href="/demo" class="global-nav-link">📊 Dashboard</a>
+            <a href="/demo/module-0-onboarding.html" class="global-nav-link active">🚀 Onboarding</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="global-nav-link">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="global-nav-link">📋 BRD</a>
+            <a href="/demo/module-3-prd.html" class="global-nav-link">📝 PRD</a>
+            <a href="/demo/module-6-implementation.html" class="global-nav-link">⚙️ Implementation</a>
+            <a href="/demo/module-1.6-project-history.html" class="global-nav-link">📚 History</a>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Hero Section -->
         <section class="hero">
