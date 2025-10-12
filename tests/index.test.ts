@@ -13,12 +13,12 @@ describe('Project Conductor API', () => {
     expect(response.body).toHaveProperty('timestamp');
   });
 
-  it('should return project info at root endpoint', async () => {
+  it('should serve dashboard HTML at root endpoint', async () => {
     const response = await request(app)
       .get('/')
       .expect(200);
 
-    expect(response.body).toHaveProperty('message', 'Project Conductor - Workflow Orchestration System');
-    expect(response.body).toHaveProperty('version', '1.0.0');
+    // Root endpoint now serves HTML dashboard
+    expect(response.type).toMatch(/html/);
   });
 });

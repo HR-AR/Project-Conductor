@@ -129,3 +129,17 @@ notes/*.md
 
 # Keep INITIAL.md private (contains work-in-progress ideas)
 INITIAL.md
+
+# Additional project-specific documentation (moved to docs/)
+docs/vc-feedback/
+VC_FEEDBACK_AND_IMPLEMENTATION_PLAN/
+
+# Agent reports and temporary documentation (archived in docs/)
+AGENT*_REPORT.md
+AGENT*_SUMMARY.md
+*_COMPLETION_REPORT.*
+*_DELIVERABLES.md
+
+# Temporary state and logs
+.conductor/
+server.log
