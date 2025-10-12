@@ -435,13 +435,26 @@ class EngineeringDesignService {
    * Map database row to EngineeringDesign
    */
   private mapRowToDesign(row: any): EngineeringDesign {
-    const estimates: Estimate[] = JSON.parse(row.estimates as string || '[]').map((e: any) => ({
+    const estimatesData = typeof row.estimates === 'string'
+      ? JSON.parse(row.estimates)
+      : (row.estimates || []);
+    const estimates: Estimate[] = estimatesData.map((e: any) => ({
       ...e,
       startDate: e.startDate ? new Date(e.startDate as string) : undefined,
       endDate: e.endDate ? new Date(e.endDate as string) : undefined,
     }));
-    const risks: Risk[] = JSON.parse(row.risks as string || '[]');
-    const conflicts: DesignConflict[] = JSON.parse(row.conflicts as string || '[]');
+
+    const risks: Risk[] = typeof row.risks === 'string'
+      ? JSON.parse(row.risks)
+      : (row.risks || []);
+
+    const conflicts: DesignConflict[] = typeof row.conflicts === 'string'
+      ? JSON.parse(row.conflicts)
+      : (row.conflicts || []);
+
+    const dependenciesData = typeof row.dependencies === 'string'
+      ? JSON.parse(row.dependencies)
+      : (row.dependencies || []);
 
     const design: EngineeringDesign = {
       id: row.id as string,
@@ -451,7 +464,7 @@ class EngineeringDesignService {
       architecture: row.architecture as string,
       estimates,
       risks,
-      dependencies: JSON.parse(row.dependencies as string || '[]'),
+      dependencies: dependenciesData,
       conflicts,
       status: row.status as 'draft' | 'under_review' | 'approved' | 'rejected',
       createdAt: new Date(row.created_at as string),

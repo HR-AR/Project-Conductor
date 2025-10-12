@@ -1386,6 +1386,20 @@
             }
         }
 
+        /* Module Transition Styles */
+        .module-frame {
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+
+        .module-frame.loaded {
+            opacity: 1;
+        }
+
+        .module-frame.visible {
+            opacity: 1;
+        }
+
         /* Loading State (Fallback) */
         .loading-overlay {
             position: fixed;
@@ -1432,42 +1446,6 @@
             0%, 100% { width: 0%; }
             50% { width: 70%; }
         }
-    
-        /* Preload Progress Indicator */
-        #preloadProgress {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 9999;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            animation: slideInUp 0.3s ease;
-        }
-
-        #preloadProgress.show {
-            display: block;
-            opacity: 1;
-        }
-
-        @keyframes slideInUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
     </style>
 </head>
 <body>
@@ -2124,9 +2102,6 @@
             <div class="loading-progress-bar" id="loadingProgressBar"></div>
         </div>
     </div>
-    <!-- Preload Progress Indicator -->
-    <div id="preloadProgress">Pre-loading modules: 0/7</div>
-
 
     <script>
         // ============================================================================
@@ -2573,46 +2548,7 @@
                 return Promise.resolve(iframe);
             }
 
-            // NEW: Check if module HTML is pre-cached and use srcdoc for instant loading
-            if (ModuleCache.isCached(moduleId)) {
-                console.log(`[AggressivePreload] Using cached HTML for module ${moduleId} - instant load!`);
-                const cachedHTML = ModuleCache.getCache(moduleId);
-
-                return new Promise((resolve, reject) => {
-                    ModuleCache.markLoading(moduleId);
-
-                    const loadTimeout = setTimeout(() => {
-                        console.error(`Module ${moduleId} srcdoc load timeout`);
-                        showModuleError(moduleId);
-                        ModuleCache.loading.delete(moduleId);
-                        reject(new Error(`Module ${moduleId} srcdoc load timeout`));
-                    }, 5000); // Shorter timeout for cached content
-
-                    // Use srcdoc for instant rendering
-                    iframe.srcdoc = cachedHTML;
-
-                    iframe.onload = () => {
-                        clearTimeout(loadTimeout);
-                        ModuleCache.markLoaded(moduleId);
-                        hideModuleError(moduleId);
-
-                        // Sync state via localStorage
-                        DashboardStateManager.setFullState(AppState);
-                        console.log(`[AggressivePreload] Module ${moduleId} loaded instantly from cache (<100ms expected)`);
-                        resolve(iframe);
-                    };
-
-                    iframe.onerror = () => {
-                        clearTimeout(loadTimeout);
-                        console.error(`Module ${moduleId} srcdoc failed, falling back to src`);
-                        // Fall back to src loading
-                        iframe.removeAttribute('srcdoc');
-                        iframe.src = module.file;
-                    };
-                });
-            }
-
-            // If not loaded and not cached, load it now (fallback to traditional loading)
+            // If not loaded, load it now
             return new Promise((resolve, reject) => {
                 ModuleCache.markLoading(moduleId);
 
@@ -2717,7 +2653,7 @@
             iframe.src = 'about:blank';
 
             // Show loading
-            showLoading(MODULES[moduleId].name, moduleId);
+            showLoading(MODULES[moduleId].name);
 
             // Attempt to reload
             setTimeout(() => {
@@ -2738,7 +2674,7 @@
             console.log('[Dashboard] Loading module:', module);
 
             // Show loading with module name
-            showLoading(module.name, moduleNumber);
+            showLoading(module.name);
 
             AppState.currentModule = moduleNumber;
 
@@ -2756,7 +2692,7 @@
 
             // Hide all other iframes and errors
             document.querySelectorAll('.module-frame').forEach(frame => {
-                frame.classList.remove('active', 'visible', 'loaded');
+                frame.classList.remove('active');
             });
             document.querySelectorAll('.module-error').forEach(error => {
                 error.classList.remove('active');
@@ -2771,7 +2707,7 @@
                     console.log(`[Dashboard] Adding active class to module ${moduleNumber}`);
                     console.log('[Dashboard] Iframe element:', iframe);
                     console.log('[Dashboard] Iframe src:', iframe.src);
-                    iframe.classList.add('active', 'loaded', 'visible');
+                    iframe.classList.add('active');
                     console.log('[Dashboard] Iframe classes:', iframe.className);
 
                     // Debug: Log iframe properties
@@ -2784,20 +2720,20 @@
                         opacity: window.getComputedStyle(iframe).opacity
                     });
 
-                    hideLoading(moduleNumber);
+                    hideLoading();
 
                     // Pre-load adjacent modules
                     preloadAdjacentModules(moduleNumber);
                 }, 100);
             }).catch((error) => {
                 console.error('Error loading module:', error);
-                hideLoading(moduleNumber);
+                hideLoading();
                 // Error UI will already be shown by loadModule
             });
 
             // Fallback: hide loading after 10 seconds
             setTimeout(() => {
-                hideLoading(moduleNumber);
+                hideLoading();
             }, 10000);
 
             saveState();
@@ -3081,11 +3017,19 @@
 
         // Sync state with all loaded iframes
         function syncStateWithIframes() {
-            const startTime = performance.now();
-            // NEW: Single localStorage update syncs to ALL iframes instantly
-            DashboardStateManager.setFullState(AppState);
-            const syncTime = performance.now() - startTime;
-            console.log(`[Performance] Synced state to ${ModuleCache.loaded.size} modules in ${syncTime.toFixed(2)}ms`);
+            ModuleCache.loaded.forEach(moduleId => {
+                const iframe = document.getElementById(`moduleFrame${moduleId}`);
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        iframe.contentWindow.postMessage({
+                            type: 'STATE_UPDATE',
+                            state: AppState
+                        }, '*');
+                    } catch (e) {
+                        console.log(`Could not sync state with module ${moduleId}:`, e);
+                    }
+                }
+            });
         }
 
         // Listen for messages from iframes
@@ -3120,16 +3064,18 @@
                 console.log('Resuming where you left off...');
             }
 
-            // AGGRESSIVE PRE-LOADING: Load ALL modules immediately in parallel
+            // Pre-load critical modules after page load
             setTimeout(() => {
-                console.log('[AggressivePreload] Triggering aggressive pre-load of ALL 7 modules...');
-                aggressivePreloadAllModules().then((stats) => {
-                    console.log(`[AggressivePreload] Pre-loading complete:`, stats);
-                    console.log(`[AggressivePreload] Module switching should now be instant (<100ms)`);
-                }).catch((error) => {
-                    console.error('[AggressivePreload] Pre-loading encountered errors:', error);
-                });
-            }, 500); // Start immediately after DOM is ready
+                console.log('Starting background pre-loading of critical modules...');
+                // Pre-load Module 1 (Present) - most commonly accessed
+                preloadModule(1);
+
+                // Pre-load Module 2 after a delay
+                setTimeout(() => preloadModule(2), 1000);
+
+                // Pre-load Module 3 after another delay
+                setTimeout(() => preloadModule(3), 2000);
+            }, 1000);
 
             // Add browser cache hints via link preload
             addCacheHints();

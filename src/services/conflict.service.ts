@@ -427,21 +427,24 @@ class ConflictService {
   }
 
   private mapRowToConflict(row: any): Conflict {
-    const discussion: DiscussionComment[] = JSON.parse(row.discussion as string || '[]').map((d: Record<string, unknown>) => ({
+    // PostgreSQL JSONB columns return as objects, not strings
+    const discussionData = typeof row.discussion === 'string' ? JSON.parse(row.discussion) : (row.discussion || []);
+    const discussion: DiscussionComment[] = discussionData.map((d: Record<string, unknown>) => ({
       ...d,
       timestamp: new Date(d.timestamp as string),
     }));
 
-    const options: ResolutionOption[] = JSON.parse(row.options as string || '[]').map((o: Record<string, unknown>) => ({
+    const optionsData = typeof row.options === 'string' ? JSON.parse(row.options) : (row.options || []);
+    const options: ResolutionOption[] = optionsData.map((o: Record<string, unknown>) => ({
       ...o,
-      votes: (o.votes as Record<string, unknown>[]).map(v => ({
+      votes: ((o.votes as Record<string, unknown>[]) || []).map(v => ({
         ...v,
         timestamp: new Date(v.timestamp as string),
       })),
     }));
 
     const resolution = row.resolution
-      ? JSON.parse(row.resolution as string)
+      ? (typeof row.resolution === 'string' ? JSON.parse(row.resolution) : row.resolution)
       : undefined;
 
     if (resolution) {
@@ -452,6 +455,14 @@ class ConflictService {
       }));
     }
 
+    const affectedDocuments = typeof row.affected_documents === 'string'
+      ? JSON.parse(row.affected_documents)
+      : (row.affected_documents || {});
+
+    const affectedItems = typeof row.affected_items === 'string'
+      ? JSON.parse(row.affected_items)
+      : (row.affected_items || []);
+
     const conflict: Conflict = {
       id: row.id as string,
       type: row.type as 'timeline' | 'budget' | 'scope' | 'technical',
@@ -460,8 +471,8 @@ class ConflictService {
       severity: row.severity as 'low' | 'medium' | 'high' | 'critical',
       raisedBy: row.raised_by as string,
       raisedByRole: row.raised_by_role as 'business' | 'product' | 'engineering' | 'tpm',
-      affectedDocuments: JSON.parse(row.affected_documents as string || '{}'),
-      affectedItems: JSON.parse(row.affected_items as string || '[]'),
+      affectedDocuments,
+      affectedItems,
       discussion,
       options,
       resolution,

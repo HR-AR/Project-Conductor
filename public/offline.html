@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .offline-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .offline-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #fee;
+            border-radius: 50px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: #e74c3c;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .retry-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        .cached-pages {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .cached-pages h3 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .cached-pages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .cached-page-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .cached-page-link:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .tips {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .tips h4 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips li {
+            padding: 0.5rem 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .tips li::before {
+            content: "✓";
+            color: #2ecc71;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .offline-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .offline-icon {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+
+        <h1>You're Offline</h1>
+
+        <p>
+            It looks like you've lost your internet connection.
+            Don't worry, some cached content may still be available.
+        </p>
+
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span>No Internet Connection</span>
+        </div>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            Try Again
+        </button>
+
+        <div class="cached-pages">
+            <h3>Available Cached Pages</h3>
+            <div class="cached-pages-list">
+                <a href="/conductor-unified-dashboard.html" class="cached-page-link">
+                    Dashboard
+                </a>
+                <a href="/module-1-present.html" class="cached-page-link">
+                    Module 1: Present
+                </a>
+                <a href="/module-2-brd.html" class="cached-page-link">
+                    Module 2: Propose (BRD)
+                </a>
+            </div>
+        </div>
+
+        <div class="tips">
+            <h4>Troubleshooting Tips:</h4>
+            <ul>
+                <li>Check your WiFi or mobile data connection</li>
+                <li>Try disabling airplane mode if it's on</li>
+                <li>Restart your router or modem</li>
+                <li>Contact your network administrator if on corporate network</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Auto-retry every 30 seconds
+        let retryCount = 0;
+        const maxRetries = 10;
+
+        function checkConnection() {
+            if (navigator.onLine) {
+                console.log('[Offline] Connection restored, reloading...');
+                window.location.reload();
+            } else {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    console.log('[Offline] Still offline, retry', retryCount, 'of', maxRetries);
+                    setTimeout(checkConnection, 30000); // Try again in 30 seconds
+                }
+            }
+        }
+
+        // Listen for online event
+        window.addEventListener('online', () => {
+            console.log('[Offline] Online event detected, reloading...');
+            window.location.reload();
+        });
+
+        // Start checking connection
+        setTimeout(checkConnection, 30000);
+
+        console.log('[Offline] Offline page loaded');
+    </script>
+</body>
+</html>

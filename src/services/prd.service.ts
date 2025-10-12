@@ -295,7 +295,9 @@ class PRDService {
       }
 
       const currentPrd = prdResult.rows[0];
-      const alignments: Alignment[] = JSON.parse(currentPrd.alignments || '[]');
+      // PostgreSQL JSONB columns return as objects, not strings - check type before parsing
+      const alignmentsData = typeof currentPrd.alignments === 'string' ? JSON.parse(currentPrd.alignments) : (currentPrd.alignments || []);
+      const alignments: Alignment[] = alignmentsData;
 
       // Add or update alignment
       const existingIndex = alignments.findIndex(a => a.stakeholderId === alignment.stakeholderId);
@@ -424,7 +426,11 @@ class PRDService {
     // Get stakeholders from source BRD
     const brdQuery = `SELECT stakeholders FROM brds WHERE id = $1`;
     const brdResult = await db.query(brdQuery, [prd.brdId]);
-    const stakeholders = brdResult.rows.length > 0 ? JSON.parse(brdResult.rows[0].stakeholders || '[]') : [];
+    // PostgreSQL JSONB columns return as objects, not strings - check type before parsing
+    const stakeholdersData = brdResult.rows.length > 0
+      ? (typeof brdResult.rows[0].stakeholders === 'string' ? JSON.parse(brdResult.rows[0].stakeholders) : (brdResult.rows[0].stakeholders || []))
+      : [];
+    const stakeholders = stakeholdersData;
 
     const aligned = alignments.filter(a => a.status === ALIGNMENT_STATUS.ALIGNED).length;
     const alignBut = alignments.filter(a => a.status === ALIGNMENT_STATUS.ALIGN_BUT).length;
@@ -549,12 +555,21 @@ class PRDService {
    * Map database row to PRD interface
    */
   private mapRowToPRD(row: any): PRD {
-    const features: Feature[] = JSON.parse(row['features'] as string || '[]');
-    const userStories: UserStory[] = JSON.parse(row['user_stories'] as string || '[]');
-    const alignments: Alignment[] = JSON.parse(row['alignments'] as string || '[]').map((a: Record<string, unknown>) => ({
+    // PostgreSQL JSONB columns return as objects, not strings - check type before parsing
+    const featuresData = typeof row['features'] === 'string' ? JSON.parse(row['features']) : (row['features'] || []);
+    const features: Feature[] = featuresData;
+
+    const userStoriesData = typeof row['user_stories'] === 'string' ? JSON.parse(row['user_stories']) : (row['user_stories'] || []);
+    const userStories: UserStory[] = userStoriesData;
+
+    const alignmentsData = typeof row['alignments'] === 'string' ? JSON.parse(row['alignments']) : (row['alignments'] || []);
+    const alignments: Alignment[] = alignmentsData.map((a: Record<string, unknown>) => ({
       ...a,
       timestamp: new Date(a['timestamp'] as string),
     }));
+
+    const technicalRequirementsData = typeof row['technical_requirements'] === 'string' ? JSON.parse(row['technical_requirements']) : (row['technical_requirements'] || []);
+    const dependenciesData = typeof row['dependencies'] === 'string' ? JSON.parse(row['dependencies']) : (row['dependencies'] || []);
 
     const prd: PRD = {
       id: row['id'] as string,
@@ -562,8 +577,8 @@ class PRDService {
       title: row['title'] as string,
       features,
       userStories,
-      technicalRequirements: JSON.parse(row['technical_requirements'] as string || '[]'),
-      dependencies: JSON.parse(row['dependencies'] as string || '[]'),
+      technicalRequirements: technicalRequirementsData,
+      dependencies: dependenciesData,
       status: row['status'] as 'draft' | 'under_review' | 'aligned' | 'locked',
       version: row['version'] as number,
       alignments,

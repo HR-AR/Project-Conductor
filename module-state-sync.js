@@ -104,13 +104,40 @@
 
     /**
      * Set up message listeners for dashboard communication
+     * NEW: Primary sync via localStorage events (faster), postMessage as fallback
      */
     function setupMessageListeners() {
+        // NEW: Listen for localStorage storage events (instant sync, <50ms)
+        window.addEventListener('storage', (event) => {
+            // Only process conductor state changes
+            if (!event.key || !event.key.startsWith('conductor_state_')) {
+                return;
+            }
+
+            const startTime = performance.now();
+
+            try {
+                const stateData = JSON.parse(event.newValue);
+                const { key, value, timestamp, version } = stateData;
+
+                // Handle full app state updates
+                if (key === 'appState') {
+                    handleStateUpdate(value, version);
+                    const syncTime = performance.now() - startTime;
+                    console.log(`[Module ${ModuleState.moduleId}] localStorage sync in ${syncTime.toFixed(2)}ms (version ${version})`);
+                }
+            } catch (error) {
+                console.error('[ModuleState] Error processing storage event:', error);
+            }
+        });
+
+        // FALLBACK: Keep postMessage for backwards compatibility
         window.addEventListener('message', (event) => {
             const { type, state, data } = event.data;
 
             switch (type) {
                 case 'STATE_UPDATE':
+                    console.log('[ModuleState] Using postMessage fallback');
                     handleStateUpdate(state);
                     break;
 
@@ -130,10 +157,16 @@
     }
 
     /**
-     * Handle state update from dashboard
+     * Handle state update from dashboard with version conflict resolution
      */
-    function handleStateUpdate(newState) {
+    function handleStateUpdate(newState, incomingVersion) {
         if (!newState) return;
+
+        // Version conflict resolution (newer timestamp wins)
+        if (incomingVersion && incomingVersion < ModuleState.version) {
+            console.log(`[Module ${ModuleState.moduleId}] Ignoring older state (incoming v${incomingVersion} < local v${ModuleState.version})`);
+            return;
+        }
 
         // Merge with local state
         const previousState = { ...ModuleState.localState };
@@ -142,7 +175,12 @@
             ...newState
         };
 
-        ModuleState.version++;
+        // Update version to incoming version or increment
+        if (incomingVersion) {
+            ModuleState.version = Math.max(ModuleState.version, incomingVersion);
+        } else {
+            ModuleState.version++;
+        }
         ModuleState.lastUpdate = Date.now();
         ModuleState.isDirty = true;
 
@@ -151,7 +189,8 @@
             detail: {
                 previousState,
                 newState: ModuleState.localState,
-                changes: getStateChanges(previousState, ModuleState.localState)
+                changes: getStateChanges(previousState, ModuleState.localState),
+                version: ModuleState.version
             }
         });
         window.dispatchEvent(event);

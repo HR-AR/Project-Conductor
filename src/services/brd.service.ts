@@ -260,7 +260,9 @@ class BRDService {
       }
 
       const currentBrd = brdResult.rows[0];
-      const approvals: Approval[] = JSON.parse(currentBrd.approvals || '[]');
+      // JSONB field: PostgreSQL returns object, not string
+      const approvalsData = typeof currentBrd.approvals === 'string' ? JSON.parse(currentBrd.approvals) : (currentBrd.approvals || []);
+      const approvals: Approval[] = approvalsData;
 
       // Add or update approval
       const existingIndex = approvals.findIndex(a => a.stakeholderId === approval.stakeholderId);
@@ -278,7 +280,9 @@ class BRDService {
       }
 
       // Check if all stakeholders have approved
-      const stakeholders: Stakeholder[] = JSON.parse(currentBrd.stakeholders);
+      // JSONB field: PostgreSQL returns object, not string
+      const stakeholdersData = typeof currentBrd.stakeholders === 'string' ? JSON.parse(currentBrd.stakeholders) : (currentBrd.stakeholders || []);
+      const stakeholders: Stakeholder[] = stakeholdersData;
       const allApproved = stakeholders.every(s =>
         approvals.some(a => a.stakeholderId === s.id && a.decision === APPROVAL_DECISION.APPROVED)
       );
@@ -480,8 +484,13 @@ class BRDService {
    * Map database row to BRD interface
    */
   private mapRowToBRD(row: any): BRD {
-    const stakeholders: Stakeholder[] = JSON.parse(row.stakeholders as string || '[]');
-    const approvals: Approval[] = JSON.parse(row.approvals as string || '[]').map((a: Record<string, unknown>) => ({
+    // JSONB fields: PostgreSQL returns objects, not strings
+    const stakeholdersData = typeof row.stakeholders === 'string' ? JSON.parse(row.stakeholders) : (row.stakeholders || []);
+    const approvalsData = typeof row.approvals === 'string' ? JSON.parse(row.approvals) : (row.approvals || []);
+    const successCriteriaData = typeof row.success_criteria === 'string' ? JSON.parse(row.success_criteria) : (row.success_criteria || []);
+
+    const stakeholders: Stakeholder[] = stakeholdersData;
+    const approvals: Approval[] = approvalsData.map((a: Record<string, unknown>) => ({
       ...a,
       timestamp: new Date(a.timestamp as string),
     }));
@@ -491,7 +500,7 @@ class BRDService {
       title: row.title as string,
       problemStatement: row.problem_statement as string,
       businessImpact: row.business_impact as string,
-      successCriteria: JSON.parse(row.success_criteria as string || '[]'),
+      successCriteria: successCriteriaData,
       timeline: {
         startDate: new Date(row.timeline_start_date as string),
         targetDate: new Date(row.timeline_target_date as string),

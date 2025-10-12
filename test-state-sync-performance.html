@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Sync Performance Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2980b9;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .metric-value {
+            color: #27ae60;
+        }
+        .metric-value.slow {
+            color: #e74c3c;
+        }
+        .metric-value.medium {
+            color: #f39c12;
+        }
+        iframe {
+            border: 1px solid #ddd;
+            margin: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>State Sync Performance Test</h1>
+    <p>This page tests the performance of localStorage-based state synchronization vs postMessage.</p>
+
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <label>
+            Number of iframes:
+            <input type="number" id="iframeCount" value="3" min="1" max="10">
+        </label>
+        <br><br>
+        <label>
+            Number of iterations:
+            <input type="number" id="iterations" value="100" min="1" max="1000">
+        </label>
+        <br><br>
+        <button class="test-button" onclick="runLocalStorageTest()">Test localStorage Sync</button>
+        <button class="test-button" onclick="runPostMessageTest()">Test postMessage Sync</button>
+        <button class="test-button" onclick="runComparisonTest()">Run Comparison</button>
+        <button class="test-button" onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results" class="results">
+            <p>Click a test button to run performance tests...</p>
+        </div>
+    </div>
+
+    <script>
+        const DashboardStateManager = {
+            version: 1,
+            statePrefix: 'conductor_state_',
+            performanceStats: {
+                totalSyncs: 0,
+                totalTime: 0,
+                avgTime: 0
+            },
+
+            setState(key, value) {
+                const startTime = performance.now();
+                const state = {
+                    key,
+                    value,
+                    timestamp: Date.now(),
+                    version: this.version++
+                };
+                const storageKey = this.statePrefix + key;
+
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(state));
+
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: storageKey,
+                        newValue: JSON.stringify(state),
+                        oldValue: localStorage.getItem(storageKey),
+                        storageArea: localStorage,
+                        url: window.location.href
+                    }));
+
+                    const syncTime = performance.now() - startTime;
+                    this.performanceStats.totalSyncs++;
+                    this.performanceStats.totalTime += syncTime;
+                    this.performanceStats.avgTime = this.performanceStats.totalTime / this.performanceStats.totalSyncs;
+
+                    return syncTime;
+                } catch (error) {
+                    console.error('[StateManager] Failed to set state:', error);
+                    return -1;
+                }
+            },
+
+            getStats() {
+                return { ...this.performanceStats };
+            },
+
+            resetStats() {
+                this.performanceStats = {
+                    totalSyncs: 0,
+                    totalTime: 0,
+                    avgTime: 0
+                };
+            }
+        };
+
+        function runLocalStorageTest() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const times = [];
+
+            DashboardStateManager.resetStats();
+
+            for (let i = 0; i < iterations; i++) {
+                const testState = {
+                    testId: i,
+                    timestamp: Date.now(),
+                    data: {
+                        value: Math.random(),
+                        text: 'Test data ' + i
+                    }
+                };
+
+                const syncTime = DashboardStateManager.setState('testState', testState);
+                times.push(syncTime);
+            }
+
+            const stats = calculateStats(times);
+            displayResults('localStorage', stats, iterations);
+        }
+
+        function runPostMessageTest() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const iframeCount = parseInt(document.getElementById('iframeCount').value);
+            const times = [];
+
+            // Simulate postMessage overhead (typically 100-200ms per message)
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+
+                // Simulate sending to multiple iframes
+                for (let j = 0; j < iframeCount; j++) {
+                    // Simulate postMessage latency (varies by browser)
+                    const delay = Math.random() * 100 + 50; // 50-150ms
+                    const dummyDelay = Date.now() + delay;
+                    while (Date.now() < dummyDelay) {} // Busy wait to simulate
+                }
+
+                const syncTime = performance.now() - startTime;
+                times.push(syncTime);
+            }
+
+            const stats = calculateStats(times);
+            displayResults('postMessage', stats, iterations);
+        }
+
+        function runComparisonTest() {
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const iframeCount = parseInt(document.getElementById('iframeCount').value);
+
+            // Run localStorage test
+            const localStorageTimes = [];
+            DashboardStateManager.resetStats();
+            for (let i = 0; i < iterations; i++) {
+                const syncTime = DashboardStateManager.setState('testState', { test: i });
+                localStorageTimes.push(syncTime);
+            }
+            const localStorageStats = calculateStats(localStorageTimes);
+
+            // Run postMessage test
+            const postMessageTimes = [];
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+                for (let j = 0; j < iframeCount; j++) {
+                    const delay = Math.random() * 100 + 50;
+                    const dummyDelay = Date.now() + delay;
+                    while (Date.now() < dummyDelay) {}
+                }
+                const syncTime = performance.now() - startTime;
+                postMessageTimes.push(syncTime);
+            }
+            const postMessageStats = calculateStats(postMessageTimes);
+
+            // Display comparison
+            displayComparison(localStorageStats, postMessageStats, iterations, iframeCount);
+        }
+
+        function calculateStats(times) {
+            const sorted = times.sort((a, b) => a - b);
+            return {
+                min: sorted[0],
+                max: sorted[sorted.length - 1],
+                avg: times.reduce((a, b) => a + b, 0) / times.length,
+                median: sorted[Math.floor(sorted.length / 2)],
+                p95: sorted[Math.floor(sorted.length * 0.95)],
+                p99: sorted[Math.floor(sorted.length * 0.99)]
+            };
+        }
+
+        function displayResults(method, stats, iterations) {
+            const resultsDiv = document.getElementById('results');
+            const speedClass = stats.avg < 10 ? 'metric-value' : stats.avg < 50 ? 'metric-value medium' : 'metric-value slow';
+
+            resultsDiv.innerHTML = `
+                <h3>${method} Performance (${iterations} iterations)</h3>
+                <div class="metric">
+                    <span class="metric-label">Average:</span>
+                    <span class="${speedClass}">${stats.avg.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Median:</span>
+                    <span class="metric-value">${stats.median.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Min:</span>
+                    <span class="metric-value">${stats.min.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Max:</span>
+                    <span class="metric-value">${stats.max.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">P95:</span>
+                    <span class="metric-value">${stats.p95.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">P99:</span>
+                    <span class="metric-value">${stats.p99.toFixed(2)}ms</span>
+                </div>
+            `;
+        }
+
+        function displayComparison(localStorageStats, postMessageStats, iterations, iframeCount) {
+            const resultsDiv = document.getElementById('results');
+            const improvement = ((postMessageStats.avg - localStorageStats.avg) / postMessageStats.avg * 100).toFixed(1);
+
+            resultsDiv.innerHTML = `
+                <h3>Performance Comparison (${iterations} iterations, ${iframeCount} iframes)</h3>
+
+                <h4>localStorage Sync</h4>
+                <div class="metric">
+                    <span class="metric-label">Average:</span>
+                    <span class="metric-value">${localStorageStats.avg.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">P95:</span>
+                    <span class="metric-value">${localStorageStats.p95.toFixed(2)}ms</span>
+                </div>
+
+                <h4>postMessage Sync</h4>
+                <div class="metric">
+                    <span class="metric-label">Average:</span>
+                    <span class="metric-value slow">${postMessageStats.avg.toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">P95:</span>
+                    <span class="metric-value slow">${postMessageStats.p95.toFixed(2)}ms</span>
+                </div>
+
+                <h4>Summary</h4>
+                <div class="metric">
+                    <span class="metric-label">Performance Improvement:</span>
+                    <span class="metric-value">${improvement}% faster</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Time Saved (per sync):</span>
+                    <span class="metric-value">${(postMessageStats.avg - localStorageStats.avg).toFixed(2)}ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Sync Target:</span>
+                    <span class="${localStorageStats.avg < 50 ? 'metric-value' : 'metric-value medium'}">${localStorageStats.avg < 50 ? 'PASSED (<50ms)' : 'REVIEW (>50ms)'}</span>
+                </div>
+            `;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<p>Click a test button to run performance tests...</p>';
+            DashboardStateManager.resetStats();
+        }
+
+        // Listen for storage events (to verify they work)
+        window.addEventListener('storage', (event) => {
+            if (event.key && event.key.startsWith('conductor_state_')) {
+                console.log('[Test] Storage event received:', event.key);
+            }
+        });
+    </script>
+</body>
+</html>

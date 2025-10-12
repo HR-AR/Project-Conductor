@@ -98,7 +98,7 @@ class ChangeLogService {
     if (changeLogResult.rows.length === 0) throw new Error('Change log entry not found');
 
     const currentEntry = changeLogResult.rows[0];
-    const approvals = JSON.parse(currentEntry.approved_by || '[]');
+    const approvals = typeof currentEntry.approved_by === 'string' ? JSON.parse(currentEntry.approved_by) : (currentEntry.approved_by || []);
 
     const newApproval = {
       stakeholderId: approval.stakeholderId,
@@ -301,13 +301,13 @@ class ChangeLogService {
       impact: row.impact as string,
       category: row.category as 'scope' | 'timeline' | 'budget' | 'technical' | 'process',
       phase: row.phase as 'pushed_to_phase_2' | 'simplified' | 'removed' | 'added' | 'modified',
-      approvedBy: JSON.parse(row.approved_by as string || '[]').map((a: Record<string, unknown>) => ({
+      approvedBy: (typeof row.approved_by === 'string' ? JSON.parse(row.approved_by) : (row.approved_by || [])).map((a: Record<string, unknown>) => ({
         ...a,
         timestamp: new Date(a.timestamp as string),
       })),
       relatedConflictId: row.related_conflict_id as string | undefined,
-      documentsBefore: JSON.parse(row.documents_before as string || '[]'),
-      documentsAfter: JSON.parse(row.documents_after as string || '[]'),
+      documentsBefore: typeof row.documents_before === 'string' ? JSON.parse(row.documents_before) : (row.documents_before || []),
+      documentsAfter: typeof row.documents_after === 'string' ? JSON.parse(row.documents_after) : (row.documents_after || []),
       timestamp: new Date(row.timestamp as string),
       createdBy: row.created_by as string,
     };

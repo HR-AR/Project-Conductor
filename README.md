@@ -97,8 +97,7 @@ npm start
 
 ```bash
 # Run all tests
-npm test
-
+gemini
 # Run tests with coverage
 npm run test:coverage
 
