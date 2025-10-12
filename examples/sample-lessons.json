@@ -1,0 +1,267 @@
+{
+  "description": "Sample lessons the learning system discovers after analyzing execution history",
+  "generated": "2025-10-12",
+  "lessons": [
+    {
+      "id": "lesson-001",
+      "lessonType": "agent_selection",
+      "title": "Agent-API excels at REST API implementation",
+      "pattern": {
+        "taskType": "api_implementation",
+        "agentType": "Agent-API",
+        "historicalMetrics": {
+          "successRate": 0.92,
+          "avgDurationMs": 145000,
+          "sampleSize": 25
+        }
+      },
+      "recommendation": "Use Agent-API for api_implementation tasks (92.0% success rate vs. 78% for alternatives)",
+      "alternativeAgent": "Agent-API",
+      "confidenceScore": 0.92,
+      "effectivenessScore": 0.88,
+      "timesApplied": 12,
+      "timesSuccessful": 11,
+      "impact": {
+        "timeReduction": "15% faster on average",
+        "successRateIncrease": "14% improvement",
+        "estimatedAnnualSavings": "~40 hours/year"
+      }
+    },
+    {
+      "id": "lesson-002",
+      "lessonType": "time_estimation",
+      "title": "API implementations consistently underestimated",
+      "pattern": {
+        "agentType": "Agent-API",
+        "taskType": "api_implementation",
+        "conditions": {
+          "avgEstimatedDurationMs": 180000,
+          "avgActualDurationMs": 145000
+        },
+        "historicalMetrics": {
+          "avgDurationMs": 145000,
+          "p50DurationMs": 140000,
+          "p95DurationMs": 180000
+        }
+      },
+      "recommendation": "Reduce time estimate for Agent-API api_implementation to 145s (currently overestimated by 24%)",
+      "confidenceScore": 0.85,
+      "effectivenessScore": 0.91,
+      "timesApplied": 18,
+      "timesSuccessful": 17,
+      "impact": {
+        "estimationAccuracy": "From 76% to 91% accuracy",
+        "planningImprovement": "More realistic schedules"
+      }
+    },
+    {
+      "id": "lesson-003",
+      "lessonType": "error_prevention",
+      "title": "Integration tasks fail without prerequisite database setup",
+      "pattern": {
+        "agentType": "Agent-Integration",
+        "taskType": "integration",
+        "conditions": {
+          "errorPattern": "connection_error",
+          "minRetryCount": 1,
+          "commonErrors": ["Database connection refused", "Table not found"]
+        }
+      },
+      "recommendation": "Always run Agent-Database migration tasks before Agent-Integration integration tasks to prevent connection_error",
+      "confidenceScore": 0.78,
+      "effectivenessScore": 0.82,
+      "timesApplied": 8,
+      "timesSuccessful": 7,
+      "impact": {
+        "failureReduction": "65% fewer connection errors",
+        "retryReduction": "3 fewer retries per workflow"
+      }
+    },
+    {
+      "id": "lesson-004",
+      "lessonType": "task_ordering",
+      "title": "Optimal sequence for authentication workflows",
+      "pattern": {
+        "conditions": {
+          "goalPattern": "authentication|login|auth",
+          "successfulSequence": [
+            "database_migration",
+            "model_definition",
+            "api_implementation",
+            "testing"
+          ]
+        },
+        "historicalMetrics": {
+          "successRate": 0.94,
+          "avgDurationMs": 420000,
+          "executionCount": 15
+        }
+      },
+      "recommendation": "Follow task sequence: database_migration → model_definition → api_implementation → testing for authentication workflows (94% success rate)",
+      "confidenceScore": 0.89,
+      "impact": {
+        "successRateIncrease": "19% improvement over random ordering",
+        "timeReduction": "Reduced debugging time by 30%"
+      }
+    },
+    {
+      "id": "lesson-005",
+      "lessonType": "parallel_execution",
+      "title": "Frontend and API development can run concurrently",
+      "pattern": {
+        "taskType": "ui_implementation",
+        "conditions": {
+          "contextMatches": {
+            "relatedTask": "api_implementation"
+          },
+          "avgTimeDifference": 45,
+          "coOccurrences": 12
+        }
+      },
+      "recommendation": "Execute ui_implementation and api_implementation in parallel for non-blocking workflows (co-occur 12 times within 45s average)",
+      "confidenceScore": 0.76,
+      "effectivenessScore": 0.81,
+      "timesApplied": 6,
+      "timesSuccessful": 5,
+      "impact": {
+        "timeReduction": "35% faster workflow completion",
+        "parallelizationOpportunity": "Can save ~90s per workflow"
+      }
+    },
+    {
+      "id": "lesson-006",
+      "lessonType": "agent_selection",
+      "title": "Agent-Test faster for unit testing than Agent-Quality",
+      "pattern": {
+        "taskType": "testing",
+        "agentType": "Agent-Test",
+        "historicalMetrics": {
+          "successRate": 0.87,
+          "avgDurationMs": 85000
+        },
+        "alternativeMetrics": {
+          "agentType": "Agent-Quality",
+          "successRate": 0.84,
+          "avgDurationMs": 120000
+        }
+      },
+      "recommendation": "Use Agent-Test for testing tasks instead of Agent-Quality (3% higher success rate, 35s faster)",
+      "alternativeAgent": "Agent-Test",
+      "confidenceScore": 0.84,
+      "impact": {
+        "timeReduction": "29% faster test execution",
+        "successRateIncrease": "3% improvement"
+      }
+    },
+    {
+      "id": "lesson-007",
+      "lessonType": "time_estimation",
+      "title": "Database migrations vary widely in duration",
+      "pattern": {
+        "agentType": "Agent-Database",
+        "taskType": "database_migration",
+        "conditions": {
+          "avgDurationMs": 65000,
+          "p50DurationMs": 45000,
+          "p95DurationMs": 180000,
+          "highVariability": true
+        }
+      },
+      "recommendation": "Use p95 duration (180s) for database_migration estimates due to high variability (p95 is 4x p50)",
+      "confidenceScore": 0.81,
+      "impact": {
+        "planningAccuracy": "Reduced schedule overruns by 40%",
+        "betterBuffering": "More realistic time buffers"
+      }
+    },
+    {
+      "id": "lesson-008",
+      "lessonType": "error_prevention",
+      "title": "Memory errors in large data processing tasks",
+      "pattern": {
+        "agentType": "Agent-Quality",
+        "taskType": "optimization",
+        "conditions": {
+          "errorPattern": "memory_error",
+          "contextMatches": {
+            "dataSize": "large",
+            "avgMemoryUsageMb": 950
+          }
+        }
+      },
+      "recommendation": "Allocate minimum 1.5GB memory for Agent-Quality optimization tasks to prevent memory_error (currently averaging 950MB)",
+      "confidenceScore": 0.73,
+      "impact": {
+        "failureReduction": "80% fewer memory errors",
+        "retryReduction": "Eliminated 90% of retries"
+      }
+    },
+    {
+      "id": "lesson-009",
+      "lessonType": "dependency_optimization",
+      "title": "Model definitions enable parallel downstream work",
+      "pattern": {
+        "taskType": "model_definition",
+        "conditions": {
+          "enablesParallelTasks": ["api_implementation", "testing", "ui_implementation"],
+          "criticalPath": true
+        }
+      },
+      "recommendation": "Prioritize model_definition tasks early in workflow to unblock 3 parallel downstream tasks",
+      "optimalOrder": 1,
+      "confidenceScore": 0.88,
+      "impact": {
+        "parallelizationGain": "Enables 3 parallel paths",
+        "timeReduction": "40% faster overall workflow"
+      }
+    },
+    {
+      "id": "lesson-010",
+      "lessonType": "resource_allocation",
+      "title": "Testing tasks need database connections",
+      "pattern": {
+        "agentType": "Agent-Test",
+        "taskType": "testing",
+        "conditions": {
+          "resourceRequirements": {
+            "databaseConnections": 2,
+            "avgConnectionUsage": 1.8
+          }
+        }
+      },
+      "recommendation": "Reserve 2 database connections for Agent-Test testing tasks to prevent connection pool exhaustion",
+      "confidenceScore": 0.79,
+      "impact": {
+        "failureReduction": "55% fewer connection errors",
+        "resourceEfficiency": "Better connection pool management"
+      }
+    }
+  ],
+  "summary": {
+    "totalLessons": 10,
+    "avgConfidenceScore": 0.82,
+    "avgEffectivenessScore": 0.86,
+    "lessonsByType": {
+      "agent_selection": 3,
+      "time_estimation": 2,
+      "error_prevention": 2,
+      "task_ordering": 1,
+      "parallel_execution": 1,
+      "dependency_optimization": 1,
+      "resource_allocation": 1
+    },
+    "estimatedImpact": {
+      "overallSpeedImprovement": "30-40%",
+      "failureRateReduction": "50-65%",
+      "estimationAccuracy": "+15-20%",
+      "annualTimeSavings": "~200 hours"
+    },
+    "keyInsights": [
+      "Agent-API is the most reliable agent (92% success rate)",
+      "Database migrations should always precede integration work",
+      "Frontend and API work can often be parallelized",
+      "Model definitions are critical path items",
+      "Time estimates improve from 76% to 91% accuracy"
+    ]
+  }
+}

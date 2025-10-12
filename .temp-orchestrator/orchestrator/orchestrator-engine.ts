@@ -29,6 +29,13 @@ import { AgentSecurity } from './agents/agent-security';
 import logger from '../utils/logger';
 import { EventEmitter } from 'events';
 import ActivityService from '../../src/services/activity.service';
+import { RetryManager } from '../../src/services/orchestrator/retry-manager.service';
+import { ErrorHandler } from '../../src/services/orchestrator/error-handler.service';
+import {
+  ErrorType,
+  RecoveryAction,
+  BackoffStrategy
+} from '../../src/models/error-recovery.model';
 
 export class OrchestratorEngine extends EventEmitter {
   private stateManager: StateManager;
@@ -37,6 +44,8 @@ export class OrchestratorEngine extends EventEmitter {
   private isRunning: boolean = false;
   private orchestrationInterval: NodeJS.Timeout | null = null;
   private activityService?: ActivityService;
+  private retryManager: RetryManager;
+  private errorHandler: ErrorHandler;
 
   constructor(baseDir?: string, activityService?: ActivityService) {
     super();
@@ -45,6 +54,16 @@ export class OrchestratorEngine extends EventEmitter {
     this.phaseManager = new PhaseManager(this.stateManager);
     this.agents = new Map();
     this.activityService = activityService;
+
+    // Initialize retry and error handling
+    this.retryManager = new RetryManager({
+      maxAttempts: 5,
+      strategy: BackoffStrategy.EXPONENTIAL,
+      baseDelay: 1000,
+      maxDelay: 16000,
+      circuitBreakerThreshold: 10
+    });
+    this.errorHandler = new ErrorHandler(10);  // Keep 10 checkpoints max
 
     // Initialize all agents
     this.initializeAgents();
@@ -186,12 +205,21 @@ export class OrchestratorEngine extends EventEmitter {
   }
 
   /**
-   * Execute an agent task
+   * Execute an agent task with retry logic
    */
   private async executeAgentTask(agent: BaseAgent, task: AgentTask): Promise<void> {
     logger.info(`Assigning task ${task.id} to ${agent.getName()}`);
 
     const startTime = Date.now();
+
+    // Create checkpoint before risky operation
+    const state = this.stateManager.getState();
+    this.errorHandler.createCheckpoint(
+      state,
+      `Before executing task ${task.id} by ${agent.getName()}`,
+      true,
+      task.agentType
+    );
 
     // Mark task as active
     await this.stateManager.updateTask(task.id, {
@@ -200,7 +228,6 @@ export class OrchestratorEngine extends EventEmitter {
     });
 
     // Mark milestone as in progress
-    const state = this.stateManager.getState();
     const milestone = state.milestones[task.milestone];
     if (milestone && milestone.status === MilestoneStatus.PENDING) {
       await this.phaseManager.updateMilestoneStatus(
@@ -222,146 +249,158 @@ export class OrchestratorEngine extends EventEmitter {
       }).catch(err => logger.error({ err }, 'Failed to log agent started event'));
     }
 
-    // Execute task asynchronously
-    agent.executeTask(task)
-      .then(async (result) => {
-        const duration = Date.now() - startTime;
+    // Execute task with retry logic
+    this.executeTaskWithRetry(agent, task, startTime);
+  }
 
-        if (result.success) {
-          await this.stateManager.updateTask(task.id, {
-            status: AgentStatus.COMPLETED,
-            completedAt: new Date(),
-            result
-          });
-
-          logger.info(`Task ${task.id} completed successfully`);
-
-          // Emit agent completed event
-          if (this.activityService) {
-            this.activityService.logAgentCompleted({
-              agentType: task.agentType,
-              agentName: agent.getName(),
-              taskId: task.id,
-              taskDescription: task.description,
-              result: {
-                success: true,
-                output: result.output,
-                filesCreated: result.filesCreated,
-                filesModified: result.filesModified,
-                testsRun: result.testsRun,
-                testsPassed: result.testsPassed,
-                testsFailed: result.testsFailed,
-                metadata: result.metadata
-              },
-              duration,
-              timestamp: new Date()
-            }).catch(err => logger.error({ err }, 'Failed to log agent completed event'));
-          }
-
-          // Check if milestone is complete
-          await this.checkMilestoneCompletion(task.milestone);
-
-        } else {
-          // Check if this is a security conflict (SECURITY_CONFLICT error code)
-          const isSecurityConflict = result.error === 'SECURITY_CONFLICT' && result.metadata?.conflictType === 'security_vulnerability';
-
-          if (isSecurityConflict) {
-            // Handle security conflict - pause workflow
-            await this.stateManager.updateTask(task.id, {
-              status: AgentStatus.FAILED,
-              completedAt: new Date(),
-              error: result.error,
-              result
-            });
-
-            logger.warn(`Security conflict detected in task ${task.id} - pausing workflow`);
-
-            // Extract vulnerability details
-            const vulnerabilities = result.metadata?.vulnerabilities as any[] || [];
-            const highestSeverity = this.getHighestSeverity(vulnerabilities);
-
-            // Emit agent conflict detected event
-            if (this.activityService) {
-              this.activityService.logAgentConflictDetected({
-                agentType: task.agentType,
-                agentName: agent.getName(),
-                taskId: task.id,
-                taskDescription: task.description,
-                conflictType: 'security_vulnerability',
-                conflictDescription: result.output || 'Security vulnerabilities detected in engineering design',
-                severity: highestSeverity,
-                affectedItems: vulnerabilities.map(v => v.id),
-                recommendedActions: vulnerabilities.map(v => v.recommendation),
-                requiresHumanInput: true,
-                timestamp: new Date()
-              }).catch(err => logger.error({ err }, 'Failed to log agent conflict detected event'));
-
-              // Emit agent paused event
-              this.activityService.logAgentPaused({
-                agentType: task.agentType,
-                agentName: agent.getName(),
-                taskId: task.id,
-                taskDescription: task.description,
-                reason: 'Security vulnerabilities detected - requires human resolution',
-                pauseType: 'conflict',
-                requiresAction: 'Review and resolve security vulnerabilities',
-                actionUrl: '/module-5-alignment.html',
-                timestamp: new Date()
-              }).catch(err => logger.error({ err }, 'Failed to log agent paused event'));
-            }
-
-            // Pause orchestrator (emit event to notify UI)
-            this.emit('workflow-paused', {
-              reason: 'security_conflict',
-              taskId: task.id,
-              agentType: task.agentType,
-              vulnerabilities
-            });
-
-          } else {
-            // Regular failure (not a conflict)
-            await this.stateManager.updateTask(task.id, {
-              status: AgentStatus.FAILED,
-              completedAt: new Date(),
-              error: result.error,
-              result
-            });
-
-            logger.error(`Task ${task.id} failed: ${result.error}`);
-
-            // Emit agent error event
-            if (this.activityService) {
-              this.activityService.logAgentError({
-                agentType: task.agentType,
-                agentName: agent.getName(),
-                taskId: task.id,
-                taskDescription: task.description,
-                error: result.error || 'Task failed',
-                errorType: 'execution',
-                canRetry: true,
-                timestamp: new Date()
-              }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
-            }
-
-            await this.logError({
-              timestamp: new Date(),
-              phase: task.phase,
-              agent: task.agentType,
-              milestone: task.milestone,
-              error: result.error || 'Unknown error',
-              severity: 'medium'
-            });
-          }
+  /**
+   * Execute task with automatic retry and error handling
+   */
+  private async executeTaskWithRetry(
+    agent: BaseAgent,
+    task: AgentTask,
+    startTime: number
+  ): Promise<void> {
+    try {
+      // Execute with retry manager
+      const result = await this.retryManager.executeWithRetry(
+        task.id,
+        () => agent.executeTask(task),
+        {
+          maxAttempts: 5,
+          strategy: BackoffStrategy.EXPONENTIAL,
+          baseDelay: 1000,
+          maxDelay: 16000,
+          retryableErrors: [ErrorType.TRANSIENT, ErrorType.RETRIABLE]
+        },
+        {
+          agentType: task.agentType,
+          phase: task.phase,
+          taskId: task.id
         }
-      })
-      .catch(async (error) => {
+      );
+
+      // Success handling
+      await this.handleTaskSuccess(agent, task, result, startTime);
+
+    } catch (error) {
+      // Error handling with recovery strategies
+      await this.handleTaskError(agent, task, error as Error, startTime);
+    }
+  }
+
+  /**
+   * Handle successful task completion
+   */
+  private async handleTaskSuccess(
+    agent: BaseAgent,
+    task: AgentTask,
+    result: AgentTaskResult,
+    startTime: number
+  ): Promise<void> {
+    const duration = Date.now() - startTime;
+
+    if (result.success) {
+      await this.stateManager.updateTask(task.id, {
+        status: AgentStatus.COMPLETED,
+        completedAt: new Date(),
+        result
+      });
+
+      logger.info(`Task ${task.id} completed successfully`);
+
+      // Emit agent completed event
+      if (this.activityService) {
+        this.activityService.logAgentCompleted({
+          agentType: task.agentType,
+          agentName: agent.getName(),
+          taskId: task.id,
+          taskDescription: task.description,
+          result: {
+            success: true,
+            output: result.output,
+            filesCreated: result.filesCreated,
+            filesModified: result.filesModified,
+            testsRun: result.testsRun,
+            testsPassed: result.testsPassed,
+            testsFailed: result.testsFailed,
+            metadata: result.metadata
+          },
+          duration,
+          timestamp: new Date()
+        }).catch(err => logger.error({ err }, 'Failed to log agent completed event'));
+      }
+
+      // Check if milestone is complete
+      await this.checkMilestoneCompletion(task.milestone);
+
+    } else {
+      // Check if this is a security conflict (SECURITY_CONFLICT error code)
+      const isSecurityConflict = result.error === 'SECURITY_CONFLICT' && result.metadata?.conflictType === 'security_vulnerability';
+
+      if (isSecurityConflict) {
+        // Handle security conflict - pause workflow
         await this.stateManager.updateTask(task.id, {
           status: AgentStatus.FAILED,
           completedAt: new Date(),
-          error: error.message
+          error: result.error,
+          result
         });
 
-        logger.error(`Task ${task.id} threw error`, error);
+        logger.warn(`Security conflict detected in task ${task.id} - pausing workflow`);
+
+        // Extract vulnerability details
+        const vulnerabilities = result.metadata?.vulnerabilities as any[] || [];
+        const highestSeverity = this.getHighestSeverity(vulnerabilities);
+
+        // Emit agent conflict detected event
+        if (this.activityService) {
+          this.activityService.logAgentConflictDetected({
+            agentType: task.agentType,
+            agentName: agent.getName(),
+            taskId: task.id,
+            taskDescription: task.description,
+            conflictType: 'security_vulnerability',
+            conflictDescription: result.output || 'Security vulnerabilities detected in engineering design',
+            severity: highestSeverity,
+            affectedItems: vulnerabilities.map(v => v.id),
+            recommendedActions: vulnerabilities.map(v => v.recommendation),
+            requiresHumanInput: true,
+            timestamp: new Date()
+          }).catch(err => logger.error({ err }, 'Failed to log agent conflict detected event'));
+
+          // Emit agent paused event
+          this.activityService.logAgentPaused({
+            agentType: task.agentType,
+            agentName: agent.getName(),
+            taskId: task.id,
+            taskDescription: task.description,
+            reason: 'Security vulnerabilities detected - requires human resolution',
+            pauseType: 'conflict',
+            requiresAction: 'Review and resolve security vulnerabilities',
+            actionUrl: '/module-5-alignment.html',
+            timestamp: new Date()
+          }).catch(err => logger.error({ err }, 'Failed to log agent paused event'));
+        }
+
+        // Pause orchestrator (emit event to notify UI)
+        this.emit('workflow-paused', {
+          reason: 'security_conflict',
+          taskId: task.id,
+          agentType: task.agentType,
+          vulnerabilities
+        });
+
+      } else {
+        // Regular failure (not a conflict)
+        await this.stateManager.updateTask(task.id, {
+          status: AgentStatus.FAILED,
+          completedAt: new Date(),
+          error: result.error,
+          result
+        });
+
+        logger.error(`Task ${task.id} failed: ${result.error}`);
 
         // Emit agent error event
         if (this.activityService) {
@@ -370,9 +409,8 @@ export class OrchestratorEngine extends EventEmitter {
             agentName: agent.getName(),
             taskId: task.id,
             taskDescription: task.description,
-            error: error.message,
-            errorType: 'system',
-            stack: error.stack,
+            error: result.error || 'Task failed',
+            errorType: 'execution',
             canRetry: true,
             timestamp: new Date()
           }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
@@ -383,11 +421,257 @@ export class OrchestratorEngine extends EventEmitter {
           phase: task.phase,
           agent: task.agentType,
           milestone: task.milestone,
-          error: error.message,
-          stack: error.stack,
-          severity: 'high'
+          error: result.error || 'Unknown error',
+          severity: 'medium'
         });
+      }
+    }
+  }
+
+  /**
+   * Handle task error with recovery strategies
+   */
+  private async handleTaskError(
+    agent: BaseAgent,
+    task: AgentTask,
+    error: Error,
+    startTime: number
+  ): Promise<void> {
+    const duration = Date.now() - startTime;
+
+    // Use error handler to classify and determine recovery action
+    const recoveryResult = this.errorHandler.handleAgentError(error, {
+      operationId: task.id,
+      agentType: task.agentType,
+      phase: task.phase,
+      taskId: task.id
+    });
+
+    logger.error(`Task ${task.id} failed after retries`, {
+      error: error.message,
+      recoveryAction: recoveryResult.action,
+      retriesUsed: recoveryResult.retriesUsed
+    });
+
+    // Handle different recovery actions
+    switch (recoveryResult.action) {
+      case RecoveryAction.PAUSE_WORKFLOW:
+        await this.handleConflictError(agent, task, error);
+        break;
+
+      case RecoveryAction.ROLLBACK:
+        await this.handleRollbackError(agent, task, error, recoveryResult);
+        break;
+
+      case RecoveryAction.CIRCUIT_BREAK:
+        await this.handleCircuitBreakerError(agent, task, error);
+        break;
+
+      case RecoveryAction.FAIL_IMMEDIATELY:
+      default:
+        await this.handleFatalError(agent, task, error);
+        break;
+    }
+
+    // Get retry history for logging
+    const retryHistory = this.retryManager.getRetryHistory(task.id);
+    if (retryHistory) {
+      logger.info('Retry history', {
+        taskId: task.id,
+        totalAttempts: retryHistory.totalAttempts,
+        totalDuration: retryHistory.totalDuration,
+        attempts: retryHistory.attempts
       });
+    }
+  }
+
+  /**
+   * Handle conflict error (security, business rule, etc.)
+   */
+  private async handleConflictError(
+    agent: BaseAgent,
+    task: AgentTask,
+    error: Error
+  ): Promise<void> {
+    await this.stateManager.updateTask(task.id, {
+      status: AgentStatus.FAILED,
+      completedAt: new Date(),
+      error: error.message
+    });
+
+    logger.warn(`Conflict detected in task ${task.id} - pausing workflow`);
+
+    // Emit agent conflict detected event
+    if (this.activityService) {
+      this.activityService.logAgentConflictDetected({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        conflictType: 'error_conflict',
+        conflictDescription: error.message,
+        severity: 'high',
+        affectedItems: [task.id],
+        recommendedActions: ['Review error and resolve manually'],
+        requiresHumanInput: true,
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent conflict event'));
+
+      // Emit agent paused event
+      this.activityService.logAgentPaused({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        reason: `Conflict detected: ${error.message}`,
+        pauseType: 'conflict',
+        requiresAction: 'Review and resolve conflict',
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent paused event'));
+    }
+
+    // Pause orchestrator
+    this.emit('workflow-paused', {
+      reason: 'conflict',
+      taskId: task.id,
+      agentType: task.agentType,
+      error: error.message
+    });
+  }
+
+  /**
+   * Handle rollback error
+   */
+  private async handleRollbackError(
+    agent: BaseAgent,
+    task: AgentTask,
+    error: Error,
+    recoveryResult: RecoveryResult
+  ): Promise<void> {
+    await this.stateManager.updateTask(task.id, {
+      status: AgentStatus.FAILED,
+      completedAt: new Date(),
+      error: error.message
+    });
+
+    logger.warn(`Rolling back task ${task.id} after error`, {
+      checkpointRestored: recoveryResult.checkpointRestored
+    });
+
+    // Emit agent error event
+    if (this.activityService) {
+      this.activityService.logAgentError({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        error: error.message,
+        errorType: 'rollback',
+        canRetry: false,
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+    }
+
+    await this.logError({
+      timestamp: new Date(),
+      phase: task.phase,
+      agent: task.agentType,
+      milestone: task.milestone,
+      error: `Rollback after error: ${error.message}`,
+      severity: 'high'
+    });
+  }
+
+  /**
+   * Handle circuit breaker error
+   */
+  private async handleCircuitBreakerError(
+    agent: BaseAgent,
+    task: AgentTask,
+    error: Error
+  ): Promise<void> {
+    await this.stateManager.updateTask(task.id, {
+      status: AgentStatus.FAILED,
+      completedAt: new Date(),
+      error: error.message
+    });
+
+    logger.error(`Circuit breaker triggered for task ${task.id}`, {
+      agentType: task.agentType,
+      error: error.message
+    });
+
+    // Emit agent error event
+    if (this.activityService) {
+      this.activityService.logAgentError({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        error: `Circuit breaker: ${error.message}`,
+        errorType: 'circuit_break',
+        canRetry: false,
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+    }
+
+    await this.logError({
+      timestamp: new Date(),
+      phase: task.phase,
+      agent: task.agentType,
+      milestone: task.milestone,
+      error: `Circuit breaker triggered: ${error.message}`,
+      severity: 'critical'
+    });
+
+    // Stop orchestrator due to system health issues
+    this.emit('circuit-break', {
+      agentType: task.agentType,
+      taskId: task.id,
+      error: error.message
+    });
+  }
+
+  /**
+   * Handle fatal error
+   */
+  private async handleFatalError(
+    agent: BaseAgent,
+    task: AgentTask,
+    error: Error
+  ): Promise<void> {
+    await this.stateManager.updateTask(task.id, {
+      status: AgentStatus.FAILED,
+      completedAt: new Date(),
+      error: error.message
+    });
+
+    logger.error(`Fatal error in task ${task.id}`, { error: error.message });
+
+    // Emit agent error event
+    if (this.activityService) {
+      this.activityService.logAgentError({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        error: error.message,
+        errorType: 'fatal',
+        stack: error.stack,
+        canRetry: false,
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+    }
+
+    await this.logError({
+      timestamp: new Date(),
+      phase: task.phase,
+      agent: task.agentType,
+      milestone: task.milestone,
+      error: error.message,
+      stack: error.stack,
+      severity: 'critical'
+    });
   }
 
   /**
@@ -722,6 +1006,61 @@ export class OrchestratorEngine extends EventEmitter {
     }
 
     return highest;
+  }
+
+  /**
+   * Get retry manager
+   */
+  getRetryManager(): RetryManager {
+    return this.retryManager;
+  }
+
+  /**
+   * Get error handler
+   */
+  getErrorHandler(): ErrorHandler {
+    return this.errorHandler;
+  }
+
+  /**
+   * Get retry statistics
+   */
+  getRetryStatistics(): {
+    totalOperations: number;
+    successfulOperations: number;
+    failedOperations: number;
+    averageRetries: number;
+    averageDuration: number;
+    circuitBreakersOpen: number;
+  } {
+    return this.retryManager.getStatistics();
+  }
+
+  /**
+   * Get checkpoint statistics
+   */
+  getCheckpointStatistics(): {
+    totalCheckpoints: number;
+    oldestCheckpoint?: Date;
+    newestCheckpoint?: Date;
+  } {
+    return this.errorHandler.getStatistics();
+  }
+
+  /**
+   * Reset circuit breaker for an agent
+   */
+  resetCircuitBreaker(agentType?: AgentType): void {
+    this.retryManager.resetCircuitBreaker(agentType);
+    logger.info('Circuit breaker reset', { agentType: agentType || 'global' });
+  }
+
+  /**
+   * Clear all checkpoints
+   */
+  clearCheckpoints(): void {
+    this.errorHandler.clearCheckpoints();
+    logger.info('All checkpoints cleared');
   }
 
   /**
