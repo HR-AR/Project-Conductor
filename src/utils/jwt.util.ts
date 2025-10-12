@@ -49,7 +49,7 @@ export function generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp' | 'i
         issuer: JWT_CONFIG.issuer,
         audience: JWT_CONFIG.audience,
         subject: payload.userId,
-      }
+      } as jwt.SignOptions
     );
 
     logger.info({ userId: payload.userId, email: payload.email }, 'Access token generated');
@@ -76,7 +76,7 @@ export function generateRefreshToken(payload: Omit<JWTPayload, 'iat' | 'exp' | '
         issuer: JWT_CONFIG.issuer,
         audience: JWT_CONFIG.audience,
         subject: payload.userId,
-      }
+      } as jwt.SignOptions
     );
 
     logger.info({ userId: payload.userId, email: payload.email }, 'Refresh token generated');

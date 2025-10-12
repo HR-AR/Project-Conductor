@@ -75,7 +75,7 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 
 // Import integration routes
-import jiraRoutes from './routes/integrations/jira.routes';
+// import jiraRoutes from './routes/integrations/jira.routes'; // Disabled for demo - Phase 2 feature
 
 // Import database
 import { db } from './config/database';
@@ -323,7 +323,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 
 // Integration routes
-app.use('/api/v1/integrations/jira', jiraRoutes);
+// app.use('/api/v1/integrations/jira', jiraRoutes); // Disabled for demo - Phase 2 feature
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {

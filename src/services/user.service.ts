@@ -203,7 +203,7 @@ export class UserService {
 
       const dataResult = await db.query(dataQuery, [...values, pagination.limit, offset]);
 
-      const users = dataResult.rows.map(row => this.mapDatabaseUserToUser(row));
+      const users = dataResult.rows.map((row: any) => this.mapDatabaseUserToUser(row));
 
       return {
         data: users,

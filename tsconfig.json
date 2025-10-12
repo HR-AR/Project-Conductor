@@ -33,6 +33,11 @@
     "tests",
     "src/orchestrator",
     "src/routes/orchestrator.routes.ts",
+    "src/services/orchestrator-disabled",
+    "src/services/integrations-disabled",
+    "src/controllers/integrations",
+    "src/routes/integrations",
+    "src/temp-orchestrator-disabled",
     "examples"
   ],
   "ts-node": {

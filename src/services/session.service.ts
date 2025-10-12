@@ -346,6 +346,10 @@ export class SessionService {
    */
   private async storeSessionInRedis(session: SessionInfo): Promise<void> {
     try {
+      if (!redisClient) {
+        return; // Redis not available
+      }
+
       const key = `session:${session.sessionId}`;
       const ttl = Math.floor((session.expiresAt.getTime() - Date.now()) / 1000);
 
@@ -365,6 +369,10 @@ export class SessionService {
    */
   private async removeSessionFromRedis(sessionId: string): Promise<void> {
     try {
+      if (!redisClient) {
+        return; // Redis not available
+      }
+
       const key = `session:${sessionId}`;
       await redisClient.del(key);
     } catch (error) {
