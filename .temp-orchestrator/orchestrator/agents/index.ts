@@ -10,3 +10,4 @@ export { AgentTest } from './agent-test';
 export { AgentRealtime } from './agent-realtime';
 export { AgentQuality } from './agent-quality';
 export { AgentIntegration } from './agent-integration';
+export { AgentSecurity } from './agent-security';

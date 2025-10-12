@@ -924,6 +924,83 @@
             color: white;
             background: rgba(102, 126, 234, 0.3);
         }
+
+        /* Pending Conflict Banner (Component 1.4) */
+        .pending-conflict-banner {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 152, 0, 0.95));
+            border-left: 6px solid #ff9800;
+            margin: -30px -40px 30px;
+            padding: 2rem 2.5rem;
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            color: #2c3e50;
+        }
+
+        .banner-icon {
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+        }
+
+        .banner-text {
+            flex: 1;
+        }
+
+        .banner-text h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .banner-text p {
+            font-size: 1.05rem;
+            color: #495057;
+            margin: 0;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .pending-conflict-banner {
+                margin: -15px -20px 20px;
+                padding: 1.5rem;
+            }
+
+            .banner-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .banner-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .banner-actions .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -952,6 +1029,21 @@
             <div class="header-actions">
                 <button class="btn-header" onclick="showCreateConflictModal()">+ New Conflict</button>
                 <button class="btn-header" onclick="showReportModal()">Export Report</button>
+            </div>
+        </div>
+
+        <!-- Pending Conflict Resolution Banner (Component 1.4) -->
+        <div id="pendingConflictBanner" class="pending-conflict-banner" style="display: none;">
+            <div class="banner-content">
+                <div class="banner-icon">⚠️</div>
+                <div class="banner-text">
+                    <h3 id="bannerTitle">Security Issue Requires Resolution</h3>
+                    <p id="bannerDescription">A security vulnerability was detected by the Security Agent.</p>
+                </div>
+                <div class="banner-actions">
+                    <button class="btn btn-primary" onclick="viewPendingConflict()">View Details</button>
+                    <button class="btn btn-secondary" onclick="dismissBanner()">Dismiss</button>
+                </div>
             </div>
         </div>
 
@@ -1959,6 +2051,136 @@
             });
         }
 
+        // Pending Conflict Handling (Component 1.4)
+        let pendingConflict = null;
+
+        function checkPendingConflict() {
+            const conflictData = sessionStorage.getItem('pending_conflict');
+            if (conflictData) {
+                try {
+                    pendingConflict = JSON.parse(conflictData);
+                    displayPendingConflict(pendingConflict);
+                    // Clear from session storage after displaying
+                    // sessionStorage.removeItem('pending_conflict');
+                } catch (error) {
+                    console.error('[Module 5] Failed to parse pending conflict:', error);
+                }
+            }
+        }
+
+        function displayPendingConflict(conflict) {
+            const banner = document.getElementById('pendingConflictBanner');
+            const title = document.getElementById('bannerTitle');
+            const description = document.getElementById('bannerDescription');
+
+            if (banner && title && description) {
+                title.textContent = conflict.vulnerability || 'Security Issue Requires Resolution';
+                description.textContent = conflict.description || 'A security vulnerability was detected.';
+                banner.style.display = 'block';
+                console.log('[Module 5] Displaying pending conflict:', conflict);
+            }
+        }
+
+        function viewPendingConflict() {
+            if (!pendingConflict) return;
+
+            // Add conflict to the list (prepend)
+            const conflictList = document.getElementById('conflictList');
+            if (conflictList) {
+                const severityClass = `severity-${pendingConflict.severity || 'high'}`;
+                const newConflictItem = document.createElement('div');
+                newConflictItem.className = 'conflict-item active';
+                newConflictItem.setAttribute('data-severity', pendingConflict.severity || 'high');
+                newConflictItem.onclick = function() { selectConflict(this, -1); };
+                newConflictItem.innerHTML = `
+                    <div class="conflict-header">
+                        <div class="conflict-title">${pendingConflict.vulnerability || 'Security Issue'}</div>
+                        <span class="conflict-severity ${severityClass}">${(pendingConflict.severity || 'high').toUpperCase()}</span>
+                    </div>
+                    <div>
+                        <span class="conflict-type">Security</span>
+                        <span class="conflict-type">${pendingConflict.affectedModule || 'Engineering Design'}</span>
+                    </div>
+                    <div class="conflict-meta">
+                        <span>Status: <span class="status-badge status-open">Open</span></span>
+                        <span>Awaiting Resolution</span>
+                    </div>
+                `;
+                conflictList.insertBefore(newConflictItem, conflictList.firstChild);
+
+                // Update stats
+                const activeConflictsNumber = document.querySelector('.conflict-stats .stat-number');
+                if (activeConflictsNumber) {
+                    const currentCount = parseInt(activeConflictsNumber.textContent) || 0;
+                    activeConflictsNumber.textContent = currentCount + 1;
+                }
+
+                // Select the new conflict
+                selectConflict(newConflictItem, -1);
+
+                // Update center panel with conflict details
+                updateCenterPanelWithConflict(pendingConflict);
+            }
+
+            // Dismiss banner
+            dismissBanner();
+        }
+
+        function updateCenterPanelWithConflict(conflict) {
+            const centerPanel = document.getElementById('centerPanel');
+            if (!centerPanel) return;
+
+            // Update conflict details section
+            const detailsSection = centerPanel.querySelector('.conflict-details');
+            if (detailsSection) {
+                detailsSection.innerHTML = `
+                    <div class="detail-row">
+                        <div class="detail-label">Conflict Type:</div>
+                        <div class="detail-value">Security Vulnerability</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Source:</div>
+                        <div class="detail-value">Security Agent</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Created:</div>
+                        <div class="detail-value">${new Date(conflict.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Status:</div>
+                        <div class="detail-value">
+                            <span class="status-badge status-open">Open</span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Severity:</div>
+                        <div class="detail-value">
+                            <span class="conflict-severity severity-${conflict.severity || 'high'}">${(conflict.severity || 'high').toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Description:</div>
+                        <div class="detail-value">${conflict.description || 'No description provided'}</div>
+                    </div>
+                    ${conflict.recommendation ? `
+                    <div class="detail-row">
+                        <div class="detail-label">Recommendation:</div>
+                        <div class="detail-value"><strong>${conflict.recommendation}</strong></div>
+                    </div>
+                    ` : ''}
+                `;
+            }
+
+            showToast('Conflict details loaded', 'info');
+        }
+
+        function dismissBanner() {
+            const banner = document.getElementById('pendingConflictBanner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initRadarChart();
@@ -1972,6 +2194,11 @@
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(14, 0, 0, 0);
             document.getElementById('meetingDateTime').value = tomorrow.toISOString().slice(0, 16);
+
+            // Check for pending conflict from navigation (Component 1.4)
+            setTimeout(() => {
+                checkPendingConflict();
+            }, 500);
         });
 
         // Close modals on outside click

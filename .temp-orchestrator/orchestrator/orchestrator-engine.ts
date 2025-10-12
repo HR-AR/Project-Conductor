@@ -25,6 +25,7 @@ import { AgentTest } from './agents/agent-test';
 import { AgentRealtime } from './agents/agent-realtime';
 import { AgentQuality } from './agents/agent-quality';
 import { AgentIntegration } from './agents/agent-integration';
+import { AgentSecurity } from './agents/agent-security';
 import logger from '../utils/logger';
 import { EventEmitter } from 'events';
 import ActivityService from '../../src/services/activity.service';
@@ -59,6 +60,7 @@ export class OrchestratorEngine extends EventEmitter {
     this.agents.set(AgentType.REALTIME, new AgentRealtime());
     this.agents.set(AgentType.QUALITY, new AgentQuality());
     this.agents.set(AgentType.INTEGRATION, new AgentIntegration());
+    this.agents.set(AgentType.SECURITY, new AgentSecurity());
 
     logger.info('All agents initialized');
   }
@@ -260,37 +262,96 @@ export class OrchestratorEngine extends EventEmitter {
           await this.checkMilestoneCompletion(task.milestone);
 
         } else {
-          await this.stateManager.updateTask(task.id, {
-            status: AgentStatus.FAILED,
-            completedAt: new Date(),
-            error: result.error,
-            result
-          });
+          // Check if this is a security conflict (SECURITY_CONFLICT error code)
+          const isSecurityConflict = result.error === 'SECURITY_CONFLICT' && result.metadata?.conflictType === 'security_vulnerability';
 
-          logger.error(`Task ${task.id} failed: ${result.error}`);
+          if (isSecurityConflict) {
+            // Handle security conflict - pause workflow
+            await this.stateManager.updateTask(task.id, {
+              status: AgentStatus.FAILED,
+              completedAt: new Date(),
+              error: result.error,
+              result
+            });
 
-          // Emit agent error event
-          if (this.activityService) {
-            this.activityService.logAgentError({
-              agentType: task.agentType,
-              agentName: agent.getName(),
+            logger.warn(`Security conflict detected in task ${task.id} - pausing workflow`);
+
+            // Extract vulnerability details
+            const vulnerabilities = result.metadata?.vulnerabilities as any[] || [];
+            const highestSeverity = this.getHighestSeverity(vulnerabilities);
+
+            // Emit agent conflict detected event
+            if (this.activityService) {
+              this.activityService.logAgentConflictDetected({
+                agentType: task.agentType,
+                agentName: agent.getName(),
+                taskId: task.id,
+                taskDescription: task.description,
+                conflictType: 'security_vulnerability',
+                conflictDescription: result.output || 'Security vulnerabilities detected in engineering design',
+                severity: highestSeverity,
+                affectedItems: vulnerabilities.map(v => v.id),
+                recommendedActions: vulnerabilities.map(v => v.recommendation),
+                requiresHumanInput: true,
+                timestamp: new Date()
+              }).catch(err => logger.error({ err }, 'Failed to log agent conflict detected event'));
+
+              // Emit agent paused event
+              this.activityService.logAgentPaused({
+                agentType: task.agentType,
+                agentName: agent.getName(),
+                taskId: task.id,
+                taskDescription: task.description,
+                reason: 'Security vulnerabilities detected - requires human resolution',
+                pauseType: 'conflict',
+                requiresAction: 'Review and resolve security vulnerabilities',
+                actionUrl: '/module-5-alignment.html',
+                timestamp: new Date()
+              }).catch(err => logger.error({ err }, 'Failed to log agent paused event'));
+            }
+
+            // Pause orchestrator (emit event to notify UI)
+            this.emit('workflow-paused', {
+              reason: 'security_conflict',
               taskId: task.id,
-              taskDescription: task.description,
-              error: result.error || 'Task failed',
-              errorType: 'execution',
-              canRetry: true,
-              timestamp: new Date()
-            }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
-          }
+              agentType: task.agentType,
+              vulnerabilities
+            });
 
-          await this.logError({
-            timestamp: new Date(),
-            phase: task.phase,
-            agent: task.agentType,
-            milestone: task.milestone,
-            error: result.error || 'Unknown error',
-            severity: 'medium'
-          });
+          } else {
+            // Regular failure (not a conflict)
+            await this.stateManager.updateTask(task.id, {
+              status: AgentStatus.FAILED,
+              completedAt: new Date(),
+              error: result.error,
+              result
+            });
+
+            logger.error(`Task ${task.id} failed: ${result.error}`);
+
+            // Emit agent error event
+            if (this.activityService) {
+              this.activityService.logAgentError({
+                agentType: task.agentType,
+                agentName: agent.getName(),
+                taskId: task.id,
+                taskDescription: task.description,
+                error: result.error || 'Task failed',
+                errorType: 'execution',
+                canRetry: true,
+                timestamp: new Date()
+              }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+            }
+
+            await this.logError({
+              timestamp: new Date(),
+              phase: task.phase,
+              agent: task.agentType,
+              milestone: task.milestone,
+              error: result.error || 'Unknown error',
+              severity: 'medium'
+            });
+          }
         }
       })
       .catch(async (error) => {
@@ -645,6 +706,22 @@ export class OrchestratorEngine extends EventEmitter {
       message: 'Report generated',
       data: report
     };
+  }
+
+  /**
+   * Get highest severity from vulnerabilities list
+   */
+  private getHighestSeverity(vulnerabilities: any[]): 'low' | 'medium' | 'high' | 'critical' {
+    const severityOrder = { low: 1, medium: 2, high: 3, critical: 4 };
+    let highest = 'low' as 'low' | 'medium' | 'high' | 'critical';
+
+    for (const vuln of vulnerabilities) {
+      if (severityOrder[vuln.severity] > severityOrder[highest]) {
+        highest = vuln.severity;
+      }
+    }
+
+    return highest;
   }
 
   /**

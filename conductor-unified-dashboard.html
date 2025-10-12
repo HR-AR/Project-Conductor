@@ -16,6 +16,9 @@
     <!-- Agent Activity Feed Styles -->
     <link rel="stylesheet" href="/public/css/activity-feed.css">
 
+    <!-- Conflict Alert Styles -->
+    <link rel="stylesheet" href="/public/css/conflict-alert.css">
+
     <style>
         * {
             margin: 0;
@@ -1755,6 +1758,26 @@
             </div>
 
             <div class="settings-section">
+                <div class="settings-section-title">Conflict Detection Testing</div>
+                <button class="quick-start-btn" onclick="testConflictDetection('critical')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🚨 Critical Conflict</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testConflictDetection('high')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>⚠️ High Severity</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testConflictDetection('medium')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>⚡ Medium Severity</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testWorkflowResume()" style="width: 100%;">
+                    <span>✓ Resume Workflow</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+            <div class="settings-section">
                 <div class="settings-section-title">Help & Support</div>
                 <a class="fab-menu-item" href="#" onclick="openVideoTutorials()">
                     <span>📹</span>
@@ -2907,6 +2930,46 @@
             window.agentActivityFeed.clearFeed();
             console.log('[Test] Cleared agent activity feed');
         }
+
+        /**
+         * Test conflict detection (Component 1.4)
+         */
+        function testConflictDetection(severity = 'high') {
+            if (!window.conflictHandler) {
+                alert('Conflict Handler not initialized yet. Retrying in 1 second...');
+                setTimeout(() => testConflictDetection(severity), 1000);
+                return;
+            }
+
+            window.conflictHandler.simulateConflict(severity);
+            console.log(`[Test] Simulated ${severity} severity conflict`);
+        }
+
+        /**
+         * Test workflow resume (Component 1.4)
+         */
+        function testWorkflowResume() {
+            if (!window.conflictHandler) {
+                alert('Conflict Handler not initialized yet.');
+                return;
+            }
+
+            // Simulate workflow resume event
+            if (window.conflictHandler.socket) {
+                window.conflictHandler.handleWorkflowResumed({
+                    timestamp: Date.now(),
+                    reason: 'Test resume'
+                });
+            } else {
+                // Manual resume
+                window.conflictHandler.handleWorkflowResumed({
+                    timestamp: Date.now(),
+                    reason: 'Test resume'
+                });
+            }
+
+            console.log('[Test] Simulated workflow resume');
+        }
     </script>
 
     <!-- Demo Walkthrough System -->
@@ -2917,5 +2980,8 @@
 
     <!-- Agent Activity Feed (NEW - Component 1.1) -->
     <script src="/public/js/activity-feed.js"></script>
+
+    <!-- Conflict Handler (NEW - Component 1.4) -->
+    <script src="/public/js/conflict-handler.js"></script>
 </body>
 </html>
