@@ -793,12 +793,28 @@
     </div>
 
     <script>
+        // Security: HTML escaping function to prevent XSS
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // State Management
         let currentStep = 1;
         let selectedDocType = null;
         let selectedStartPoint = null;
         let selectedComplexity = 'moderate';
         let generatedDocument = null;
+        let currentRequest = null; // For abort controller
+
+        // Rate limiting
+        let lastGenerationTime = 0;
+        const MIN_GENERATION_INTERVAL = 5000; // 5 seconds
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -847,11 +863,11 @@
                   ];
 
             container.innerHTML = options.map(opt => `
-                <div class="radio-option" data-value="${opt.value}">
+                <div class="radio-option" data-value="${escapeHtml(opt.value)}">
                     <div class="radio-circle"></div>
                     <div class="radio-text">
-                        <div class="radio-title">${opt.title}</div>
-                        <div class="radio-subtitle">${opt.subtitle}</div>
+                        <div class="radio-title">${escapeHtml(opt.title)}</div>
+                        <div class="radio-subtitle">${escapeHtml(opt.subtitle)}</div>
                     </div>
                 </div>
             `).join('');
@@ -891,6 +907,12 @@
         }
 
         function previousStep() {
+            // Cancel ongoing generation if user navigates away
+            if (currentRequest) {
+                currentRequest.abort();
+                currentRequest = null;
+            }
+
             if (currentStep > 1) {
                 currentStep--;
                 updateUI();
@@ -952,6 +974,14 @@
         }
 
         async function startGeneration() {
+            // Rate limiting check
+            const now = Date.now();
+            if (now - lastGenerationTime < MIN_GENERATION_INTERVAL) {
+                alert(`Please wait ${Math.ceil((MIN_GENERATION_INTERVAL - (now - lastGenerationTime)) / 1000)} seconds before generating another document`);
+                return;
+            }
+            lastGenerationTime = now;
+
             const idea = document.getElementById('ideaInput').value.trim();
             const progressContainer = document.getElementById('generationProgress');
 
@@ -959,14 +989,14 @@
                 ? ['Executive Summary', 'Problem Statement', 'Business Impact', 'Success Criteria', 'Stakeholders', 'Timeline']
                 : ['Product Overview', 'User Stories', 'Features', 'Technical Requirements', 'Dependencies'];
 
-            // Create progress sections
+            // Create progress sections with escaped content
             progressContainer.innerHTML = sections.map((section, index) => `
                 <div class="progress-section" id="section-${index}">
                     <div class="progress-icon">
                         <div class="spinner"></div>
                     </div>
                     <div class="progress-info">
-                        <div class="progress-title">${section}</div>
+                        <div class="progress-title">${escapeHtml(section)}</div>
                         <div class="progress-status">Generating...</div>
                     </div>
                     <div class="progress-actions" style="display: none;">
@@ -976,8 +1006,12 @@
                 </div>
             `).join('');
 
+            // Create abort controller for this request
+            const controller = new AbortController();
+            currentRequest = controller;
+
             try {
-                // Call API
+                // Call API with abort signal
                 const endpoint = selectedDocType === 'brd' ? '/api/v1/generation/brd-from-idea' : '/api/v1/generation/prd-from-idea';
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -986,9 +1020,10 @@
                         'x-user-id': 'demo-user'
                     },
                     body: JSON.stringify({
-                        idea,
+                        idea: idea.substring(0, 5000), // Limit input length
                         complexity: selectedComplexity
-                    })
+                    }),
+                    signal: controller.signal // Add abort signal
                 });
 
                 if (!response.ok) {
@@ -1013,10 +1048,26 @@
                 updateUI();
                 displayDocument();
             } catch (error) {
-                console.error('Generation error:', error);
-                alert('Failed to generate document. Please try again.');
-                currentStep = 3;
-                updateUI();
+                // Handle abort errors gracefully
+                if (error.name === 'AbortError') {
+                    console.log('Generation cancelled by user');
+                    return;
+                }
+
+                // Log error for debugging (avoid exposing sensitive data)
+                console.error('Generation error:', error.message || 'Unknown error');
+
+                // Show user-friendly error message
+                const errorMsg = error.message === 'Generation failed'
+                    ? 'Failed to generate document. Please check your internet connection and try again.'
+                    : 'An unexpected error occurred. Please try again.';
+                alert(errorMsg);
+
+                // Stay on current step (don't lose user input)
+                // Don't reset to step 3 - let them retry
+            } finally {
+                // Clear current request
+                currentRequest = null;
             }
         }
 
@@ -1027,21 +1078,21 @@
                 preview.innerHTML = `
                     <div class="preview-section">
                         <div class="preview-title">Title</div>
-                        <div class="preview-content">${generatedDocument.title}</div>
+                        <div class="preview-content">${escapeHtml(generatedDocument.title)}</div>
                     </div>
                     <div class="preview-section">
                         <div class="preview-title">Problem Statement</div>
-                        <div class="preview-content">${generatedDocument.problemStatement}</div>
+                        <div class="preview-content">${escapeHtml(generatedDocument.problemStatement)}</div>
                     </div>
                     <div class="preview-section">
                         <div class="preview-title">Business Impact</div>
-                        <div class="preview-content">${generatedDocument.businessImpact}</div>
+                        <div class="preview-content">${escapeHtml(generatedDocument.businessImpact)}</div>
                     </div>
                     <div class="preview-section">
                         <div class="preview-title">Success Criteria</div>
                         <div class="preview-content">
                             <ul style="margin-left: 20px;">
-                                ${generatedDocument.successCriteria.map(c => `<li>${c}</li>`).join('')}
+                                ${generatedDocument.successCriteria.map(c => `<li>${escapeHtml(c)}</li>`).join('')}
                             </ul>
                         </div>
                     </div>
@@ -1050,7 +1101,7 @@
                         <div class="preview-content">
                             ${generatedDocument.stakeholders.map(s => `
                                 <div style="margin-bottom: 12px;">
-                                    <strong>${s.name}</strong> - ${s.role} (${s.department})
+                                    <strong>${escapeHtml(s.name)}</strong> - ${escapeHtml(s.role)} (${escapeHtml(s.department)})
                                 </div>
                             `).join('')}
                         </div>
@@ -1060,14 +1111,14 @@
                 preview.innerHTML = `
                     <div class="preview-section">
                         <div class="preview-title">Title</div>
-                        <div class="preview-content">${generatedDocument.title}</div>
+                        <div class="preview-content">${escapeHtml(generatedDocument.title)}</div>
                     </div>
                     <div class="preview-section">
                         <div class="preview-title">Features (${generatedDocument.features.length})</div>
                         <div class="preview-content">
                             ${generatedDocument.features.map(f => `
                                 <div style="margin-bottom: 12px;">
-                                    <strong>${f.title}</strong> - ${f.description}
+                                    <strong>${escapeHtml(f.title)}</strong> - ${escapeHtml(f.description)}
                                 </div>
                             `).join('')}
                         </div>
@@ -1077,7 +1128,7 @@
                         <div class="preview-content">
                             ${generatedDocument.userStories.map(us => `
                                 <div style="margin-bottom: 12px;">
-                                    ${us.asA} wants to ${us.iWant} so that ${us.soThat}
+                                    ${escapeHtml(us.asA)} wants to ${escapeHtml(us.iWant)} so that ${escapeHtml(us.soThat)}
                                 </div>
                             `).join('')}
                         </div>

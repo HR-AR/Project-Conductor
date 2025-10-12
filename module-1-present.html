@@ -457,6 +457,231 @@
             color: #e74c3c;
         }
 
+        /* Project Cards Section */
+        .projects-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .projects-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+        }
+
+        .projects-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-btn.active {
+            background: rgba(52, 152, 219, 0.5);
+            border-color: rgba(52, 152, 219, 1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 16px 8px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .project-type {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .project-status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .project-status-badge.approved {
+            background: rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+        }
+
+        .project-status-badge.in_review {
+            background: rgba(241, 196, 15, 0.3);
+            color: #f1c40f;
+        }
+
+        .project-status-badge.draft {
+            background: rgba(149, 165, 166, 0.3);
+            color: #95a5a6;
+        }
+
+        .project-health {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .health-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .health-bar-fill.healthy {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+        }
+
+        .health-bar-fill.at-risk {
+            background: linear-gradient(90deg, #f1c40f, #f39c12);
+        }
+
+        .health-bar-fill.critical {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        .health-score-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .project-blockers {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .project-milestones {
+            margin-bottom: 12px;
+        }
+
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            padding: 4px 0;
+        }
+
+        .milestone-progress {
+            flex: 1;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .project-action-btn {
+            flex: 1;
+            padding: 6px 12px;
+            background: rgba(52, 152, 219, 0.3);
+            border: 1px solid rgba(52, 152, 219, 0.6);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .project-action-btn:hover {
+            background: rgba(52, 152, 219, 0.5);
+            border-color: rgba(52, 152, 219, 1);
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -668,6 +893,27 @@
             </div>
         </div>
 
+        <!-- Projects Section -->
+        <div class="projects-section">
+            <h2>Document-Anchored Projects</h2>
+
+            <div class="projects-filters">
+                <button class="filter-btn active" data-filter="all">All Projects</button>
+                <button class="filter-btn" data-filter="approved">Approved</button>
+                <button class="filter-btn" data-filter="in_review">In Review</button>
+                <button class="filter-btn" data-filter="draft">Draft</button>
+                <button class="filter-btn" data-filter="blocked">Blocked</button>
+                <div class="search-box">
+                    <input type="text" id="projectSearch" placeholder="Search projects..." />
+                </div>
+            </div>
+
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects will be loaded dynamically -->
+                <p style="text-align: center; opacity: 0.6; grid-column: 1 / -1;">Loading projects...</p>
+            </div>
+        </div>
+
         <!-- Activity Feed -->
         <div class="activity-section">
             <h2>Recent Activity</h2>
@@ -747,6 +993,9 @@
         let allPRDs = [];
         let allDesigns = [];
         let allConflicts = [];
+        let allProjects = [];
+        let filteredProjects = [];
+        let currentFilter = 'all';
         let activeUsers = 0;
         let refreshInterval = null;
         let activityLog = [];
@@ -772,6 +1021,12 @@
             // Load initial data
             await loadDashboardData();
 
+            // Set up filter buttons
+            setupFilters();
+
+            // Set up search
+            setupSearch();
+
             // Refresh every 30 seconds
             refreshInterval = setInterval(loadDashboardData, 30000);
         });
@@ -789,10 +1044,12 @@
                     loadBRDs(),
                     loadPRDs(),
                     loadDesigns(),
-                    loadConflicts()
+                    loadConflicts(),
+                    loadProjects()
                 ]);
 
                 updateDashboard();
+                renderProjects();
                 console.log('[Module 1] Dashboard data loaded');
             } catch (err) {
                 console.error('[Module 1] Failed to load data:', err);
@@ -1146,6 +1403,155 @@
             URL.revokeObjectURL(url);
 
             console.log('[Module 1] Report exported');
+        }
+
+        // Load projects from dashboard API
+        async function loadProjects() {
+            try {
+                const result = await api.get('/dashboard/projects');
+                allProjects = result.data || [];
+                filteredProjects = allProjects;
+                console.log('[Module 1] Loaded projects:', allProjects.length);
+            } catch (err) {
+                console.error('[Module 1] Failed to load projects:', err);
+                allProjects = [];
+                filteredProjects = [];
+            }
+        }
+
+        // Render projects grid
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+
+            if (filteredProjects.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; opacity: 0.6; grid-column: 1 / -1;">No projects found</p>';
+                return;
+            }
+
+            const html = filteredProjects.map(project => {
+                const healthClass = project.health_score >= 80 ? 'healthy' : project.health_score >= 60 ? 'at-risk' : 'critical';
+                const statusClass = project.status.replace(' ', '_');
+                const hasBlockers = project.blockers && project.blockers.length > 0;
+
+                return `
+                    <div class="project-card" onclick="viewNarrative(${project.narrative_id})">
+                        <div class="project-header">
+                            <div>
+                                <div class="project-title">${project.title}</div>
+                                <div class="project-type">${project.type.toUpperCase()}</div>
+                            </div>
+                            <div class="project-status-badge ${statusClass}">
+                                ${project.status === 'in_review' ? 'In Review' : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                            </div>
+                        </div>
+
+                        <div class="project-health">
+                            <div class="health-bar">
+                                <div class="health-bar-fill ${healthClass}" style="width: ${project.health_score}%"></div>
+                            </div>
+                            <div class="health-score-text">${project.health_score}</div>
+                        </div>
+
+                        ${hasBlockers ? `
+                            <div class="project-blockers">
+                                ⚠️ ${project.blockers.length} blocker${project.blockers.length > 1 ? 's' : ''}: ${project.blockers[0].title}
+                                ${project.blockers[0].days_overdue > 0 ? `(${project.blockers[0].days_overdue} days overdue)` : ''}
+                            </div>
+                        ` : ''}
+
+                        ${project.next_milestones && project.next_milestones.length > 0 ? `
+                            <div class="project-milestones">
+                                ${project.next_milestones.slice(0, 2).map(m => `
+                                    <div class="milestone-item">
+                                        <span>${m.status === 'in_progress' ? '🔄' : m.status === 'blocked' ? '⚠️' : '📋'}</span>
+                                        <span>${m.title}</span>
+                                        <span class="milestone-progress">${m.progress}%</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div class="project-actions">
+                            <a href="/demo/module-2-brd.html?narrative=${project.narrative_id}"
+                               class="project-action-btn"
+                               onclick="event.stopPropagation()">
+                                📝 View Document
+                            </a>
+                            ${project.status === 'in_review' ? `
+                                <a href="/demo/approvals.html?narrative=${project.narrative_id}"
+                                   class="project-action-btn"
+                                   onclick="event.stopPropagation()">
+                                    ✅ Review
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = html;
+        }
+
+        // View narrative
+        function viewNarrative(narrativeId) {
+            window.location.href = `/demo/module-2-brd.html?narrative=${narrativeId}`;
+        }
+
+        // Setup filter buttons
+        function setupFilters() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update active state
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Apply filter
+                    const filter = btn.dataset.filter;
+                    currentFilter = filter;
+                    applyFilters();
+                });
+            });
+        }
+
+        // Setup search
+        function setupSearch() {
+            const searchInput = document.getElementById('projectSearch');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters(e.target.value);
+                }, 300);
+            });
+        }
+
+        // Apply filters
+        function applyFilters(searchQuery = '') {
+            let projects = [...allProjects];
+
+            // Apply status filter
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'blocked') {
+                    projects = projects.filter(p => p.blockers && p.blockers.length > 0);
+                } else {
+                    projects = projects.filter(p => p.status === currentFilter);
+                }
+            }
+
+            // Apply search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                projects = projects.filter(p =>
+                    p.title.toLowerCase().includes(query) ||
+                    p.project_id.toLowerCase().includes(query)
+                );
+            }
+
+            filteredProjects = projects;
+            renderProjects();
         }
 
         // Cleanup

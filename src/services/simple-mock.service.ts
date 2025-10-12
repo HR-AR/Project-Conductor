@@ -34,6 +34,23 @@ import type { EngineeringDesign } from '../models/engineering-design.model';
 import type { Conflict } from '../models/conflict.model';
 import type { ChangeLogEntry } from '../models/change-log.model';
 import type { Project, CreateProjectRequest, UpdateProjectRequest } from '../models/project.model';
+import type {
+  Approval,
+  Decision,
+  CreateApprovalRequest,
+  VoteRequest,
+  ApprovalFilters,
+  PendingApproval,
+  ApprovalInitiationResponse,
+  DecisionRegisterEntry,
+} from '../models/approval.model';
+import {
+  mockApprovals,
+  mockDecisions,
+  mockApprovalReviewers,
+  getPendingApprovalsForReviewer,
+  getDecisionsByNarrative,
+} from '../mock-data/approvals.mock';
 
 class SimpleMockService {
   private requirements: Map<string, Requirement> = new Map();
@@ -1701,6 +1718,209 @@ class SimpleMockService {
 
     this.projects.set(id, updated);
     return updated;
+  }
+
+  // ============================================================
+  // Approval & Decision Register Methods
+  // ============================================================
+
+  /**
+   * Get pending approvals for a reviewer
+   */
+  async getPendingApprovals(reviewerId: number): Promise<PendingApproval[]> {
+    const approvals = getPendingApprovalsForReviewer(reviewerId);
+    return approvals.map(a => ({
+      approval_id: a.id,
+      narrative_id: a.narrative_id,
+      narrative_version: a.narrative_version,
+      status: a.status,
+      due_date: a.due_date,
+      created_at: a.created_at,
+      has_voted: false,
+    }));
+  }
+
+  /**
+   * Get decisions for a narrative
+   */
+  async getDecisions(narrativeId: number, version?: number): Promise<DecisionRegisterEntry[]> {
+    const decisions = getDecisionsByNarrative(narrativeId, version);
+    return decisions.map(d => ({
+      decision_id: d.id,
+      narrative_id: d.narrative_id,
+      narrative_version: d.narrative_version,
+      reviewer_id: d.reviewer_id,
+      vote: d.vote,
+      reasoning: d.reasoning,
+      conditions: d.conditions,
+      created_at: d.created_at,
+    }));
+  }
+
+  /**
+   * Check approval status
+   */
+  async checkApprovalStatus(approvalId: number): Promise<{
+    all_voted: boolean;
+    total_reviewers: number;
+    decisions_count: number;
+    approved_count: number;
+    rejected_count: number;
+    conditional_count: number;
+  }> {
+    const reviewers = mockApprovalReviewers.filter(ar => ar.approval_id === approvalId);
+    const approval = mockApprovals.find(a => a.id === approvalId);
+
+    if (!approval) {
+      return {
+        all_voted: false,
+        total_reviewers: 0,
+        decisions_count: 0,
+        approved_count: 0,
+        rejected_count: 0,
+        conditional_count: 0,
+      };
+    }
+
+    const decisions = mockDecisions.filter(d =>
+      d.narrative_id === approval.narrative_id &&
+      d.narrative_version === approval.narrative_version
+    );
+
+    const approvedCount = decisions.filter(d => d.vote === 'approve').length;
+    const rejectedCount = decisions.filter(d => d.vote === 'reject').length;
+    const conditionalCount = decisions.filter(d => d.vote === 'conditional').length;
+
+    return {
+      all_voted: decisions.length >= reviewers.length,
+      total_reviewers: reviewers.length,
+      decisions_count: decisions.length,
+      approved_count: approvedCount,
+      rejected_count: rejectedCount,
+      conditional_count: conditionalCount,
+    };
+  }
+
+  /**
+   * Get approvals with filtering
+   */
+  async getApprovals(filters: ApprovalFilters = {}): Promise<Approval[]> {
+    let approvals = [...mockApprovals];
+
+    if (filters.narrative_id !== undefined) {
+      approvals = approvals.filter(a => a.narrative_id === filters.narrative_id);
+    }
+
+    if (filters.reviewer_id !== undefined) {
+      const approvalIds = mockApprovalReviewers
+        .filter(ar => ar.reviewer_id === filters.reviewer_id)
+        .map(ar => ar.approval_id);
+      approvals = approvals.filter(a => approvalIds.includes(a.id));
+    }
+
+    if (filters.status && filters.status.length > 0) {
+      approvals = approvals.filter(a => filters.status!.includes(a.status));
+    }
+
+    if (filters.overdue) {
+      const now = new Date();
+      approvals = approvals.filter(a =>
+        a.due_date < now && a.status === 'pending'
+      );
+    }
+
+    return approvals;
+  }
+
+  /**
+   * Get approval by ID
+   */
+  async getApprovalById(id: number): Promise<Approval | null> {
+    return mockApprovals.find(a => a.id === id) || null;
+  }
+
+  /**
+   * Initiate review (mock)
+   */
+  async initiateReview(
+    request: CreateApprovalRequest,
+    initiatedBy: number
+  ): Promise<ApprovalInitiationResponse> {
+    const approval: Approval = {
+      id: mockApprovals.length + 1,
+      narrative_id: request.narrative_id,
+      narrative_version: request.narrative_version,
+      reviewer_id: request.reviewer_ids[0] || initiatedBy,
+      status: 'pending',
+      due_date: new Date(request.due_date),
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    const reviewers = request.reviewer_ids.map(id => ({
+      reviewer_id: id,
+      status: 'pending' as const,
+    }));
+
+    return {
+      approval,
+      reviewers,
+      message: `Review initiated with ${reviewers.length} reviewer(s)`,
+    };
+  }
+
+  /**
+   * Record vote (mock)
+   */
+  async recordVote(
+    approvalId: number,
+    vote: VoteRequest
+  ): Promise<{
+    approval_id: number;
+    narrative_id: number;
+    narrative_version: number;
+    status: 'pending' | 'approved' | 'rejected' | 'conditional';
+    total_reviewers: number;
+    approved_count: number;
+    rejected_count: number;
+    conditional_count: number;
+    pending_count: number;
+    all_voted: boolean;
+    is_approved: boolean;
+    decisions: Decision[];
+  }> {
+    const approval = mockApprovals.find(a => a.id === approvalId);
+
+    if (!approval) {
+      throw new Error('Approval not found');
+    }
+
+    const statusCheck = await this.checkApprovalStatus(approvalId);
+    const decisions = await this.getDecisions(approval.narrative_id, approval.narrative_version);
+
+    return {
+      approval_id: approvalId,
+      narrative_id: approval.narrative_id,
+      narrative_version: approval.narrative_version,
+      status: approval.status,
+      total_reviewers: statusCheck.total_reviewers,
+      approved_count: statusCheck.approved_count,
+      rejected_count: statusCheck.rejected_count,
+      conditional_count: statusCheck.conditional_count,
+      pending_count: statusCheck.total_reviewers - statusCheck.decisions_count,
+      all_voted: statusCheck.all_voted,
+      is_approved: statusCheck.approved_count === statusCheck.total_reviewers,
+      decisions: decisions.map(d => ({
+        id: d.decision_id,
+        narrative_id: d.narrative_id,
+        narrative_version: d.narrative_version,
+        reviewer_id: d.reviewer_id,
+        vote: d.vote,
+        reasoning: d.reasoning,
+        conditions: d.conditions,
+        created_at: d.created_at,
+      })),
+    };
   }
 }
 

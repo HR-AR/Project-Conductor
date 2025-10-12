@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 2: Business Requirements Document (BRD) - Project Conductor</title>
+
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+
+    <!-- JS-YAML for YAML frontmatter parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1920px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 40px);
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-left h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .version-selector {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .version-selector option {
+            color: #1f2937;
+        }
+
+        .autosave-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .autosave-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: #f9fafb;
+            padding: 12px 20px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .toolbar-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar-btn:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+        }
+
+        .toolbar-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 24px;
+            background: #d1d5db;
+            margin: 0 4px;
+        }
+
+        /* Split View */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Editor Pane */
+        .editor-pane {
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .editor-header {
+            padding: 12px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #4b5563;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-textarea {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        /* Preview Pane */
+        .preview-pane {
+            display: flex;
+            flex-direction: column;
+            background: #f9fafb;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            padding: 12px 20px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #4b5563;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        /* Markdown Rendering Styles */
+        .preview-content h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .preview-content h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+
+        .preview-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        .preview-content p {
+            color: #6b7280;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .preview-content ul, .preview-content ol {
+            margin-left: 24px;
+            margin-bottom: 16px;
+            color: #6b7280;
+        }
+
+        .preview-content li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .preview-content code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            color: #dc2626;
+        }
+
+        .preview-content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .preview-content pre code {
+            background: none;
+            color: #f9fafb;
+            padding: 0;
+        }
+
+        .preview-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* YAML Frontmatter Styling */
+        .yaml-frontmatter {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+
+        .yaml-frontmatter .yaml-key {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .yaml-frontmatter .yaml-value {
+            color: #059669;
+        }
+
+        .yaml-frontmatter .yaml-separator {
+            color: #9ca3af;
+            border-bottom: 1px solid #d1d5db;
+            padding: 4px 0;
+            margin: 8px 0;
+        }
+
+        /* Widget Tag Highlighting */
+        .widget-tag {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-family: monospace;
+            font-size: 13px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .widget-tag::before {
+            content: '📊 ';
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-top: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4b5563;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        /* Global Navigation */
+        .global-nav {
+            background: #1f2937;
+            color: white;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .global-nav-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .global-nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .global-nav-link {
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .global-nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .global-nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #1f2937;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #10b981;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        .toast.info {
+            background: #3b82f6;
+        }
+
+        /* Character counter */
+        .char-counter {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Loading state */
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Navigation -->
+    <div class="global-nav">
+        <a href="/demo" class="global-nav-brand">
+            🎯 Project Conductor
+        </a>
+        <div class="global-nav-links">
+            <a href="/demo" class="global-nav-link">📊 Dashboard</a>
+            <a href="/demo/module-0-onboarding.html" class="global-nav-link">🚀 Onboarding</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="global-nav-link">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="global-nav-link active">📋 BRD</a>
+            <a href="/demo/module-3-prd.html" class="global-nav-link">📝 PRD</a>
+            <a href="/demo/module-4-implementation.html" class="global-nav-link">⚙️ Implementation</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>📋 Business Requirements Document (BRD)</h1>
+                <p>Rich Markdown editor with live preview and version control</p>
+            </div>
+            <div class="header-right">
+                <select class="version-selector" id="versionSelector" onchange="loadVersion()">
+                    <option value="3" selected>v3 (Current)</option>
+                    <option value="2">v2 (Previous)</option>
+                    <option value="1">v1 (Original)</option>
+                </select>
+                <div class="autosave-indicator">
+                    <div class="autosave-dot"></div>
+                    <span id="autosaveText">Auto-saved just now</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="insertMarkdown('**', '**')" title="Bold">
+                <strong>B</strong>
+            </button>
+            <button class="toolbar-btn" onclick="insertMarkdown('*', '*')" title="Italic">
+                <em>I</em>
+            </button>
+            <button class="toolbar-btn" onclick="insertMarkdown('## ', '')" title="Heading">
+                H2
+            </button>
+            <button class="toolbar-btn" onclick="insertMarkdown('- ', '')" title="Bullet List">
+                • List
+            </button>
+            <button class="toolbar-btn" onclick="insertMarkdown('1. ', '')" title="Numbered List">
+                1. List
+            </button>
+
+            <div class="toolbar-separator"></div>
+
+            <button class="toolbar-btn" onclick="insertWidget()" title="Insert Widget">
+                📊 Widget
+            </button>
+            <button class="toolbar-btn" onclick="insertLink()" title="Insert Link">
+                🔗 Link
+            </button>
+
+            <div class="toolbar-separator"></div>
+
+            <span class="char-counter" id="charCounter">0 characters</span>
+        </div>
+
+        <!-- Split View -->
+        <div class="split-view">
+            <!-- Editor Pane -->
+            <div class="editor-pane">
+                <div class="editor-header">
+                    Markdown Editor
+                </div>
+                <textarea
+                    class="editor-textarea"
+                    id="markdownEditor"
+                    placeholder="Start typing your BRD here...
+
+You can use:
+- YAML frontmatter at the top (between --- lines)
+- Markdown formatting
+- Widget tags: {{widget type='project-status' project-id='42'}}
+- Cross-references: [[milestone-42]]"
+                    oninput="handleEditorInput()"></textarea>
+            </div>
+
+            <!-- Preview Pane -->
+            <div class="preview-pane">
+                <div class="preview-header">
+                    Live Preview
+                    <div>
+                        <button class="btn btn-secondary" onclick="exportMarkdown()" style="padding: 6px 12px; font-size: 13px;">
+                            💾 Export
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <p style="color: #cbd5e1; text-align: center; margin-top: 40px;">
+                        <em>Your rendered content will appear here...</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="loadTemplate()">
+                📄 Load Template
+            </button>
+            <button class="btn btn-secondary" onclick="saveDraft()">
+                💾 Save Draft
+            </button>
+            <button class="btn btn-success" onclick="finalizeForReview()">
+                ✅ Finalize for Review
+            </button>
+            <button class="btn btn-primary" onclick="navigateToPRD()" style="margin-left: auto;">
+                Next: PRD →
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+
+    <script>
+        // State Management
+        let currentNarrativeId = 'project-42'; // Demo project ID
+        let currentVersion = 3;
+        let autoSaveTimeout = null;
+        let lastSavedContent = '';
+        let userId = 'user-' + Math.random().toString(36).substr(2, 9);
+
+        // Mock narrative data (fallback if Agent 1 not ready)
+        const mockNarratives = {
+            1: {
+                version: 1,
+                content: `---
+id: project-42
+type: brd
+status: draft
+created_at: 2025-01-10T10:00:00Z
+author: John Doe
+---
+
+# Mobile App Redesign (BRD v1)
+
+## Executive Summary
+
+Our mobile app needs a complete redesign to stay competitive in the market.
+
+## Business Problem
+
+Current user retention is only 30%. Competitors offer better UX.`
+            },
+            2: {
+                version: 2,
+                content: `---
+id: project-42
+type: brd
+status: rejected
+created_at: 2025-01-12T14:00:00Z
+approved_at: null
+author: John Doe
+reviewers:
+  - id: user-legal
+    name: Jane Doe
+    role: Legal
+    vote: rejected
+    reasoning: Missing GDPR compliance section
+---
+
+# Mobile App Redesign (BRD v2)
+
+## Executive Summary
+
+We're redesigning the mobile app to increase user retention from 30% to 65%, translating to $2M in annual recurring revenue.
+
+## Business Problem Statement
+
+Our current mobile app has a dated UI/UX that fails to meet modern user expectations. This results in:
+- Low user retention (30% vs industry standard 65%)
+- High customer support costs (15% of users need help navigating)
+- Missed revenue opportunities ($2M annually)
+
+## Business Objectives
+
+- Increase 30-day user retention from 30% to 65%
+- Reduce customer support tickets by 40%
+- Achieve App Store rating of 4.5+ stars
+- Launch redesign within 6 months
+
+## Success Metrics
+
+{{widget type="project-status" project-id="42"}}
+
+## Stakeholders
+
+- Sarah Chen (CEO) - Executive Sponsor
+- Mike Johnson (CFO) - Budget Approval
+- Jane Doe (Legal) - Compliance Review`
+            },
+            3: {
+                version: 3,
+                content: `---
+id: project-42
+type: brd
+status: approved
+created_at: 2025-01-15T10:00:00Z
+approved_at: 2025-01-15T14:30:00Z
+author: John Doe
+approvers:
+  - id: user-1
+    name: Sarah Chen
+    role: CEO
+    vote: approved
+    conditions:
+      - Reduce budget to $60k
+  - id: user-2
+    name: Mike Johnson
+    role: CFO
+    vote: approved
+  - id: user-3
+    name: Jane Doe
+    role: Legal
+    vote: approved
+health_score: 85
+milestones:
+  - id: milestone-42
+    title: Home Screen Redesign
+    status: in_progress
+    progress: 80
+  - id: milestone-43
+    title: Push Notifications
+    status: blocked
+    blocker: API team dependency
+---
+
+# Mobile App Redesign (BRD v3) ✅ Approved
+
+## Executive Summary
+
+We're redesigning the mobile app to increase user retention from 30% to 65%, translating to **$2M in annual recurring revenue**. This project requires 6 months of engineering effort and $60K budget.
+
+## Business Problem Statement
+
+Our current mobile app has a dated UI/UX that fails to meet modern user expectations. User research shows:
+
+- **Low retention**: Only 30% of users return after 30 days (industry avg: 65%)
+- **High support costs**: 15% of users contact support for basic navigation
+- **Poor ratings**: Current App Store rating is 3.2 stars (target: 4.5+)
+- **Revenue loss**: Estimated $2M/year in lost opportunities
+
+**Impact if not addressed**: Continued decline in market share, potential loss of 25% of user base to competitors within 18 months.
+
+## Business Objectives
+
+1. **User Retention**: Increase 30-day retention from 30% to 65%
+2. **Support Efficiency**: Reduce customer support tickets by 40%
+3. **User Satisfaction**: Achieve App Store rating of 4.5+ stars
+4. **Revenue Growth**: Unlock $2M in annual recurring revenue
+5. **Market Position**: Match feature parity with top 2 competitors
+
+## Project Status
+
+{{widget type="project-status" project-id="42"}}
+
+## Success Criteria
+
+### Critical Success Factors
+
+- ✅ Launch all 3 core features within 6-month timeline
+- ✅ Achieve 65% 30-day retention within 3 months of launch
+- ✅ App Store rating improves to 4.5+ stars
+- ✅ Support ticket volume decreases by 40%
+
+### Key Performance Indicators (KPIs)
+
+- **Daily Active Users (DAU)**: +50% increase
+- **Session Duration**: +30% increase
+- **Feature Adoption**: 70%+ of users try new features
+- **Net Promoter Score (NPS)**: Improve from 20 to 50+
+
+## Milestones
+
+### Phase 1: Home Screen Redesign [[milestone-42]]
+**Status**: 🟡 In Progress (80% complete)
+**Owner**: Alex Chen (Design Lead)
+**Timeline**: Jan 20 - Feb 5
+**Deliverables**:
+- Modern card-based layout
+- Personalized content feed
+- Quick action buttons
+
+### Phase 2: Push Notifications [[milestone-43]]
+**Status**: 🔴 Blocked
+**Owner**: Jamie Lee (Backend Lead)
+**Timeline**: Feb 6 - Feb 20
+**Dependencies**: [[project-api-v2]]
+**Blocker**: API team has not delivered integration endpoint (2 days overdue)
+
+{{widget type="blocker-alert" milestone-id="43"}}
+
+### Phase 3: User Profiles
+**Status**: ⚪ Not Started
+**Owner**: Sam Taylor (Frontend Lead)
+**Timeline**: Feb 21 - Mar 10
+
+## Stakeholders
+
+| Name | Role | Responsibility |
+|------|------|----------------|
+| Sarah Chen | CEO | Executive Sponsor |
+| Mike Johnson | CFO | Budget Approval |
+| Jane Doe | Legal | Compliance Review |
+| Alex Chen | Design Lead | UX/UI Design |
+| Jamie Lee | Backend Lead | API Integration |
+| Sam Taylor | Frontend Lead | Mobile Development |
+
+## Budget & Timeline
+
+**Total Budget**: $60,000
+**Start Date**: January 20, 2025
+**Target Launch**: July 20, 2025 (6 months)
+**Contingency**: 10% buffer ($6K)
+
+### Budget Breakdown
+
+- Design & UX Research: $15K
+- Engineering Development: $30K
+- QA & Testing: $8K
+- Marketing & Launch: $5K
+- Contingency: $2K
+
+## Constraints & Dependencies
+
+### Technical Constraints
+
+- Must maintain backward compatibility with iOS 14+
+- Maximum app size: 100MB
+- Offline functionality required for core features
+
+### External Dependencies
+
+- API v2 from Platform Team (due Feb 1)
+- Legal review for GDPR compliance (completed ✅)
+- Design system updates from Brand Team
+
+### Risk Factors
+
+1. **High**: API team delay (currently 2 days behind)
+2. **Medium**: App Store approval process (typical 3-7 days)
+3. **Low**: Third-party SDK compatibility issues
+
+## GDPR Compliance (Legal Review Completed ✅)
+
+### Data Collection & Retention
+
+- User profile data retained for 365 days after last login
+- Analytics data anonymized after 90 days
+- Explicit consent required for push notifications
+- One-click data export available in user settings
+
+### User Rights
+
+- **Right to Access**: Export all personal data via Settings
+- **Right to Deletion**: Account deletion removes all data within 30 days
+- **Right to Opt-Out**: Granular control over data sharing preferences
+
+### Security Measures
+
+- All data encrypted at rest (AES-256)
+- Data transmission via HTTPS/TLS 1.3
+- Annual third-party security audit required
+
+## Approval History
+
+### v3 - ✅ Approved (Jan 15, 2025 14:30)
+
+- **Sarah Chen (CEO)**: Approved with condition (reduce budget to $60K)
+- **Mike Johnson (CFO)**: Approved
+- **Jane Doe (Legal)**: Approved (GDPR compliance section added)
+
+**Final Decision**: Approved with 1 condition (budget reduction completed)
+
+### v2 - ❌ Rejected (Jan 10, 2025)
+
+- **Jane Doe (Legal)**: Rejected - Missing GDPR compliance details
+
+### v1 - 📝 Draft (Jan 10, 2025)
+
+- Initial draft created
+
+---
+
+**Document Version**: v3
+**Last Updated**: January 15, 2025
+**Next Review**: PRD Creation (approved BRD triggers auto-generation)`
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDocument();
+            setupAutoSave();
+
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, 'Demo User');
+            }
+
+            console.log('[Module 2 BRD] Markdown editor initialized');
+        });
+
+        // Load document from API or mock data
+        async function loadDocument() {
+            try {
+                // Try to load from API first
+                if (typeof api !== 'undefined') {
+                    const response = await api.get(`/narratives/${currentNarrativeId}`);
+                    if (response && response.content) {
+                        document.getElementById('markdownEditor').value = response.content;
+                        renderPreview(response.content);
+                        lastSavedContent = response.content;
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log('[Module 2] API not available, using mock data');
+            }
+
+            // Fallback to mock data
+            const narrative = mockNarratives[currentVersion];
+            if (narrative) {
+                document.getElementById('markdownEditor').value = narrative.content;
+                renderPreview(narrative.content);
+                lastSavedContent = narrative.content;
+            }
+        }
+
+        // Load specific version
+        async function loadVersion() {
+            const select = document.getElementById('versionSelector');
+            currentVersion = parseInt(select.value);
+            await loadDocument();
+            showToast(`Loaded version ${currentVersion}`, 'info');
+        }
+
+        // Handle editor input with debounced preview update
+        function handleEditorInput() {
+            const content = document.getElementById('markdownEditor').value;
+
+            // Update character counter
+            const charCount = content.length;
+            document.getElementById('charCounter').textContent = `${charCount.toLocaleString()} characters`;
+
+            // Debounce preview update (500ms)
+            if (window.previewTimeout) {
+                clearTimeout(window.previewTimeout);
+            }
+
+            window.previewTimeout = setTimeout(() => {
+                renderPreview(content);
+            }, 500);
+
+            // Trigger auto-save check
+            checkAutoSave();
+        }
+
+        // Render Markdown preview
+        function renderPreview(content) {
+            const previewDiv = document.getElementById('previewContent');
+
+            try {
+                // Parse YAML frontmatter
+                let yamlData = null;
+                let markdownContent = content;
+
+                if (content.trim().startsWith('---')) {
+                    const parts = content.split('---');
+                    if (parts.length >= 3) {
+                        const yamlText = parts[1];
+                        markdownContent = parts.slice(2).join('---');
+
+                        try {
+                            yamlData = jsyaml.load(yamlText);
+                        } catch (e) {
+                            console.error('YAML parse error:', e);
+                        }
+                    }
+                }
+
+                // Render YAML frontmatter
+                let html = '';
+                if (yamlData) {
+                    html += '<div class="yaml-frontmatter">';
+                    html += '<div class="yaml-separator">YAML Frontmatter</div>';
+                    html += renderYAML(yamlData);
+                    html += '</div>';
+                }
+
+                // Process widget tags
+                markdownContent = markdownContent.replace(
+                    /\{\{widget\s+([^}]+)\}\}/g,
+                    (match, params) => {
+                        return `<div class="widget-tag">${params}</div>`;
+                    }
+                );
+
+                // Render Markdown
+                const renderedMarkdown = marked.parse(markdownContent);
+                html += renderedMarkdown;
+
+                previewDiv.innerHTML = html;
+            } catch (err) {
+                console.error('Render error:', err);
+                previewDiv.innerHTML = `<p style="color: #ef4444;">⚠️ Preview error: ${err.message}</p>`;
+            }
+        }
+
+        // Render YAML as formatted HTML
+        function renderYAML(obj, indent = 0) {
+            let html = '';
+            const spacing = '  '.repeat(indent);
+
+            for (const [key, value] of Object.entries(obj)) {
+                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                    html += `${spacing}<span class="yaml-key">${key}:</span><br>`;
+                    html += renderYAML(value, indent + 1);
+                } else if (Array.isArray(value)) {
+                    html += `${spacing}<span class="yaml-key">${key}:</span><br>`;
+                    value.forEach(item => {
+                        if (typeof item === 'object') {
+                            html += renderYAML(item, indent + 1);
+                        } else {
+                            html += `${spacing}  - <span class="yaml-value">${item}</span><br>`;
+                        }
+                    });
+                } else {
+                    html += `${spacing}<span class="yaml-key">${key}:</span> <span class="yaml-value">${value}</span><br>`;
+                }
+            }
+
+            return html;
+        }
+
+        // Auto-save functionality
+        function setupAutoSave() {
+            setInterval(() => {
+                autoSaveIfNeeded();
+            }, 30000); // Every 30 seconds
+        }
+
+        function checkAutoSave() {
+            if (autoSaveTimeout) {
+                clearTimeout(autoSaveTimeout);
+            }
+
+            autoSaveTimeout = setTimeout(() => {
+                autoSaveIfNeeded();
+            }, 5000); // 5 seconds after last edit
+        }
+
+        async function autoSaveIfNeeded() {
+            const content = document.getElementById('markdownEditor').value;
+
+            if (content !== lastSavedContent) {
+                await saveDraft(true);
+            }
+        }
+
+        // Save draft
+        async function saveDraft(isAutoSave = false) {
+            const content = document.getElementById('markdownEditor').value;
+
+            if (!content.trim()) {
+                if (!isAutoSave) {
+                    showToast('Cannot save empty document', 'error');
+                }
+                return;
+            }
+
+            try {
+                // Show saving indicator
+                const indicator = document.getElementById('autosaveText');
+                if (isAutoSave) {
+                    indicator.innerHTML = '<span class="loading"></span> Saving...';
+                }
+
+                // Try to save via API
+                if (typeof api !== 'undefined') {
+                    await api.post(`/narratives/${currentNarrativeId}/versions`, {
+                        content: content,
+                        change_reason: isAutoSave ? 'Auto-save' : 'Manual save'
+                    });
+                } else {
+                    // Mock save
+                    mockNarratives[currentVersion] = {
+                        version: currentVersion,
+                        content: content
+                    };
+                }
+
+                lastSavedContent = content;
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString();
+                indicator.textContent = `Auto-saved at ${timeStr}`;
+
+                if (!isAutoSave) {
+                    showToast('Draft saved successfully', 'success');
+                }
+
+                console.log('[Module 2] Draft saved');
+            } catch (err) {
+                console.error('Save error:', err);
+                document.getElementById('autosaveText').textContent = 'Save failed';
+
+                if (!isAutoSave) {
+                    showToast('Failed to save draft: ' + err.message, 'error');
+                }
+            }
+        }
+
+        // Finalize for review
+        async function finalizeForReview() {
+            const content = document.getElementById('markdownEditor').value;
+
+            if (!content.trim()) {
+                showToast('Cannot finalize empty document', 'error');
+                return;
+            }
+
+            const reason = prompt('Enter change reason for this version:');
+            if (!reason) {
+                return;
+            }
+
+            try {
+                // Save current version
+                await saveDraft(false);
+
+                // Mark as ready for review
+                if (typeof api !== 'undefined') {
+                    await api.post(`/narratives/${currentNarrativeId}/finalize`, {
+                        version: currentVersion,
+                        change_reason: reason
+                    });
+                }
+
+                showToast('Document finalized and locked for review', 'success');
+
+                // Create new version for future edits
+                currentVersion++;
+                const select = document.getElementById('versionSelector');
+                const newOption = document.createElement('option');
+                newOption.value = currentVersion;
+                newOption.text = `v${currentVersion} (Current)`;
+                newOption.selected = true;
+                select.insertBefore(newOption, select.firstChild);
+
+                showToast(`Created new version v${currentVersion} for future edits`, 'info');
+            } catch (err) {
+                console.error('Finalize error:', err);
+                showToast('Failed to finalize: ' + err.message, 'error');
+            }
+        }
+
+        // Markdown insertion helpers
+        function insertMarkdown(before, after) {
+            const textarea = document.getElementById('markdownEditor');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            const replacement = before + selectedText + after;
+
+            textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+
+            // Set cursor position
+            const newCursorPos = start + before.length + selectedText.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.focus();
+
+            handleEditorInput();
+        }
+
+        function insertWidget() {
+            const widgetType = prompt('Enter widget type (e.g., project-status, blocker-alert):');
+            if (!widgetType) return;
+
+            const projectId = prompt('Enter project ID:');
+            if (!projectId) return;
+
+            const widgetTag = `{{widget type="${widgetType}" project-id="${projectId}"}}`;
+            insertMarkdown(widgetTag + '\n', '');
+        }
+
+        function insertLink() {
+            const text = prompt('Enter link text:');
+            if (!text) return;
+
+            const url = prompt('Enter URL:');
+            if (!url) return;
+
+            insertMarkdown(`[${text}](${url})`, '');
+        }
+
+        // Load template
+        function loadTemplate() {
+            const templates = {
+                'brd-basic': mockNarratives[3].content,
+                'brd-simple': mockNarratives[1].content
+            };
+
+            const choice = confirm('Load BRD template? (This will replace current content)');
+            if (!choice) return;
+
+            document.getElementById('markdownEditor').value = templates['brd-basic'];
+            handleEditorInput();
+            showToast('Template loaded', 'success');
+        }
+
+        // Export Markdown
+        function exportMarkdown() {
+            const content = document.getElementById('markdownEditor').value;
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `brd-${currentNarrativeId}-v${currentVersion}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Markdown exported', 'success');
+        }
+
+        // Navigate to PRD
+        function navigateToPRD() {
+            window.location.href = '/demo/module-3-prd.html?brdId=' + currentNarrativeId;
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

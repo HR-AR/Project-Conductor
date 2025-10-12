@@ -1,5 +1,55 @@
 # Project Conductor - Development Guidelines
 
+## 🎯 CORE VISION (Updated 2025-10-08)
+
+**Project Conductor is a doc-anchored orchestration platform that makes the narrative document the source of truth for project management.**
+
+### The Guiding Principle
+> "The document IS the project. Status, approvals, and execution all flow from and back to the living narrative."
+
+Inspired by Amazon's PR/FAQ and six-pager methodology, Project Conductor combines:
+1. **Document-Centric Truth**: BRDs/PRDs are versioned, living documents (Markdown + YAML frontmatter)
+2. **Orchestration Intelligence**: Auto-routing approvals, SLA tracking, dependency detection
+3. **Real-Time Visibility**: Embedded widgets show live status within documents
+4. **Immutable Audit Trail**: Decision register captures every approval with full context
+
+### Critical Architecture Documents (READ THESE FIRST)
+- **[CRITICAL_ANALYSIS_AND_INTEGRATION.md](CRITICAL_ANALYSIS_AND_INTEGRATION.md)** - Complete architectural vision, database schema, implementation plan
+- **[STRATEGIC_REFOCUS_PLAN.md](STRATEGIC_REFOCUS_PLAN.md)** - Orchestration layer details, user journeys, ROI analysis
+- **[TECHNICAL_ANALYSIS_AI_GENERATOR.md](TECHNICAL_ANALYSIS_AI_GENERATOR.md)** - Deep dive on AI generation module
+- **[BUSINESS_ANALYSIS_AI_GENERATOR.md](BUSINESS_ANALYSIS_AI_GENERATOR.md)** - Business case and user workflows
+
+### The "Document as Database" Pattern
+Documents use **Markdown + YAML frontmatter** to be both human-readable AND machine-queryable:
+```markdown
+---
+id: project-42
+type: prd
+status: in_progress
+health_score: 65
+milestones:
+  - id: milestone-42
+    status: in_progress
+    progress: 80
+approvers:
+  - id: user-123
+    vote: approved
+    conditions: ["Reduce budget to $60k"]
+---
+
+# Mobile App Redesign (PRD v3)
+
+## Status
+{{widget type="project-status" project-id="42"}}
+<!-- Renders live: 🟡 At Risk - API blocked 2 days -->
+
+## Milestones
+### 1. Home Screen [[milestone-42]]
+Owner: Alex | Timeline: Jan 20 - Feb 5 | Progress: 80%
+```
+
+**Key Innovation**: Dashboard queries the document index (fast), each item links to full narrative (context).
+
 ## Overview
 Project Conductor is a self-orchestrating requirements management and traceability system with real-time collaboration capabilities. It manages complex multi-step processes through an autonomous phase-gated implementation approach.
 

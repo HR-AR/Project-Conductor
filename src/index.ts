@@ -61,6 +61,15 @@ import generationRoutes from './routes/generation.routes';
 // Import project history routes
 import projectHistoryRoutes from './routes/project-history.routes';
 
+// Import narratives routes
+import narrativesRoutes from './routes/narratives.routes';
+
+// Import approvals routes
+import approvalsRoutes from './routes/approvals.routes';
+
+// Import dashboard routes
+import dashboardRoutes from './routes/dashboard.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -70,6 +79,9 @@ import { presenceService } from './services/presence.service';
 // Import WebSocket service and service factory
 import WebSocketService from './services/websocket.service';
 import ServiceFactory from './services/service-factory';
+
+// Import widget renderers
+import { initializeWidgets } from './services/widget-renderers';
 
 const app = express();
 const server = createServer(app);
@@ -135,6 +147,29 @@ app.use(etagMiddleware);
 
 // Static file serving with cache headers
 const projectRoot = path.resolve(__dirname, '..');
+const publicDir = path.join(projectRoot, 'public');
+
+// Serve public directory for widget assets
+app.use('/public', express.static(publicDir, {
+  setHeaders: (res, filePath) => {
+    // Set cache for CSS files
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for CSS
+    }
+    // Set cache for JavaScript files
+    else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days for JS
+    }
+    // Default cache for other files
+    else {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day default
+    }
+  },
+}));
+
+// Serve demo/HTML files from project root
 app.use('/demo', express.static(projectRoot, {
   setHeaders: (res, filePath) => {
     // Set MIME type for HTML files
@@ -244,6 +279,15 @@ app.use('/api/v1/generation', generationRoutes);
 
 // Project history routes
 app.use('/api/v1/projects', projectHistoryRoutes);
+
+// Narratives routes
+app.use('/api/v1/narratives', narrativesRoutes);
+
+// Approvals routes
+app.use('/api/v1/approvals', approvalsRoutes);
+
+// Dashboard routes
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {
@@ -582,6 +626,10 @@ const startServer = async () => {
     // Initialize database
     await db.initialize();
     logger.info('Database initialized successfully');
+
+    // Initialize widget renderers
+    initializeWidgets();
+    logger.info('Widget renderers initialized successfully');
 
     // Initialize orchestrator (optional - controlled via env variable)
     if (process.env['ENABLE_ORCHESTRATOR'] === 'true') {
