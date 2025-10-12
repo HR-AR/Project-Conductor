@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { BRDService } from '../services/brd.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateBRDRequest,
   UpdateBRDRequest,
@@ -16,14 +15,10 @@ import logger from '../utils/logger';
 
 export class BRDController {
   private brdService: BRDService;
-  private useMock: boolean;
 
   constructor() {
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.brdService = this.useMock ? simpleMockService as unknown as BRDService : new BRDService();
-    if (this.useMock) {
-      logger.info('Using mock BRD service (database unavailable)');
-    }
+    this.brdService = new BRDService();
+    logger.info('BRD Controller initialized with PostgreSQL');
   }
 
   /**
@@ -199,10 +194,6 @@ export class BRDController {
     const headerUserId = req.headers['x-user-id'] as string | undefined;
     if (headerUserId) {
       return headerUserId;
-    }
-
-    if (this.useMock) {
-      return 'mock-user';
     }
 
     const defaultUserId = process.env['SYSTEM_USER_ID'];

@@ -5,7 +5,6 @@
 import { Request, Response } from 'express';
 import { ApprovalWorkflowService } from '../services/approval-workflow.service';
 import { DecisionRegisterService } from '../services/decision-register.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateApprovalRequest,
   VoteRequest,
@@ -17,20 +16,11 @@ import logger from '../utils/logger';
 export class ApprovalsController {
   private approvalWorkflowService: ApprovalWorkflowService;
   private decisionRegisterService: DecisionRegisterService;
-  private useMock: boolean;
 
   constructor() {
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-
-    if (this.useMock) {
-      // Use mock service for both workflow and decision register
-      this.approvalWorkflowService = simpleMockService as unknown as ApprovalWorkflowService;
-      this.decisionRegisterService = simpleMockService as unknown as DecisionRegisterService;
-      logger.info('Using mock approval services (database unavailable)');
-    } else {
-      this.approvalWorkflowService = new ApprovalWorkflowService();
-      this.decisionRegisterService = new DecisionRegisterService();
-    }
+    this.approvalWorkflowService = new ApprovalWorkflowService();
+    this.decisionRegisterService = new DecisionRegisterService();
+    logger.info('Approvals Controller initialized with PostgreSQL');
   }
 
   /**
@@ -281,10 +271,6 @@ export class ApprovalsController {
     const headerUserId = req.headers['x-user-id'] as string | undefined;
     if (headerUserId) {
       return headerUserId;
-    }
-
-    if (this.useMock) {
-      return '1'; // Mock user ID
     }
 
     const defaultUserId = process.env['SYSTEM_USER_ID'];

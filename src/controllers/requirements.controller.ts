@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { RequirementsService } from '../services/requirements.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateRequirementRequest,
   UpdateRequirementRequest,
@@ -15,16 +14,11 @@ import { asyncHandler, NotFoundError, BadRequestError } from '../middleware/erro
 import logger from '../utils/logger';
 
 export class RequirementsController {
-  private requirementsService: any;
-  private useMock: boolean;
+  private requirementsService: RequirementsService;
 
   constructor() {
-    // Use mock service when database is not available
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.requirementsService = this.useMock ? simpleMockService : new RequirementsService();
-    if (this.useMock) {
-      logger.info('Using mock requirements service (database unavailable)');
-    }
+    this.requirementsService = new RequirementsService();
+    logger.info('Requirements Controller initialized with PostgreSQL');
   }
 
   /**
@@ -126,7 +120,7 @@ export class RequirementsController {
 
       try {
         const requirement = await this.requirementsService.updateRequirement(
-          id as string | undefined,
+          id,
           data,
           updatedBy,
           changeReason
@@ -322,10 +316,6 @@ export class RequirementsController {
     const headerUserId = req.headers['x-user-id'] as string | undefined;
     if (headerUserId) {
       return headerUserId;
-    }
-
-    if (this.useMock) {
-      return 'mock-user';
     }
 
     const defaultUserId = process.env['SYSTEM_USER_ID'];

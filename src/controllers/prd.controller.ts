@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { PRDService } from '../services/prd.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreatePRDRequest,
   UpdatePRDRequest,
@@ -18,14 +17,10 @@ import logger from '../utils/logger';
 
 export class PRDController {
   private prdService: PRDService;
-  private useMock: boolean;
 
   constructor() {
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.prdService = this.useMock ? simpleMockService as unknown as PRDService : new PRDService();
-    if (this.useMock) {
-      logger.info('Using mock PRD service (database unavailable)');
-    }
+    this.prdService = new PRDService();
+    logger.info('PRD Controller initialized with PostgreSQL');
   }
 
   /**
@@ -271,10 +266,6 @@ export class PRDController {
     const headerUserId = req.headers['x-user-id'] as string | undefined;
     if (headerUserId) {
       return headerUserId;
-    }
-
-    if (this.useMock) {
-      return 'mock-user';
     }
 
     const defaultUserId = process.env['SYSTEM_USER_ID'];

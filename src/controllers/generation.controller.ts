@@ -232,12 +232,6 @@ export class GenerationController {
       return headerUserId;
     }
 
-    // Use mock user for demo
-    const useMock = process.env['USE_MOCK_DB'] !== 'false';
-    if (useMock) {
-      return 'mock-user';
-    }
-
     const defaultUserId = process.env['SYSTEM_USER_ID'];
     if (defaultUserId) {
       return defaultUserId;

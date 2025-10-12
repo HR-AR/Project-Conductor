@@ -27,6 +27,7 @@ import { AgentQuality } from './agents/agent-quality';
 import { AgentIntegration } from './agents/agent-integration';
 import logger from '../utils/logger';
 import { EventEmitter } from 'events';
+import ActivityService from '../../src/services/activity.service';
 
 export class OrchestratorEngine extends EventEmitter {
   private stateManager: StateManager;
@@ -34,13 +35,15 @@ export class OrchestratorEngine extends EventEmitter {
   private agents: Map<AgentType, BaseAgent>;
   private isRunning: boolean = false;
   private orchestrationInterval: NodeJS.Timeout | null = null;
+  private activityService?: ActivityService;
 
-  constructor(baseDir?: string) {
+  constructor(baseDir?: string, activityService?: ActivityService) {
     super();
 
     this.stateManager = new StateManager(baseDir);
     this.phaseManager = new PhaseManager(this.stateManager);
     this.agents = new Map();
+    this.activityService = activityService;
 
     // Initialize all agents
     this.initializeAgents();
@@ -186,6 +189,8 @@ export class OrchestratorEngine extends EventEmitter {
   private async executeAgentTask(agent: BaseAgent, task: AgentTask): Promise<void> {
     logger.info(`Assigning task ${task.id} to ${agent.getName()}`);
 
+    const startTime = Date.now();
+
     // Mark task as active
     await this.stateManager.updateTask(task.id, {
       status: AgentStatus.ACTIVE,
@@ -202,9 +207,24 @@ export class OrchestratorEngine extends EventEmitter {
       );
     }
 
+    // Emit agent started event
+    if (this.activityService) {
+      this.activityService.logAgentStarted({
+        agentType: task.agentType,
+        agentName: agent.getName(),
+        taskId: task.id,
+        taskDescription: task.description,
+        phase: `Phase ${task.phase}`,
+        milestone: task.milestone,
+        timestamp: new Date()
+      }).catch(err => logger.error({ err }, 'Failed to log agent started event'));
+    }
+
     // Execute task asynchronously
     agent.executeTask(task)
       .then(async (result) => {
+        const duration = Date.now() - startTime;
+
         if (result.success) {
           await this.stateManager.updateTask(task.id, {
             status: AgentStatus.COMPLETED,
@@ -213,6 +233,28 @@ export class OrchestratorEngine extends EventEmitter {
           });
 
           logger.info(`Task ${task.id} completed successfully`);
+
+          // Emit agent completed event
+          if (this.activityService) {
+            this.activityService.logAgentCompleted({
+              agentType: task.agentType,
+              agentName: agent.getName(),
+              taskId: task.id,
+              taskDescription: task.description,
+              result: {
+                success: true,
+                output: result.output,
+                filesCreated: result.filesCreated,
+                filesModified: result.filesModified,
+                testsRun: result.testsRun,
+                testsPassed: result.testsPassed,
+                testsFailed: result.testsFailed,
+                metadata: result.metadata
+              },
+              duration,
+              timestamp: new Date()
+            }).catch(err => logger.error({ err }, 'Failed to log agent completed event'));
+          }
 
           // Check if milestone is complete
           await this.checkMilestoneCompletion(task.milestone);
@@ -226,6 +268,20 @@ export class OrchestratorEngine extends EventEmitter {
           });
 
           logger.error(`Task ${task.id} failed: ${result.error}`);
+
+          // Emit agent error event
+          if (this.activityService) {
+            this.activityService.logAgentError({
+              agentType: task.agentType,
+              agentName: agent.getName(),
+              taskId: task.id,
+              taskDescription: task.description,
+              error: result.error || 'Task failed',
+              errorType: 'execution',
+              canRetry: true,
+              timestamp: new Date()
+            }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+          }
 
           await this.logError({
             timestamp: new Date(),
@@ -245,6 +301,21 @@ export class OrchestratorEngine extends EventEmitter {
         });
 
         logger.error(`Task ${task.id} threw error`, error);
+
+        // Emit agent error event
+        if (this.activityService) {
+          this.activityService.logAgentError({
+            agentType: task.agentType,
+            agentName: agent.getName(),
+            taskId: task.id,
+            taskDescription: task.description,
+            error: error.message,
+            errorType: 'system',
+            stack: error.stack,
+            canRetry: true,
+            timestamp: new Date()
+          }).catch(err => logger.error({ err }, 'Failed to log agent error event'));
+        }
 
         await this.logError({
           timestamp: new Date(),

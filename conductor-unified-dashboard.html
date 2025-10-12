@@ -12,6 +12,10 @@
     <!-- DNS Prefetch for faster module loading -->
     <link rel="dns-prefetch" href="//localhost">
     <link rel="preconnect" href="//localhost">
+
+    <!-- Agent Activity Feed Styles -->
+    <link rel="stylesheet" href="/public/css/activity-feed.css">
+
     <style>
         * {
             margin: 0;
@@ -1735,6 +1739,22 @@
             </div>
 
             <div class="settings-section">
+                <div class="settings-section-title">Agent Activity Testing</div>
+                <button class="quick-start-btn" onclick="testAgentActivity()" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🤖 Test Agent Event</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="startAgentDemo()" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🎬 Start Demo Mode</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="clearAgentActivity()" style="width: 100%;">
+                    <span>🗑️ Clear Activity Feed</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+            <div class="settings-section">
                 <div class="settings-section-title">Help & Support</div>
                 <a class="fab-menu-item" href="#" onclick="openVideoTutorials()">
                     <span>📹</span>
@@ -1770,6 +1790,37 @@
         </div>
         <div class="feed-content" id="feedContent">
             <!-- Feed items will be added dynamically -->
+        </div>
+    </div>
+
+    <!-- Agent Activity Feed (NEW - Component 1.1) -->
+    <div class="agent-activity-feed" id="agentActivityFeed">
+        <div class="activity-feed-header">
+            <div class="activity-feed-title">
+                <span class="activity-feed-icon">🤖</span>
+                <span>Agent Activity</span>
+                <span class="activity-count" id="activityCount">0</span>
+            </div>
+            <div class="activity-feed-controls">
+                <button class="activity-feed-btn" id="activityMinimizeBtn" title="Minimize">➖</button>
+            </div>
+        </div>
+        <div class="activity-feed-content" id="activityFeedContent">
+            <!-- Activity items will be added dynamically by activity-feed.js -->
+            <div class="activity-feed-empty">
+                <div class="activity-feed-empty-icon">🤖</div>
+                <div class="activity-feed-empty-title">No Agent Activity</div>
+                <div class="activity-feed-empty-message">Agents will appear here when they start working</div>
+            </div>
+        </div>
+        <div class="activity-feed-footer">
+            <div class="activity-feed-stats" id="activityStats">
+                <div class="activity-stat">
+                    <span class="activity-stat-icon">📊</span>
+                    <span>0</span>
+                </div>
+            </div>
+            <button class="activity-feed-clear-btn" id="activityClearBtn">Clear All</button>
         </div>
     </div>
 
@@ -2791,6 +2842,71 @@
         } else {
             setTimeout(() => CollaborationFeed.startSimulation(), 2000);
         }
+
+        // ===== Agent Activity Feed Testing Functions =====
+
+        /**
+         * Test a single agent event
+         */
+        function testAgentActivity() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                return;
+            }
+
+            const agentTypes = ['business', 'quality', 'security', 'engineering', 'product', 'design', 'test'];
+            const eventTypes = ['started', 'progress', 'completed', 'conflict_detected', 'paused', 'error'];
+            const messages = {
+                started: ['started analyzing requirements', 'began processing task', 'initialized workflow'],
+                progress: ['is analyzing data', 'processing information', 'validating results'],
+                completed: ['completed successfully', 'finished analysis', 'task completed'],
+                conflict_detected: ['detected a security vulnerability', 'found a conflict', 'identified an issue'],
+                paused: ['paused due to dependency', 'waiting for approval', 'paused workflow'],
+                error: ['encountered an error', 'failed to process', 'operation failed']
+            };
+
+            // Random selections
+            const agentType = agentTypes[Math.floor(Math.random() * agentTypes.length)];
+            const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+            const messageOptions = messages[eventType];
+            const message = messageOptions[Math.floor(Math.random() * messageOptions.length)];
+
+            // Simulate the event
+            window.agentActivityFeed.simulateEvent(
+                agentType,
+                eventType,
+                `${window.agentActivityFeed.getAgentName(agentType)} ${message}`
+            );
+
+            console.log(`[Test] Simulated ${eventType} event for ${agentType} agent`);
+        }
+
+        /**
+         * Start the demo mode with multiple sequential events
+         */
+        function startAgentDemo() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                return;
+            }
+
+            window.agentActivityFeed.startDemoMode();
+            alert('Agent demo mode started! Watch the activity feed for simulated agent actions.');
+            console.log('[Demo] Started agent activity demo mode');
+        }
+
+        /**
+         * Clear the agent activity feed
+         */
+        function clearAgentActivity() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet.');
+                return;
+            }
+
+            window.agentActivityFeed.clearFeed();
+            console.log('[Test] Cleared agent activity feed');
+        }
     </script>
 
     <!-- Demo Walkthrough System -->
@@ -2798,5 +2914,8 @@
 
     <!-- Demo Journey Controller -->
     <script src="demo-journey.js"></script>
+
+    <!-- Agent Activity Feed (NEW - Component 1.1) -->
+    <script src="/public/js/activity-feed.js"></script>
 </body>
 </html>

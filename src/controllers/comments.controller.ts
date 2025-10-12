@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { CommentsService } from '../services/comments.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateCommentRequest,
   UpdateCommentRequest,
@@ -17,17 +16,8 @@ export class CommentsController {
   private commentsService: CommentsService;
 
   constructor(websocketService?: any) {
-    // Use mock service when database is not available
-    const useMock = process.env['USE_MOCK_DB'] !== 'false';
-
-    if (useMock) {
-      // Use the mock service which has comments functionality built in
-      this.commentsService = simpleMockService as any;
-      logger.info('Using mock comments service (database unavailable)');
-    } else {
-      // Use real service with WebSocket support
-      this.commentsService = new CommentsService(websocketService);
-    }
+    this.commentsService = new CommentsService(websocketService);
+    logger.info('Comments Controller initialized with PostgreSQL');
   }
 
   /**

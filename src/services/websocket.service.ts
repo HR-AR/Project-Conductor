@@ -38,7 +38,13 @@ import {
   ChangeApprovedEventData,
   ChangeRejectedEventData,
   JoinProjectEventData,
-  LeaveProjectEventData
+  LeaveProjectEventData,
+  AgentStartedEventData,
+  AgentProgressEventData,
+  AgentCompletedEventData,
+  AgentConflictDetectedEventData,
+  AgentPausedEventData,
+  AgentErrorEventData
 } from '../models/websocket-events.model';
 
 export interface WebSocketEventData {
@@ -594,6 +600,132 @@ export class WebSocketService {
     socket.to(roomName).emit(WS_EVENTS.USER_LEFT, leaveData);
 
     logger.info({ username, userId, projectId, room: roomName }, 'User left project room');
+  }
+
+  // ========== Agent Activity Events ==========
+
+  /**
+   * Emit agent started event
+   */
+  emitAgentStarted(data: AgentStartedEventData): void {
+    // Broadcast to all connected clients
+    this.io.emit(WS_EVENTS.AGENT_STARTED, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_STARTED, data);
+    }
+
+    logger.debug({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      projectId: data.projectId
+    }, 'Broadcasting agent started');
+  }
+
+  /**
+   * Emit agent progress event
+   */
+  emitAgentProgress(data: AgentProgressEventData): void {
+    // Broadcast to all connected clients
+    this.io.emit(WS_EVENTS.AGENT_PROGRESS, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_PROGRESS, data);
+    }
+
+    logger.debug({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      progress: data.progress,
+      projectId: data.projectId
+    }, 'Broadcasting agent progress');
+  }
+
+  /**
+   * Emit agent completed event
+   */
+  emitAgentCompleted(data: AgentCompletedEventData): void {
+    // Broadcast to all connected clients
+    this.io.emit(WS_EVENTS.AGENT_COMPLETED, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_COMPLETED, data);
+    }
+
+    logger.debug({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      success: data.result.success,
+      duration: data.duration,
+      projectId: data.projectId
+    }, 'Broadcasting agent completed');
+  }
+
+  /**
+   * Emit agent conflict detected event
+   */
+  emitAgentConflictDetected(data: AgentConflictDetectedEventData): void {
+    // Broadcast to all connected clients (high priority)
+    this.io.emit(WS_EVENTS.AGENT_CONFLICT_DETECTED, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_CONFLICT_DETECTED, data);
+    }
+
+    logger.warn({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      conflictType: data.conflictType,
+      severity: data.severity,
+      projectId: data.projectId
+    }, 'Broadcasting agent conflict detected');
+  }
+
+  /**
+   * Emit agent paused event
+   */
+  emitAgentPaused(data: AgentPausedEventData): void {
+    // Broadcast to all connected clients
+    this.io.emit(WS_EVENTS.AGENT_PAUSED, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_PAUSED, data);
+    }
+
+    logger.info({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      reason: data.reason,
+      pauseType: data.pauseType,
+      projectId: data.projectId
+    }, 'Broadcasting agent paused');
+  }
+
+  /**
+   * Emit agent error event
+   */
+  emitAgentError(data: AgentErrorEventData): void {
+    // Broadcast to all connected clients (high priority)
+    this.io.emit(WS_EVENTS.AGENT_ERROR, data);
+
+    // Also broadcast to project room if projectId exists
+    if (data.projectId) {
+      this.io.to(`project:${data.projectId}`).emit(WS_EVENTS.AGENT_ERROR, data);
+    }
+
+    logger.error({
+      agentType: data.agentType,
+      taskId: data.taskId,
+      error: data.error,
+      errorType: data.errorType,
+      canRetry: data.canRetry,
+      projectId: data.projectId
+    }, 'Broadcasting agent error');
   }
 }
 

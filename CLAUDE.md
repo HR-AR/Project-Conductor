@@ -92,9 +92,10 @@ Project Conductor is a self-orchestrating requirements management and traceabili
 
 ### Code Organization
 - **Controller Pattern**: Request handlers in `/controllers` with async error handling
+  - Controllers now use PostgreSQL services directly (no mock conditionals)
   - Mix of exported and non-exported classes (inconsistency noted)
-  - Direct mock service usage in controllers (USE_MOCK_DB pattern)
 - **Service Layer**: Business logic in `/services` with clear separation from controllers
+  - All services use PostgreSQL by default
   - Some services exported, others not (inconsistency noted)
   - ServiceFactory pattern for dependency injection
 - **Model Definitions**: TypeScript interfaces and enums in `/models`
@@ -148,7 +149,7 @@ tests/
 
 ### Test Patterns
 - **Mocking**: Use service factory for dependency injection
-- **Database**: Use mock service when `USE_MOCK_DB=true`
+- **Database**: PostgreSQL is the default (mock service deprecated)
 - **API Testing**: Supertest for HTTP endpoint testing
 - **WebSocket Testing**: Socket.io-client for real-time features
 
@@ -250,13 +251,18 @@ class LinksController { } // Others
 export default linksController; // Inconsistent
 ```
 
-### 3. ⚠️ Direct Mock Service in Controllers
+### 3. ✅ RESOLVED: Direct Mock Service in Controllers
 ```typescript
-// Found: Controllers directly managing mock services
+// FIXED (2025-10-12): Controllers now use PostgreSQL directly
+// Before:
 this.useMock = process.env['USE_MOCK_DB'] !== 'false';
 this.requirementsService = this.useMock ? simpleMockService : new RequirementsService();
+
+// After:
+this.requirementsService = new RequirementsService();
+logger.info('Requirements Controller initialized with PostgreSQL');
 ```
-# TODO: Verify this with team - Should be handled by ServiceFactory
+# PostgreSQL is now the default database (USE_MOCK_DB=false)
 
 ### 4. ⚠️ Console.log in Production Code
 ```typescript
@@ -701,7 +707,7 @@ All technologies from original specification successfully integrated:
 ```env
 # Recommended production configuration
 NODE_ENV=production
-USE_MOCK_DB=false
+# PostgreSQL is now the default (USE_MOCK_DB removed)
 DATABASE_URL=postgresql://user:pass@host:5432/conductor_prod
 REDIS_URL=redis://host:6379
 ENABLE_CACHING=true

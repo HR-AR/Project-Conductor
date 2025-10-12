@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { EngineeringDesignService } from '../services/engineering-design.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateEngineeringDesignRequest,
   UpdateEngineeringDesignRequest,
@@ -15,14 +14,10 @@ import logger from '../utils/logger';
 
 export class EngineeringDesignController {
   private designService: EngineeringDesignService;
-  private useMock: boolean;
 
   constructor() {
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.designService = this.useMock ? simpleMockService as unknown as EngineeringDesignService : new EngineeringDesignService();
-    if (this.useMock) {
-      logger.info('Using mock Engineering Design service (database unavailable)');
-    }
+    this.designService = new EngineeringDesignService();
+    logger.info('Engineering Design Controller initialized with PostgreSQL');
   }
 
   createDesign = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -95,7 +90,6 @@ export class EngineeringDesignController {
   private resolveRequestUserId(req: Request): string {
     const headerUserId = req.headers['x-user-id'] as string | undefined;
     if (headerUserId) return headerUserId;
-    if (this.useMock) return 'mock-user';
     const defaultUserId = process.env['SYSTEM_USER_ID'];
     if (defaultUserId) return defaultUserId;
     throw new BadRequestError('x-user-id header is required');

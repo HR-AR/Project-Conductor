@@ -51,7 +51,15 @@ export const WS_EVENTS = {
   // Presence Events (existing)
   USER_JOINED: 'user:joined',
   USER_LEFT: 'user:left',
-  PRESENCE_UPDATE: 'presence:update'
+  PRESENCE_UPDATE: 'presence:update',
+
+  // Agent Activity Events (orchestrator visibility)
+  AGENT_STARTED: 'agent:started',
+  AGENT_PROGRESS: 'agent:progress',
+  AGENT_COMPLETED: 'agent:completed',
+  AGENT_CONFLICT_DETECTED: 'agent:conflict_detected',
+  AGENT_PAUSED: 'agent:paused',
+  AGENT_ERROR: 'agent:error'
 } as const;
 
 export type WSEventType = typeof WS_EVENTS[keyof typeof WS_EVENTS];
@@ -349,6 +357,96 @@ export interface PresenceUpdateEventData {
   timestamp: Date;
 }
 
+// ===== Agent Activity Event Payloads =====
+
+export interface AgentStartedEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  phase?: string | undefined;
+  milestone?: string | undefined;
+  estimatedDuration?: number | undefined;
+  timestamp: Date;
+}
+
+export interface AgentProgressEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  progress: number;
+  currentStep?: string | undefined;
+  totalSteps?: number | undefined;
+  completedSteps?: number | undefined;
+  message?: string | undefined;
+  timestamp: Date;
+}
+
+export interface AgentCompletedEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  result: {
+    success: boolean;
+    output?: string | undefined;
+    filesCreated?: string[] | undefined;
+    filesModified?: string[] | undefined;
+    testsRun?: number | undefined;
+    testsPassed?: number | undefined;
+    testsFailed?: number | undefined;
+    metadata?: Record<string, unknown> | undefined;
+  };
+  duration?: number | undefined;
+  timestamp: Date;
+}
+
+export interface AgentConflictDetectedEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  conflictType: string;
+  conflictDescription: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  affectedItems: string[];
+  recommendedActions?: string[] | undefined;
+  requiresHumanInput: boolean;
+  timestamp: Date;
+}
+
+export interface AgentPausedEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  reason: string;
+  pauseType: 'manual' | 'conflict' | 'dependency' | 'error' | 'approval_required';
+  requiresAction?: string | undefined;
+  actionUrl?: string | undefined;
+  timestamp: Date;
+}
+
+export interface AgentErrorEventData {
+  agentType: string;
+  agentName: string;
+  taskId: string;
+  taskDescription: string;
+  projectId?: string | undefined;
+  error: string;
+  errorType: 'validation' | 'execution' | 'dependency' | 'timeout' | 'system' | 'unknown';
+  stack?: string | undefined;
+  canRetry: boolean;
+  retryCount?: number | undefined;
+  timestamp: Date;
+}
+
 // ===== Union Type for All Events =====
 
 export type WSEventData =
@@ -385,4 +483,10 @@ export type WSEventData =
   | LeaveProjectEventData
   | UserJoinedEventData
   | UserLeftEventData
-  | PresenceUpdateEventData;
+  | PresenceUpdateEventData
+  | AgentStartedEventData
+  | AgentProgressEventData
+  | AgentCompletedEventData
+  | AgentConflictDetectedEventData
+  | AgentPausedEventData
+  | AgentErrorEventData;

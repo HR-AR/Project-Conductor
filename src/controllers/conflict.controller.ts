@@ -4,19 +4,16 @@
 
 import { Request, Response } from 'express';
 import { ConflictService } from '../services/conflict.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import { CreateConflictRequest, UpdateConflictRequest, AddCommentRequest, AddResolutionOptionRequest, VoteOnOptionRequest, ResolveConflictRequest, ConflictFilters } from '../models/conflict.model';
 import { asyncHandler, NotFoundError } from '../middleware/error-handler';
 import logger from '../utils/logger';
 
 export class ConflictController {
   private conflictService: ConflictService;
-  private useMock: boolean;
 
   constructor() {
-    this.useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.conflictService = this.useMock ? simpleMockService as unknown as ConflictService : new ConflictService();
-    if (this.useMock) logger.info('Using mock Conflict service (database unavailable)');
+    this.conflictService = new ConflictService();
+    logger.info('Conflict Controller initialized with PostgreSQL');
   }
 
   createConflict = asyncHandler(async (req: Request, res: Response): Promise<void> => {

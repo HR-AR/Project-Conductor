@@ -4,7 +4,6 @@
 
 import { Request, Response } from 'express';
 import { ReviewService } from '../services/review.service';
-import { simpleMockService } from '../services/simple-mock.service';
 import {
   CreateReviewRequest,
   SubmitReviewRequest,
@@ -14,15 +13,11 @@ import { asyncHandler, NotFoundError, BadRequestError, ForbiddenError } from '..
 import logger from '../utils/logger';
 
 export class ReviewController {
-  private reviewService: any;
+  private reviewService: ReviewService;
 
   constructor() {
-    // Use mock service when database is not available
-    const useMock = process.env['USE_MOCK_DB'] !== 'false';
-    this.reviewService = useMock ? simpleMockService : new ReviewService();
-    if (useMock) {
-      logger.info('Using mock review service (database unavailable)');
-    }
+    this.reviewService = new ReviewService();
+    logger.info('Review Controller initialized with PostgreSQL');
   }
 
   /**
@@ -42,7 +37,7 @@ export class ReviewController {
 
       try {
         const review = await this.reviewService.createReview(
-          requirementId as string | undefined,
+          requirementId,
           data.reviewerId,
           assignedBy,
           data.comments
@@ -88,7 +83,7 @@ export class ReviewController {
 
       try {
         const review = await this.reviewService.submitReview(
-          reviewId as string | undefined,
+          reviewId,
           reviewerId,
           data
         );
@@ -132,7 +127,7 @@ export class ReviewController {
 
       try {
         const reviews = await this.reviewService.getReviewsByRequirement(
-          requirementId as string | undefined,
+          requirementId,
           filters
         );
 
@@ -231,7 +226,7 @@ export class ReviewController {
       const { id: requirementId, status: newStatus } = req.params;
 
       const canTransition = await this.reviewService.canTransitionStatus(
-        requirementId as string | undefined,
+        requirementId,
         newStatus as string
       );
 
@@ -312,17 +307,20 @@ export class ReviewController {
   /**
    * Get reviews assigned by a specific user
    * GET /api/v1/reviews/assigned-by/:userId
+   * TODO: Implement getReviewsAssignedBy in ReviewService
    */
   getReviewsAssignedBy = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { userId: assignedBy } = req.params;
 
-      const reviews = await this.reviewService.getReviewsAssignedBy(assignedBy as string);
+      // Temporary implementation - method not yet in ReviewService
+      // const reviews = await this.reviewService.getReviewsAssignedBy(assignedBy);
+      const reviews: any[] = [];
 
       res.json({
         success: true,
         data: reviews,
-        message: 'Reviews assigned by user retrieved successfully',
+        message: 'Reviews assigned by user retrieved successfully (stub)',
       });
     }
   );
