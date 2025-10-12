@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Project Conductor</title>
+    <meta name="description" content="Create your Project Conductor account">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/public/css/auth.css">
+
+    <!-- Preconnect for faster API calls -->
+    <link rel="preconnect" href="/api">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Back Link -->
+            <a href="login.html" class="back-link">Back to Sign In</a>
+
+            <!-- Logo and Branding -->
+            <div class="auth-logo">
+                <h1>Project Conductor</h1>
+                <p>Document-Anchored Orchestration Platform</p>
+            </div>
+
+            <h2>Create Account</h2>
+
+            <!-- Global Message (Error/Success) -->
+            <div id="globalMessage" class="message"></div>
+
+            <!-- Registration Form -->
+            <form id="registerForm" class="auth-form" novalidate>
+                <!-- Name Fields (Side by Side) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            placeholder="John"
+                            autocomplete="given-name"
+                        >
+                        <span class="field-error" id="firstNameError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            placeholder="Doe"
+                            autocomplete="family-name"
+                        >
+                        <span class="field-error" id="lastNameError"></span>
+                    </div>
+                </div>
+
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username" class="required">Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="johndoe"
+                        autocomplete="username"
+                        required
+                        autofocus
+                    >
+                    <span class="field-error" id="usernameError"></span>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email" class="required">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@company.com"
+                        autocomplete="email"
+                        required
+                    >
+                    <span class="field-error" id="emailError"></span>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="required">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="At least 8 characters"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                    </div>
+                    <div class="strength-text" id="strengthText"></div>
+                    <span class="field-error" id="passwordError"></span>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="form-group">
+                    <label for="confirmPassword" class="required">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        placeholder="Re-enter your password"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <span class="field-error" id="confirmPasswordError"></span>
+                </div>
+
+                <!-- Terms Checkbox -->
+                <div class="checkbox-group">
+                    <input
+                        type="checkbox"
+                        id="agreeTerms"
+                        name="agreeTerms"
+                        required
+                    >
+                    <label for="agreeTerms" class="required">
+                        I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+                <span class="field-error" id="termsError"></span>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitButton">
+                    Create Account
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="auth-links">
+                <span style="color: #718096; font-size: 14px;">Already have an account?</span>
+                <a href="login.html" style="font-weight: 600;">Sign in here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Client Script -->
+    <script src="/public/js/auth-client.js"></script>
+
+    <!-- Register Page Script -->
+    <script>
+        // Initialize AuthClient
+        const authClient = new AuthClient();
+
+        // Check if already logged in
+        if (authClient.isAuthenticated()) {
+            window.location.href = '/conductor-unified-dashboard.html';
+        }
+
+        // Form elements
+        const registerForm = document.getElementById('registerForm');
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const agreeTermsCheckbox = document.getElementById('agreeTerms');
+        const submitButton = document.getElementById('submitButton');
+        const globalMessage = document.getElementById('globalMessage');
+
+        // Password strength elements
+        const passwordStrength = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('strengthText');
+
+        // Error message elements
+        const firstNameError = document.getElementById('firstNameError');
+        const lastNameError = document.getElementById('lastNameError');
+        const usernameError = document.getElementById('usernameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const termsError = document.getElementById('termsError');
+
+        /**
+         * Show global message
+         */
+        function showMessage(message, type = 'error') {
+            globalMessage.textContent = message;
+            globalMessage.className = `message ${type} show`;
+
+            // Auto-hide after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    globalMessage.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        /**
+         * Hide global message
+         */
+        function hideMessage() {
+            globalMessage.classList.remove('show');
+        }
+
+        /**
+         * Show field error
+         */
+        function showFieldError(element, errorElement, message) {
+            element.classList.add('error');
+            element.classList.remove('success');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        /**
+         * Clear field error
+         */
+        function clearFieldError(element, errorElement) {
+            element.classList.remove('error');
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+        }
+
+        /**
+         * Mark field as valid
+         */
+        function markFieldValid(element) {
+            element.classList.remove('error');
+            element.classList.add('success');
+        }
+
+        /**
+         * Validate email format
+         */
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        /**
+         * Validate username format
+         */
+        function validateUsername(username) {
+            // Username: 3-50 chars, alphanumeric, underscore, hyphen
+            const usernameRegex = /^[a-zA-Z0-9_-]{3,50}$/;
+            return usernameRegex.test(username);
+        }
+
+        /**
+         * Calculate password strength
+         */
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            const checks = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[^A-Za-z0-9]/.test(password),
+            };
+
+            // Calculate strength
+            if (checks.length) strength++;
+            if (checks.uppercase) strength++;
+            if (checks.lowercase) strength++;
+            if (checks.number) strength++;
+            if (checks.special) strength++;
+
+            // Additional length bonus
+            if (password.length >= 12) strength++;
+
+            return { strength, checks };
+        }
+
+        /**
+         * Update password strength indicator
+         */
+        function updatePasswordStrength(password) {
+            if (!password) {
+                passwordStrength.className = 'password-strength';
+                strengthText.textContent = '';
+                return;
+            }
+
+            const { strength, checks } = calculatePasswordStrength(password);
+
+            // Update visual indicator
+            if (strength <= 2) {
+                passwordStrength.className = 'password-strength weak';
+                strengthText.textContent = 'Weak password';
+                strengthText.style.color = '#fc8181';
+            } else if (strength === 3) {
+                passwordStrength.className = 'password-strength fair';
+                strengthText.textContent = 'Fair password';
+                strengthText.style.color = '#f6ad55';
+            } else if (strength === 4) {
+                passwordStrength.className = 'password-strength good';
+                strengthText.textContent = 'Good password';
+                strengthText.style.color = '#68d391';
+            } else {
+                passwordStrength.className = 'password-strength strong';
+                strengthText.textContent = 'Strong password';
+                strengthText.style.color = '#48bb78';
+            }
+        }
+
+        /**
+         * Validate password requirements
+         */
+        function validatePassword(password) {
+            const errors = [];
+
+            if (password.length < 8) {
+                errors.push('at least 8 characters');
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push('one uppercase letter');
+            }
+            if (!/[a-z]/.test(password)) {
+                errors.push('one lowercase letter');
+            }
+            if (!/[0-9]/.test(password)) {
+                errors.push('one number');
+            }
+
+            if (errors.length > 0) {
+                return `Password must contain ${errors.join(', ')}`;
+            }
+
+            return null;
+        }
+
+        /**
+         * Validate form
+         */
+        function validateForm() {
+            let isValid = true;
+            hideMessage();
+
+            // Validate username
+            const username = usernameInput.value.trim();
+            if (!username) {
+                showFieldError(usernameInput, usernameError, 'Username is required');
+                isValid = false;
+            } else if (!validateUsername(username)) {
+                showFieldError(usernameInput, usernameError, 'Username must be 3-50 characters (letters, numbers, _, -)');
+                isValid = false;
+            } else {
+                clearFieldError(usernameInput, usernameError);
+                markFieldValid(usernameInput);
+            }
+
+            // Validate email
+            const email = emailInput.value.trim();
+            if (!email) {
+                showFieldError(emailInput, emailError, 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showFieldError(emailInput, emailError, 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                clearFieldError(emailInput, emailError);
+                markFieldValid(emailInput);
+            }
+
+            // Validate password
+            const password = passwordInput.value;
+            if (!password) {
+                showFieldError(passwordInput, passwordError, 'Password is required');
+                isValid = false;
+            } else {
+                const passwordValidationError = validatePassword(password);
+                if (passwordValidationError) {
+                    showFieldError(passwordInput, passwordError, passwordValidationError);
+                    isValid = false;
+                } else {
+                    clearFieldError(passwordInput, passwordError);
+                    markFieldValid(passwordInput);
+                }
+            }
+
+            // Validate confirm password
+            const confirmPassword = confirmPasswordInput.value;
+            if (!confirmPassword) {
+                showFieldError(confirmPasswordInput, confirmPasswordError, 'Please confirm your password');
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                showFieldError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match');
+                isValid = false;
+            } else {
+                clearFieldError(confirmPasswordInput, confirmPasswordError);
+                markFieldValid(confirmPasswordInput);
+            }
+
+            // Validate terms agreement
+            if (!agreeTermsCheckbox.checked) {
+                showFieldError(agreeTermsCheckbox, termsError, 'You must agree to the Terms of Service and Privacy Policy');
+                isValid = false;
+            } else {
+                clearFieldError(agreeTermsCheckbox, termsError);
+            }
+
+            return isValid;
+        }
+
+        /**
+         * Set loading state
+         */
+        function setLoading(loading) {
+            if (loading) {
+                submitButton.disabled = true;
+                submitButton.classList.add('loading');
+                submitButton.textContent = 'Creating account...';
+            } else {
+                submitButton.disabled = false;
+                submitButton.classList.remove('loading');
+                submitButton.textContent = 'Create Account';
+            }
+        }
+
+        /**
+         * Handle form submission
+         */
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+
+            // Get form values
+            const formData = {
+                username: usernameInput.value.trim(),
+                email: emailInput.value.trim(),
+                password: passwordInput.value,
+                firstName: firstNameInput.value.trim() || undefined,
+                lastName: lastNameInput.value.trim() || undefined,
+            };
+
+            // Set loading state
+            setLoading(true);
+            hideMessage();
+
+            try {
+                // Attempt registration
+                const response = await authClient.register(formData);
+
+                // Show success message
+                showMessage('Account created successfully! Redirecting...', 'success');
+
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '/conductor-unified-dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                // Show error message
+                let errorMessage = 'Registration failed. Please try again.';
+
+                if (error.message) {
+                    errorMessage = error.message;
+                }
+
+                showMessage(errorMessage, 'error');
+
+                // Reset form state
+                setLoading(false);
+
+                console.error('Registration error:', error);
+            }
+        });
+
+        /**
+         * Real-time password strength checking
+         */
+        passwordInput.addEventListener('input', () => {
+            updatePasswordStrength(passwordInput.value);
+
+            if (passwordInput.classList.contains('error')) {
+                clearFieldError(passwordInput, passwordError);
+            }
+        });
+
+        /**
+         * Clear field errors on input
+         */
+        usernameInput.addEventListener('input', () => {
+            if (usernameInput.classList.contains('error')) {
+                clearFieldError(usernameInput, usernameError);
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            if (emailInput.classList.contains('error')) {
+                clearFieldError(emailInput, emailError);
+            }
+        });
+
+        confirmPasswordInput.addEventListener('input', () => {
+            if (confirmPasswordInput.classList.contains('error')) {
+                clearFieldError(confirmPasswordInput, confirmPasswordError);
+            }
+        });
+
+        agreeTermsCheckbox.addEventListener('change', () => {
+            if (agreeTermsCheckbox.classList.contains('error')) {
+                clearFieldError(agreeTermsCheckbox, termsError);
+            }
+        });
+
+        /**
+         * Prevent terms links from submitting form
+         */
+        document.querySelectorAll('.checkbox-group a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Terms of Service and Privacy Policy pages coming soon!');
+            });
+        });
+    </script>
+
+    <!-- Performance monitoring -->
+    <script>
+        window.addEventListener('load', () => {
+            if (window.performance && window.performance.timing) {
+                const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.log(`[Performance] Register page loaded in ${loadTime}ms`);
+            }
+        });
+    </script>
+</body>
+</html>

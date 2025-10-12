@@ -206,3 +206,120 @@ export interface AuthAuditLog {
   metadata?: Record<string, any>;
   timestamp: Date;
 }
+
+// ========== JWT Authentication Models ==========
+
+/**
+ * Login request payload
+ */
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+/**
+ * Login response with JWT tokens
+ */
+export interface LoginResponse {
+  success: boolean;
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
+  expiresIn: number; // seconds until access token expires
+  message?: string;
+}
+
+/**
+ * Registration request payload
+ */
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role?: string; // Optional, defaults to 'user'
+}
+
+/**
+ * Registration response
+ */
+export interface RegisterResponse {
+  success: boolean;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
+  message?: string;
+}
+
+/**
+ * Token refresh request
+ */
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+/**
+ * Token refresh response
+ */
+export interface RefreshTokenResponse {
+  success: boolean;
+  accessToken: string;
+  expiresIn: number;
+  message?: string;
+}
+
+/**
+ * Logout request
+ */
+export interface LogoutRequest {
+  refreshToken?: string;
+}
+
+/**
+ * Logout response
+ */
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * User model from database
+ */
+export interface User {
+  id: string;
+  email: string;
+  password_hash: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  created_at: Date;
+  updated_at: Date;
+  last_login?: Date;
+  is_active: boolean;
+}
+
+/**
+ * Safe user model (without sensitive data)
+ */
+export interface SafeUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLogin?: Date;
+  isActive: boolean;
+}

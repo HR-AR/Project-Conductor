@@ -70,6 +70,10 @@ import approvalsRoutes from './routes/approvals.routes';
 // Import dashboard routes
 import dashboardRoutes from './routes/dashboard.routes';
 
+// Import authentication and user routes
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -108,11 +112,31 @@ app.use(corsHandler);
 
 // Security headers with helmet
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable for API server
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for widgets
+      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:"], // Allow WebSocket connections
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
   crossOriginEmbedderPolicy: false, // Allow embedding
   crossOriginOpenerPolicy: false, // Allow same-origin iframes
   crossOriginResourcePolicy: false, // Allow resources to be loaded by iframes
   frameguard: false, // Disable X-Frame-Options to allow iframes
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
+  noSniff: true, // Prevent MIME type sniffing
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  xssFilter: true, // Enable XSS filter
 }));
 
 // Performance monitoring
@@ -289,6 +313,12 @@ app.use('/api/v1/approvals', approvalsRoutes);
 // Dashboard routes
 app.use('/api/v1/dashboard', dashboardRoutes);
 
+// Authentication routes (public)
+app.use('/api/v1/auth', authRoutes);
+
+// User management routes (protected)
+app.use('/api/v1/users', userRoutes);
+
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {
   try {
@@ -364,6 +394,21 @@ app.get('/api/v1', (_req, res) => {
     version: '1.0.0',
     description: 'RESTful API for requirements management and workflow orchestration',
     endpoints: {
+      authentication: {
+        'POST /api/v1/auth/register': 'Register a new user',
+        'POST /api/v1/auth/login': 'Login with email and password',
+        'POST /api/v1/auth/refresh': 'Refresh access token using refresh token',
+        'POST /api/v1/auth/logout': 'Logout user',
+      },
+      users: {
+        'GET /api/v1/users': 'Get all users (admin only, with pagination)',
+        'GET /api/v1/users/stats': 'Get user statistics (admin only)',
+        'GET /api/v1/users/me': 'Get current user profile',
+        'PUT /api/v1/users/me/password': 'Change current user password',
+        'GET /api/v1/users/:id': 'Get user by ID (owner or admin)',
+        'PUT /api/v1/users/:id': 'Update user profile (owner or admin)',
+        'DELETE /api/v1/users/:id': 'Delete user (admin only)',
+      },
       requirements: {
         'GET /api/v1/requirements': 'List all requirements with pagination and filtering',
         'POST /api/v1/requirements': 'Create a new requirement',
@@ -418,7 +463,7 @@ app.get('/api/v1', (_req, res) => {
         'comment:deleted': 'Real-time notification when a comment is deleted',
       },
     },
-    authentication: 'Currently disabled for demo purposes',
+    authentication: 'JWT-based authentication with access and refresh tokens',
     rateLimit: '100 requests per 15 minutes (default), 20 requests per 15 minutes (write operations)',
   });
 });

@@ -19,6 +19,13 @@
     <!-- Conflict Alert Styles -->
     <link rel="stylesheet" href="/public/css/conflict-alert.css">
 
+    <!-- Session Warning Styles -->
+    <link rel="stylesheet" href="/public/css/session-warning.css">
+
+    <!-- Authentication Scripts (loaded before auth-guard) -->
+    <script src="/public/js/auth-client.js"></script>
+    <script src="/public/js/auth-guard.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -174,6 +181,123 @@
             font-weight: 600;
             min-width: 18px;
             text-align: center;
+        }
+
+        /* User Profile Dropdown */
+        .user-profile {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .user-avatar:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            min-width: 240px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1100;
+            overflow: hidden;
+        }
+
+        .user-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-header {
+            padding: 16px;
+            border-bottom: 1px solid #e1e8ed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .user-dropdown-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .user-dropdown-email {
+            font-size: 12px;
+            opacity: 0.9;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-dropdown-role {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 11px;
+            margin-top: 6px;
+            text-transform: capitalize;
+        }
+
+        .user-dropdown-menu {
+            padding: 8px 0;
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f5f7fa;
+        }
+
+        .user-dropdown-item.danger {
+            color: #e74c3c;
+        }
+
+        .user-dropdown-item.danger:hover {
+            background: #fee;
+        }
+
+        .user-dropdown-divider {
+            height: 1px;
+            background: #e1e8ed;
+            margin: 8px 0;
         }
 
         /* Progress Tracker */
@@ -1524,6 +1648,35 @@
                 <button class="icon-button" onclick="toggleSettings()">
                     <span>⚙️</span>
                 </button>
+
+                <!-- User Profile Dropdown -->
+                <div class="user-profile">
+                    <div class="user-avatar" onclick="toggleUserDropdown()" id="userAvatar" title="User Profile">
+                        👤
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name" id="userName">Loading...</div>
+                            <div class="user-dropdown-email" id="userEmail">user@example.com</div>
+                            <span class="user-dropdown-role" id="userRole">user</span>
+                        </div>
+                        <div class="user-dropdown-menu">
+                            <button class="user-dropdown-item" onclick="viewProfile()">
+                                <span>👤</span>
+                                <span>My Profile</span>
+                            </button>
+                            <button class="user-dropdown-item" onclick="toggleSettings()">
+                                <span>⚙️</span>
+                                <span>Settings</span>
+                            </button>
+                            <div class="user-dropdown-divider"></div>
+                            <button class="user-dropdown-item danger" onclick="handleLogout()">
+                                <span>🚪</span>
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -2866,6 +3019,103 @@
             }
         });
 
+        // User Profile Dropdown
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // Load user info from AuthClient
+        function loadUserInfo() {
+            if (typeof AuthClient !== 'undefined') {
+                const authClient = new AuthClient();
+                const user = authClient.getCurrentUser();
+
+                if (user) {
+                    // Update user avatar with initials
+                    const userAvatar = document.getElementById('userAvatar');
+                    const initials = getInitials(user);
+                    userAvatar.textContent = initials;
+
+                    // Update user info in dropdown
+                    document.getElementById('userName').textContent = getUserDisplayName(user);
+                    document.getElementById('userEmail').textContent = user.email || 'user@example.com';
+                    document.getElementById('userRole').textContent = user.role || 'user';
+
+                    console.log('[Dashboard] User info loaded:', user);
+                } else {
+                    console.warn('[Dashboard] No user info available');
+                }
+            }
+        }
+
+        // Get user initials for avatar
+        function getInitials(user) {
+            if (user.firstName && user.lastName) {
+                return (user.firstName[0] + user.lastName[0]).toUpperCase();
+            } else if (user.username) {
+                return user.username.substring(0, 2).toUpperCase();
+            } else if (user.email) {
+                return user.email.substring(0, 2).toUpperCase();
+            }
+            return '👤';
+        }
+
+        // Get user display name
+        function getUserDisplayName(user) {
+            if (user.firstName && user.lastName) {
+                return `${user.firstName} ${user.lastName}`;
+            } else if (user.username) {
+                return user.username;
+            } else if (user.email) {
+                return user.email.split('@')[0];
+            }
+            return 'User';
+        }
+
+        // View profile (placeholder)
+        function viewProfile() {
+            alert('User profile page coming soon!');
+            toggleUserDropdown();
+        }
+
+        // Handle logout
+        async function handleLogout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    if (typeof AuthClient !== 'undefined') {
+                        const authClient = new AuthClient();
+                        await authClient.logout();
+                    } else {
+                        window.location.href = '/login.html?logout=true';
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Logout error:', error);
+                    window.location.href = '/login.html?logout=true';
+                }
+            }
+        }
+
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const userDropdown = document.getElementById('userDropdown');
+            const userProfile = e.target.closest('.user-profile');
+
+            if (userDropdown && !userProfile && userDropdown.classList.contains('open')) {
+                userDropdown.classList.remove('open');
+            }
+        });
+
+        // Load user info on page load
+        document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+        // Listen for auth user loaded event
+        window.addEventListener('authuser:loaded', (e) => {
+            if (e.detail && e.detail.user) {
+                loadUserInfo();
+            }
+        });
+
         // Notifications
         function toggleNotifications() {
             const dropdown = document.getElementById('notificationDropdown');
@@ -3599,5 +3849,46 @@
 
     <!-- Conflict Handler (NEW - Component 1.4) -->
     <script src="/public/js/conflict-handler.js"></script>
+
+    <!-- Session Management (NEW - Component 4.5) -->
+    <script src="/public/js/auth-client.js"></script>
+    <script src="/public/js/session-manager.js"></script>
+    <script src="/public/js/activity-tracker.js"></script>
+
+    <!-- Initialize Session Management -->
+    <script>
+        // Initialize auth client globally
+        window.authClient = new AuthClient();
+
+        // Auto-start session management if authenticated
+        if (window.authClient.isAuthenticated()) {
+            console.log('[Dashboard] User authenticated, initializing session management');
+
+            // Initialize session manager
+            window.sessionManager = new SessionManager(window.authClient);
+            window.sessionManager.startMonitoring();
+
+            // Initialize activity tracker
+            window.activityTracker = new ActivityTracker(window.sessionManager, {
+                inactivityTimeout: 30 * 60 * 1000, // 30 minutes
+                warningTime: 5 * 60 * 1000, // 5 minutes warning
+            });
+            window.activityTracker.start();
+
+            console.log('[Dashboard] Session management active');
+        } else {
+            console.log('[Dashboard] User not authenticated, session management inactive');
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.sessionManager) {
+                window.sessionManager.stopMonitoring();
+            }
+            if (window.activityTracker) {
+                window.activityTracker.stop();
+            }
+        });
+    </script>
 </body>
 </html>

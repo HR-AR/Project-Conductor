@@ -5,6 +5,13 @@
 import { Router } from 'express';
 import { BRDController } from '../controllers/brd.controller';
 import { createRateLimit } from '../middleware/error-handler';
+import { authenticate } from '../middleware/auth';
+import {
+  requirePermission,
+  requireRole,
+  requireAuthentication
+} from '../middleware/rbac.middleware';
+import { Permission, UserRole } from '../models/permissions.model';
 import {
   validateCreateBRD,
   validateUpdateBRD,
@@ -20,10 +27,12 @@ const writeRateLimit = createRateLimit(15 * 60 * 1000, 20);
 /**
  * @route   POST /api/v1/brd
  * @desc    Create a new BRD
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_CREATE permission
  */
 router.post(
   '/',
+  authenticate,
+  requirePermission(Permission.BRD_CREATE),
   writeRateLimit,
   validateCreateBRD,
   brdController.createBRD
@@ -32,40 +41,48 @@ router.post(
 /**
  * @route   GET /api/v1/brd
  * @desc    Get all BRDs with filtering
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_LIST permission
  */
 router.get(
   '/',
+  authenticate,
+  requirePermission(Permission.BRD_LIST),
   brdController.getAllBRDs
 );
 
 /**
  * @route   GET /api/v1/brd/summary
  * @desc    Get BRD summary statistics
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_READ permission
  */
 router.get(
   '/summary',
+  authenticate,
+  requirePermission(Permission.BRD_READ),
   brdController.getSummary
 );
 
 /**
  * @route   GET /api/v1/brd/:id
  * @desc    Get a single BRD by ID
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_READ permission
  */
 router.get(
   '/:id',
+  authenticate,
+  requirePermission(Permission.BRD_READ),
   brdController.getBRD
 );
 
 /**
  * @route   PUT /api/v1/brd/:id
  * @desc    Update a BRD
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_UPDATE permission
  */
 router.put(
   '/:id',
+  authenticate,
+  requirePermission(Permission.BRD_UPDATE),
   writeRateLimit,
   validateUpdateBRD,
   brdController.updateBRD
@@ -74,10 +91,12 @@ router.put(
 /**
  * @route   DELETE /api/v1/brd/:id
  * @desc    Delete a BRD
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Admin only
  */
 router.delete(
   '/:id',
+  authenticate,
+  requireRole(UserRole.ADMIN),
   writeRateLimit,
   brdController.deleteBRD
 );
@@ -85,10 +104,12 @@ router.delete(
 /**
  * @route   POST /api/v1/brd/:id/approve
  * @desc    Approve or reject a BRD
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_APPROVE permission
  */
 router.post(
   '/:id/approve',
+  authenticate,
+  requirePermission(Permission.BRD_APPROVE),
   writeRateLimit,
   validateApproveBRD,
   brdController.approveBRD
@@ -97,10 +118,12 @@ router.post(
 /**
  * @route   GET /api/v1/brd/:id/approval-status
  * @desc    Get BRD approval status
- * @access  Public (in real app, would be protected)
+ * @access  Protected - Requires BRD_READ permission
  */
 router.get(
   '/:id/approval-status',
+  authenticate,
+  requirePermission(Permission.BRD_READ),
   brdController.getApprovalStatus
 );
 

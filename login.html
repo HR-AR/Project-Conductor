@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Project Conductor</title>
+    <meta name="description" content="Sign in to Project Conductor - Document-anchored orchestration platform">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/public/css/auth.css">
+
+    <!-- Preconnect for faster API calls -->
+    <link rel="preconnect" href="/api">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo and Branding -->
+            <div class="auth-logo">
+                <h1>Project Conductor</h1>
+                <p>Document-Anchored Orchestration Platform</p>
+            </div>
+
+            <h2>Sign In</h2>
+
+            <!-- Global Message (Error/Success) -->
+            <div id="globalMessage" class="message"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form" novalidate>
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email" class="required">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@company.com"
+                        autocomplete="email"
+                        required
+                        autofocus
+                    >
+                    <span class="field-error" id="emailError"></span>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="required">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                    <span class="field-error" id="passwordError"></span>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="checkbox-group">
+                    <input
+                        type="checkbox"
+                        id="rememberMe"
+                        name="rememberMe"
+                    >
+                    <label for="rememberMe">Remember me for 30 days</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitButton">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="auth-links">
+                <a href="forgot-password.html">Forgot your password?</a>
+                <div class="auth-divider">or</div>
+                <a href="register.html" style="font-weight: 600;">Create new account</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Client Script -->
+    <script src="/public/js/auth-client.js"></script>
+
+    <!-- Login Page Script -->
+    <script>
+        // Initialize AuthClient
+        const authClient = new AuthClient();
+
+        // Check if already logged in
+        if (authClient.isAuthenticated()) {
+            window.location.href = '/conductor-unified-dashboard.html';
+        }
+
+        // Form elements
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const rememberMeCheckbox = document.getElementById('rememberMe');
+        const submitButton = document.getElementById('submitButton');
+        const globalMessage = document.getElementById('globalMessage');
+
+        // Error message elements
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+
+        /**
+         * Show global message
+         */
+        function showMessage(message, type = 'error') {
+            globalMessage.textContent = message;
+            globalMessage.className = `message ${type} show`;
+
+            // Auto-hide after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    globalMessage.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        /**
+         * Hide global message
+         */
+        function hideMessage() {
+            globalMessage.classList.remove('show');
+        }
+
+        /**
+         * Show field error
+         */
+        function showFieldError(element, errorElement, message) {
+            element.classList.add('error');
+            element.classList.remove('success');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        /**
+         * Clear field error
+         */
+        function clearFieldError(element, errorElement) {
+            element.classList.remove('error');
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+        }
+
+        /**
+         * Mark field as valid
+         */
+        function markFieldValid(element) {
+            element.classList.remove('error');
+            element.classList.add('success');
+        }
+
+        /**
+         * Validate email format
+         */
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        /**
+         * Validate form
+         */
+        function validateForm() {
+            let isValid = true;
+            hideMessage();
+
+            // Validate email
+            const email = emailInput.value.trim();
+            if (!email) {
+                showFieldError(emailInput, emailError, 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showFieldError(emailInput, emailError, 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                clearFieldError(emailInput, emailError);
+                markFieldValid(emailInput);
+            }
+
+            // Validate password
+            const password = passwordInput.value;
+            if (!password) {
+                showFieldError(passwordInput, passwordError, 'Password is required');
+                isValid = false;
+            } else {
+                clearFieldError(passwordInput, passwordError);
+                markFieldValid(passwordInput);
+            }
+
+            return isValid;
+        }
+
+        /**
+         * Set loading state
+         */
+        function setLoading(loading) {
+            if (loading) {
+                submitButton.disabled = true;
+                submitButton.classList.add('loading');
+                submitButton.textContent = 'Signing in...';
+            } else {
+                submitButton.disabled = false;
+                submitButton.classList.remove('loading');
+                submitButton.textContent = 'Sign In';
+            }
+        }
+
+        /**
+         * Handle form submission
+         */
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+
+            // Get form values
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const rememberMe = rememberMeCheckbox.checked;
+
+            // Set loading state
+            setLoading(true);
+            hideMessage();
+
+            try {
+                // Attempt login
+                const response = await authClient.login(email, password, rememberMe);
+
+                // Show success message
+                showMessage('Login successful! Redirecting...', 'success');
+
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '/conductor-unified-dashboard.html';
+                }, 1000);
+
+            } catch (error) {
+                // Show error message
+                const errorMessage = error.message || 'Login failed. Please check your credentials and try again.';
+                showMessage(errorMessage, 'error');
+
+                // Reset form state
+                setLoading(false);
+                passwordInput.value = '';
+                passwordInput.focus();
+
+                console.error('Login error:', error);
+            }
+        });
+
+        /**
+         * Clear field errors on input
+         */
+        emailInput.addEventListener('input', () => {
+            if (emailInput.classList.contains('error')) {
+                clearFieldError(emailInput, emailError);
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.classList.contains('error')) {
+                clearFieldError(passwordInput, passwordError);
+            }
+        });
+
+        /**
+         * Handle Enter key in password field
+         */
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        /**
+         * Check for URL parameters (e.g., ?registered=true)
+         */
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered') === 'true') {
+            showMessage('Account created successfully! Please sign in.', 'success');
+        } else if (urlParams.get('logout') === 'true') {
+            showMessage('You have been logged out successfully.', 'info');
+        } else if (urlParams.get('session_expired') === 'true') {
+            showMessage('Your session has expired. Please sign in again.', 'info');
+        }
+
+        /**
+         * Demo credentials helper (for development only)
+         */
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const demoHint = document.createElement('div');
+            demoHint.className = 'message info show';
+            demoHint.style.marginTop = '16px';
+            demoHint.innerHTML = '<strong>Demo Mode:</strong> Use any email/password to test (validation only)';
+            document.querySelector('.auth-card').appendChild(demoHint);
+        }
+    </script>
+
+    <!-- Performance monitoring -->
+    <script>
+        // Log page load performance
+        window.addEventListener('load', () => {
+            if (window.performance && window.performance.timing) {
+                const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.log(`[Performance] Login page loaded in ${loadTime}ms`);
+            }
+        });
+    </script>
+</body>
+</html>
