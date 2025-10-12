@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Conflicts - Project Conductor</title>
+
+    <!-- Conflict Resolution Styles -->
+    <link rel="stylesheet" href="/public/css/integrations/conflict-resolution.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 30px 40px;
+            background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: #6a82fb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a72eb;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        /* Content */
+        .content {
+            padding: 40px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* Conflict List */
+        .conflict-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .conflict-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .conflict-item:hover {
+            border-color: #fc5c7d;
+            box-shadow: 0 4px 12px rgba(252, 92, 125, 0.15);
+        }
+
+        .conflict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .conflict-title-section {
+            flex: 1;
+        }
+
+        .conflict-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .conflict-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .conflict-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .severity-critical {
+            background: #ffe0e6;
+            color: #dc3545;
+        }
+
+        .severity-high {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .severity-medium {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .severity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .conflict-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 20px;
+        }
+
+        .spinner-large {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e9ecef;
+            border-top-color: #6a82fb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .header-actions {
+                position: static;
+                margin-top: 20px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .conflict-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+                    <path d="M16 2L2 9l14 7 12-6.36V22h2V8M2 23l14 7 14-7v-2l-14 7-14-7z"/>
+                </svg>
+                Sync Conflicts
+            </h1>
+            <p>Resolve synchronization conflicts between Project Conductor and Jira</p>
+            <div class="header-actions">
+                <a href="integration-jira.html" class="btn btn-secondary">Jira Settings</a>
+                <a href="sync-status.html" class="btn btn-secondary">Sync History</a>
+                <a href="conductor-unified-dashboard.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Stats Bar -->
+            <div class="stats-bar" id="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-conflicts">0</div>
+                    <div class="stat-label">Total Conflicts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="critical-conflicts">0</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="high-conflicts">0</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="resolved-today">0</div>
+                    <div class="stat-label">Resolved Today</div>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="filter-group">
+                        <span class="filter-label">Severity:</span>
+                        <select class="filter-select" id="filter-severity">
+                            <option value="">All</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">Field:</span>
+                        <select class="filter-select" id="filter-field">
+                            <option value="">All Fields</option>
+                            <option value="title">Title</option>
+                            <option value="description">Description</option>
+                            <option value="status">Status</option>
+                            <option value="priority">Priority</option>
+                            <option value="assignee">Assignee</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn btn-secondary" id="refresh-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;">
+                            <path d="M8 3a5 5 0 104.546 2.914.5.5 0 00-.908-.417A4 4 0 118 4v1z"/>
+                            <path d="M8 0v4l3-3-3-1z"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" id="resolve-all-btn" disabled>Resolve All</button>
+                </div>
+            </div>
+
+            <!-- Conflict List -->
+            <div id="conflict-container">
+                <div class="loading-spinner">
+                    <div class="spinner-large"></div>
+                    <p>Loading conflicts...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conflict Resolution Modal (loaded from conflict-resolver-ui.js) -->
+    <div id="resolution-modal"></div>
+
+    <!-- Conflict Resolver UI JavaScript -->
+    <script src="/public/js/integrations/conflict-resolver-ui.js"></script>
+
+    <script>
+        // Initialize Conflict Resolver
+        let conflictResolver;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            conflictResolver = new ConflictResolverUI({
+                onConflictResolved: (conflictId, resolution) => {
+                    console.log('Conflict resolved:', conflictId, resolution);
+                    loadConflicts(); // Reload conflicts
+                },
+                onError: (error) => {
+                    console.error('Conflict resolver error:', error);
+                    alert(`Error: ${error.message}`);
+                }
+            });
+
+            // Load conflicts
+            await loadConflicts();
+
+            // Event listeners
+            document.getElementById('refresh-btn').addEventListener('click', loadConflicts);
+            document.getElementById('resolve-all-btn').addEventListener('click', resolveAllConflicts);
+            document.getElementById('filter-severity').addEventListener('change', filterConflicts);
+            document.getElementById('filter-field').addEventListener('change', filterConflicts);
+
+            // Set up WebSocket for real-time updates
+            setupWebSocket();
+        });
+
+        async function loadConflicts() {
+            const container = document.getElementById('conflict-container');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner-large"></div><p>Loading conflicts...</p></div>';
+
+            try {
+                const conflicts = await conflictResolver.loadConflicts();
+
+                updateStats(conflicts);
+
+                if (conflicts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <h3>No Conflicts Found</h3>
+                            <p>All your requirements are in sync with Jira. Great work!</p>
+                        </div>
+                    `;
+                    document.getElementById('resolve-all-btn').disabled = true;
+                } else {
+                    renderConflictList(conflicts);
+                    document.getElementById('resolve-all-btn').disabled = false;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                        <h3>Error Loading Conflicts</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderConflictList(conflicts) {
+            const container = document.getElementById('conflict-container');
+            const conflictList = document.createElement('div');
+            conflictList.className = 'conflict-list';
+
+            conflicts.forEach(conflict => {
+                const item = createConflictItem(conflict);
+                conflictList.appendChild(item);
+            });
+
+            container.innerHTML = '';
+            container.appendChild(conflictList);
+        }
+
+        function createConflictItem(conflict) {
+            const item = document.createElement('div');
+            item.className = 'conflict-item';
+            item.dataset.conflictId = conflict.id;
+
+            const timeAgo = formatTimeAgo(new Date(conflict.lastModified));
+            const severityClass = `severity-${conflict.severity}`;
+
+            item.innerHTML = `
+                <div class="conflict-header">
+                    <div class="conflict-title-section">
+                        <div class="conflict-title">
+                            ${conflict.requirementTitle} (${conflict.localId} ↔ ${conflict.jiraKey})
+                        </div>
+                        <div class="conflict-meta">
+                            <span>Field: <strong>${conflict.field}</strong></span>
+                            <span class="severity-badge ${severityClass}">${conflict.severity}</span>
+                            <span>Modified: ${timeAgo}</span>
+                        </div>
+                    </div>
+                    <div class="conflict-actions">
+                        <button class="btn btn-primary" onclick="resolveConflict('${conflict.id}')">
+                            Resolve
+                        </button>
+                    </div>
+                </div>
+                <div class="conflict-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Local (Conductor)</span>
+                        <span class="detail-value">${truncateText(conflict.localValue, 100)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Remote (Jira)</span>
+                        <span class="detail-value">${truncateText(conflict.remoteValue, 100)}</span>
+                    </div>
+                </div>
+            `;
+
+            return item;
+        }
+
+        function updateStats(conflicts) {
+            const stats = {
+                total: conflicts.length,
+                critical: conflicts.filter(c => c.severity === 'critical').length,
+                high: conflicts.filter(c => c.severity === 'high').length,
+                resolvedToday: 0 // This would come from the API
+            };
+
+            document.getElementById('total-conflicts').textContent = stats.total;
+            document.getElementById('critical-conflicts').textContent = stats.critical;
+            document.getElementById('high-conflicts').textContent = stats.high;
+            document.getElementById('resolved-today').textContent = stats.resolvedToday;
+        }
+
+        async function resolveConflict(conflictId) {
+            try {
+                await conflictResolver.showResolutionModal(conflictId);
+            } catch (error) {
+                console.error('Error showing resolution modal:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function resolveAllConflicts() {
+            if (!confirm('Are you sure you want to resolve all conflicts? This will apply the default resolution strategy.')) {
+                return;
+            }
+
+            try {
+                await conflictResolver.resolveAllConflicts();
+                await loadConflicts();
+            } catch (error) {
+                console.error('Error resolving all conflicts:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function filterConflicts() {
+            const severityFilter = document.getElementById('filter-severity').value;
+            const fieldFilter = document.getElementById('filter-field').value;
+
+            const items = document.querySelectorAll('.conflict-item');
+
+            items.forEach(item => {
+                const conflict = conflictResolver.getConflictById(item.dataset.conflictId);
+                let show = true;
+
+                if (severityFilter && conflict.severity !== severityFilter) {
+                    show = false;
+                }
+
+                if (fieldFilter && conflict.field !== fieldFilter) {
+                    show = false;
+                }
+
+                item.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        function setupWebSocket() {
+            // Connect to WebSocket for real-time conflict updates
+            conflictResolver.connectWebSocket((event) => {
+                if (event.type === 'conflict:created' || event.type === 'conflict:updated') {
+                    loadConflicts(); // Refresh conflict list
+                }
+            });
+        }
+
+        function formatTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+
+            for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
+                }
+            }
+
+            return 'Just now';
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '-';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+    </script>
+</body>
+</html>

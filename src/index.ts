@@ -74,6 +74,9 @@ import dashboardRoutes from './routes/dashboard.routes';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 
+// Import integration routes
+import jiraRoutes from './routes/integrations/jira.routes';
+
 // Import database
 import { db } from './config/database';
 
@@ -318,6 +321,9 @@ app.use('/api/v1/auth', authRoutes);
 
 // User management routes (protected)
 app.use('/api/v1/users', userRoutes);
+
+// Integration routes
+app.use('/api/v1/integrations/jira', jiraRoutes);
 
 // Presence monitoring endpoint
 app.get('/api/v1/presence/stats', (_req, res) => {

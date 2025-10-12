@@ -1,0 +1,622 @@
+/**
+ * Jira Integration Styles
+ * Project Conductor - Priority 6: Jira Integration
+ *
+ * Styles for:
+ * - Connection status indicators
+ * - OAuth flow UI
+ * - Project management
+ * - Sync progress indicators
+ * - Configuration forms
+ *
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   Connection Status
+   ========================================================================== */
+
+.jira-connection-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.jira-status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.jira-status-indicator.connected {
+  background: #28a745;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+.jira-status-indicator.disconnected {
+  background: #dc3545;
+  animation: none;
+}
+
+.jira-status-indicator.connecting {
+  background: #ffc107;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.jira-status-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.jira-status-details {
+  margin-left: auto;
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+/* ==========================================================================
+   OAuth Flow
+   ========================================================================== */
+
+.jira-oauth-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 40px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.jira-oauth-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.jira-oauth-description {
+  font-size: 16px;
+  margin-bottom: 30px;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.jira-oauth-button {
+  background: white;
+  color: #667eea;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 15px 40px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.jira-oauth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.jira-oauth-steps {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.jira-oauth-step {
+  flex: 1;
+  max-width: 200px;
+}
+
+.jira-oauth-step-number {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 auto 15px;
+}
+
+.jira-oauth-step-text {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   Project Cards
+   ========================================================================== */
+
+.jira-projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.jira-project-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.jira-project-card:hover {
+  border-color: #0052cc;
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.15);
+  transform: translateY(-2px);
+}
+
+.jira-project-card.active {
+  border-color: #0052cc;
+  background: #f0f5ff;
+}
+
+.jira-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.jira-project-key {
+  background: #e6f2ff;
+  color: #0052cc;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.jira-project-toggle {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.jira-project-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.jira-project-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.jira-project-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.jira-project-stat svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   Sync Progress
+   ========================================================================== */
+
+.jira-sync-progress {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.jira-sync-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.jira-sync-progress-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.jira-sync-progress-status {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jira-sync-progress-bar-container {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  height: 40px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.jira-sync-progress-bar {
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+  height: 100%;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.jira-sync-progress-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.jira-sync-progress-detail {
+  text-align: center;
+}
+
+.jira-sync-progress-detail-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.jira-sync-progress-detail-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   Configuration Forms
+   ========================================================================== */
+
+.jira-config-form {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.jira-config-section {
+  margin-bottom: 30px;
+}
+
+.jira-config-section:last-child {
+  margin-bottom: 0;
+}
+
+.jira-config-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.jira-form-group {
+  margin-bottom: 20px;
+}
+
+.jira-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.jira-form-input,
+.jira-form-select,
+.jira-form-textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.jira-form-input:focus,
+.jira-form-select:focus,
+.jira-form-textarea:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+.jira-form-help {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+.jira-form-error {
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 5px;
+}
+
+.jira-form-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jira-form-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.jira-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.jira-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.jira-btn-primary {
+  background: #0052cc;
+  color: white;
+}
+
+.jira-btn-primary:hover {
+  background: #0747a6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 82, 204, 0.2);
+}
+
+.jira-btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.jira-btn-success:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+}
+
+.jira-btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.jira-btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+}
+
+.jira-btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.jira-btn-secondary:hover {
+  background: #545b62;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.2);
+}
+
+.jira-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.jira-btn-loading {
+  position: relative;
+  color: transparent;
+}
+
+.jira-btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Alerts & Notifications
+   ========================================================================== */
+
+.jira-alert {
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.jira-alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.jira-alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.jira-alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.jira-alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.jira-alert-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.jira-alert-message {
+  flex: 1;
+}
+
+.jira-alert-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.jira-alert-close:hover {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.jira-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+}
+
+.jira-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e9ecef;
+  border-top-color: #0052cc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.jira-loading-text {
+  font-size: 16px;
+  color: #6c757d;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .jira-oauth-steps {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .jira-oauth-step {
+    max-width: 100%;
+  }
+
+  .jira-projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jira-sync-progress-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .jira-form-actions {
+    flex-direction: column;
+  }
+
+  .jira-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .jira-status-details {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0;
+    margin-top: 10px;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .jira-sync-progress-details {
+    grid-template-columns: 1fr;
+  }
+}
