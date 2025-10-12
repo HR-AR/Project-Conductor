@@ -143,3 +143,9 @@ AGENT*_SUMMARY.md
 # Temporary state and logs
 .conductor/
 server.log
+
+# Local documentation (not for public repo)
+DEMO_ARCHITECTURE_STRATEGY.md
+CODEBASE_EXPLAINED.md
+CLAUDE_CODE_OPERATIONS_GUIDE.md
+POST_DEMO_BUILD_PLAN.md
