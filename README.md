@@ -2,7 +2,7 @@
 
 > Self-orchestrating requirements management with autonomous workflow orchestration
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-brightgreen)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/Build-Passing-success)]()
@@ -35,7 +35,7 @@ Project Conductor is a comprehensive requirements management and workflow orches
 ## Technology Stack
 
 ### Backend
-- **Runtime**: Node.js (>=16.0.0)
+- **Runtime**: Node.js (>=20.0.0)
 - **Language**: TypeScript 5.2.2
 - **Framework**: Express.js 4.18.2
 - **Real-time**: Socket.io 4.7.2
@@ -53,7 +53,7 @@ Project Conductor is a comprehensive requirements management and workflow orches
 
 ### Prerequisites
 
-- Node.js >= 16.0.0
+- Node.js >= 20.0.0
 - PostgreSQL 15 (optional - mock mode available)
 - Redis 7 (optional - in-memory fallback available)
 - Docker (optional)

@@ -716,7 +716,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - run: npm ci
       - run: npm test
       - run: npm run test:coverage
@@ -731,7 +731,7 @@ jobs:
 
 1. Clear Jest cache: `npm test -- --clearCache`
 2. Reinstall dependencies: `rm -rf node_modules && npm install`
-3. Check Node version: `node --version` (should be >= 16)
+3. Check Node version: `node --version` (should be >= 20)
 
 ### Tests Pass Locally But Fail in CI
 

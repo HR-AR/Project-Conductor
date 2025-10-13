@@ -53,7 +53,7 @@ Existing patterns to follow:
 Our tech stack (from CLAUDE.md):
 ────────────────────────────────────────────────────────────
 ### Core Technologies (Verified from package.json and package-lock.json)
-- **Runtime**: Node.js (>=16.0.0)
+- **Runtime**: Node.js (>=20.0.0)
 - **Language**: TypeScript ^5.2.2
 - **Framework**: Express.js ^4.18.2
 - **Real-time**: Socket.io ^4.7.2 + socket.io-client ^4.7.2

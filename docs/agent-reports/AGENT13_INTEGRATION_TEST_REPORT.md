@@ -486,7 +486,7 @@ Project Conductor has a **solid foundation** with core functionality working wel
 ## 17. Testing Environment
 
 **Server**: http://localhost:3000
-**Node Version**: 16+
+**Node Version**: 20+
 **Database**: PostgreSQL 15 (disconnected, using mock)
 **Cache**: Redis 7 (not utilized in mock mode)
 **WebSocket**: Socket.io 4.7.2 (operational)

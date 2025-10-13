@@ -1,14 +1,27 @@
 import matter from 'gray-matter';
-import { marked } from 'marked';
 import { ParsedDocument, Widget, Reference } from '../models/narrative.model';
 import widgetRegistry, { RenderContext } from './widget-registry.service';
 import logger from '../utils/logger';
 
+// Dynamic import for ESM module
+let marked: any;
+
 export class DocumentParserService {
+  private markedInitialized = false;
+
+  private async initMarked() {
+    if (!this.markedInitialized) {
+      const markedModule = await import('marked');
+      marked = markedModule.marked;
+      this.markedInitialized = true;
+    }
+  }
   /**
    * Parse Markdown document with YAML frontmatter
    */
-  parseDocument(markdown: string): ParsedDocument {
+  async parseDocument(markdown: string): Promise<ParsedDocument> {
+    await this.initMarked();
+
     // Extract YAML frontmatter
     const { data: metadata, content: rawContent } = matter(markdown);
 

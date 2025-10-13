@@ -153,7 +153,7 @@ This major release represents 6 waves of multi-agent development delivering a co
 - CODEBASE_OVERVIEW.md documentation
 
 ### Infrastructure
-- Node.js 16+ runtime
+- Node.js 20+ runtime
 - TypeScript 5.2.2
 - Express.js 4.18.2
 - Socket.io 4.7.2

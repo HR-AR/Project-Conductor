@@ -46,7 +46,7 @@ export class DocumentIndexService {
         return;
       }
 
-      const parsed = documentParserService.parseDocument(version.content);
+      const parsed = await documentParserService.parseDocument(version.content);
       const metadata = parsed.metadata;
 
       // Extract blockers from milestones

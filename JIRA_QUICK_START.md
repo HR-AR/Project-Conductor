@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- Node.js 16+
+- Node.js 20+
 - PostgreSQL 15
 - Jira Cloud account
 - Project Conductor running

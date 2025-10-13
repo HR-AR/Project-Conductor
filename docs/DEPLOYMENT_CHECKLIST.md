@@ -46,7 +46,7 @@ This checklist guides you through deploying the Project Conductor unified dashbo
 #### 1.1 Environment Preparation
 ```bash
 # Verify Node.js version
-node --version  # Should be >= 16.0.0
+node --version  # Should be >= 20.0.0
 
 # Verify npm version
 npm --version
@@ -55,7 +55,7 @@ npm --version
 df -h
 ```
 
-- [ ] Node.js >= 16.0.0 installed
+- [ ] Node.js >= 20.0.0 installed
 - [ ] Sufficient disk space (min 500MB free)
 - [ ] Network connectivity verified
 

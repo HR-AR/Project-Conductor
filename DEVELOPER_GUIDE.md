@@ -24,7 +24,7 @@ This guide covers architecture, development setup, coding standards, and best pr
 
 ### Prerequisites
 
-- **Node.js**: >= 16.0.0 (LTS recommended)
+- **Node.js**: >= 20.0.0 (LTS recommended)
 - **npm**: >= 7.0.0
 - **PostgreSQL**: 15+ (optional - mock mode available)
 - **Redis**: 7+ (optional - in-memory fallback)

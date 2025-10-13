@@ -152,7 +152,7 @@ export class NarrativesController {
         return;
       }
 
-      const parsed = documentParserService.parseDocument(version.content);
+      const parsed = await documentParserService.parseDocument(version.content);
 
       res.json({
         success: true,

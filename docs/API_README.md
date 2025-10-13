@@ -7,7 +7,7 @@ The Requirements CRUD API is a comprehensive system for managing requirements in
 ## Quick Start
 
 ### Prerequisites
-- Node.js (v16+)
+- Node.js (v20+)
 - PostgreSQL database
 - Environment variables configured (see `.env.example`)
 

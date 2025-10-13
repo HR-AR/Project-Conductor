@@ -56,7 +56,7 @@ Project Conductor is a self-orchestrating requirements management and traceabili
 ## Tech Stack
 
 ### Core Technologies (Verified from package.json and package-lock.json)
-- **Runtime**: Node.js (>=16.0.0)
+- **Runtime**: Node.js (>=20.0.0)
 - **Language**: TypeScript ^5.2.2
 - **Framework**: Express.js ^4.18.2
 - **Real-time**: Socket.io ^4.7.2 + socket.io-client ^4.7.2
@@ -626,7 +626,7 @@ Project Conductor has successfully completed 6 waves of multi-agent development,
 ### Technology Stack Validation
 
 All technologies from original specification successfully integrated:
-- ✅ Node.js 16+ with TypeScript 5.2.2
+- ✅ Node.js 20+ with TypeScript 5.2.2
 - ✅ Express.js 4.18.2 with comprehensive middleware
 - ✅ Socket.io 4.7.2 for real-time features
 - ✅ PostgreSQL 15 (configurable, mock available)

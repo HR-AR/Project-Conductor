@@ -20,7 +20,7 @@ This comprehensive guide explains how to deploy Project Conductor to Render with
 1. **GitHub account** with your code pushed to a repository
 2. **Render account** (sign up at https://render.com)
 3. **Git CLI** installed locally
-4. **Node.js 16+** for local development and testing
+4. **Node.js 20+** for local development and testing
 
 ## Architecture Overview
 
@@ -595,7 +595,7 @@ render logs project-conductor-prod --build --tail
 | `npm ci` fails | package-lock.json out of sync | Run `npm install` locally and commit package-lock.json |
 | TypeScript errors | Type errors in code | Run `npm run typecheck` locally and fix errors |
 | Missing dependencies | Dependency not in package.json | Add missing dependency: `npm install <package>` |
-| Node version mismatch | Wrong Node version | Check package.json engines field (requires Node 16+) |
+| Node version mismatch | Wrong Node version | Check package.json engines field (requires Node 20+) |
 | Out of memory | Build exceeds memory limit | Upgrade to Standard plan or optimize build |
 
 ### Database Connection Fails

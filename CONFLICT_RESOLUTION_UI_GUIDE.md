@@ -152,7 +152,7 @@ The Conflict Resolution UI provides an intuitive interface for resolving synchro
 
 ### Prerequisites
 
-- Node.js 16+
+- Node.js 20+
 - Project Conductor backend running
 - Jira account with OAuth credentials
 
