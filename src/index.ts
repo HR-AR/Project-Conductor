@@ -181,6 +181,27 @@ app.use(etagMiddleware);
 const projectRoot = path.resolve(__dirname, '..');
 const publicDir = path.join(projectRoot, 'public');
 
+// Diagnostic logging for production debugging
+logger.info({
+  __dirname,
+  projectRoot,
+  publicDir,
+}, 'Static file configuration');
+
+// Serve root-level files (demo-walkthrough.js, demo-journey.js, etc)
+app.use(express.static(projectRoot, {
+  index: false, // Don't serve index.html automatically
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  },
+}));
+
 // Serve public directory for widget assets
 app.use('/public', express.static(publicDir, {
   setHeaders: (res, filePath) => {

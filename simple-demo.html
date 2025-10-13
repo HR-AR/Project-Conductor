@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Simple Diagnostic Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        .status-testing {
+            background: #ffc107;
+        }
+
+        .status-success {
+            background: #4caf50;
+        }
+
+        .status-error {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-content {
+            font-size: 0.9em;
+            color: #666;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        button {
+            padding: 15px 25px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .module-links {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .module-links h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .module-links ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .module-links li {
+            margin: 10px 0;
+        }
+
+        .module-links a {
+            display: block;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 6px;
+            color: #667eea;
+            text-decoration: none;
+            border: 2px solid #667eea;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .module-links a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .log-section {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: "Courier New", monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+
+        .log-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+
+        .log-success {
+            color: #4caf50;
+        }
+
+        .log-error {
+            color: #f44336;
+        }
+
+        .log-info {
+            color: #00bcd4;
+        }
+
+        .diagnostic-info {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .diagnostic-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .diagnostic-info pre {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+
+        .api-response {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .api-response h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .api-response pre {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Project Conductor Diagnostic Tool</h1>
+        <p class="subtitle">Testing all endpoints and identifying issues</p>
+
+        <div class="status-grid">
+            <div class="status-card" id="status-server">
+                <h3><span class="status-indicator status-testing"></span> Server Status</h3>
+                <div class="status-content">Checking...</div>
+            </div>
+
+            <div class="status-card" id="status-api">
+                <h3><span class="status-indicator status-testing"></span> API Endpoint</h3>
+                <div class="status-content">Checking...</div>
+            </div>
+
+            <div class="status-card" id="status-websocket">
+                <h3><span class="status-indicator status-testing"></span> WebSocket</h3>
+                <div class="status-content">Checking...</div>
+            </div>
+
+            <div class="status-card" id="status-dashboard">
+                <h3><span class="status-indicator status-testing"></span> Dashboard API</h3>
+                <div class="status-content">Checking...</div>
+            </div>
+        </div>
+
+        <div class="button-grid">
+            <button class="btn-primary" onclick="testHealth()">Test Health Check</button>
+            <button class="btn-success" onclick="testRequirementsAPI()">Test Requirements API</button>
+            <button class="btn-info" onclick="testDashboardAPI()">Test Dashboard API</button>
+            <button class="btn-warning" onclick="testAllEndpoints()">Test All Endpoints</button>
+            <button class="btn-primary" onclick="testWebSocket()">Test WebSocket</button>
+            <button class="btn-success" onclick="clearLogs()">Clear Logs</button>
+        </div>
+
+        <div class="diagnostic-info">
+            <h3>📊 System Diagnostics</h3>
+            <pre id="diagnostics">Loading diagnostics...</pre>
+        </div>
+
+        <div class="module-links">
+            <h3>🎯 Direct Module Access</h3>
+            <ul>
+                <li><a href="/demo/module-0-onboarding.html" target="_blank">Module 0 - Onboarding</a></li>
+                <li><a href="/demo/module-1-present.html" target="_blank">Module 1 - Dashboard</a></li>
+                <li><a href="/demo/module-2-brd.html" target="_blank">Module 2 - BRD</a></li>
+                <li><a href="/demo/module-3-prd.html" target="_blank">Module 3 - PRD</a></li>
+                <li><a href="/demo/module-4-engineering-design.html" target="_blank">Module 4 - Engineering Design</a></li>
+                <li><a href="/demo/module-5-alignment.html" target="_blank">Module 5 - Alignment</a></li>
+                <li><a href="/demo/module-6-implementation.html" target="_blank">Module 6 - Implementation</a></li>
+            </ul>
+        </div>
+
+        <div class="log-section" id="console-log">
+            <div class="log-entry log-info">
+                <span class="log-timestamp">[00:00:00]</span>
+                Diagnostic tool initialized. Ready to test...
+            </div>
+        </div>
+
+        <div class="api-response" id="api-response" style="display: none;">
+            <h3>📡 Last API Response</h3>
+            <pre id="response-content"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BASE_URL = window.location.origin;
+        const API_BASE = `${BASE_URL}/api/v1`;
+
+        // Logging utilities
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span>${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function updateStatus(cardId, status, message) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+
+            const indicator = card.querySelector('.status-indicator');
+            const content = card.querySelector('.status-content');
+
+            indicator.className = `status-indicator status-${status}`;
+            content.textContent = message;
+        }
+
+        function displayResponse(data) {
+            const responseDiv = document.getElementById('api-response');
+            const responseContent = document.getElementById('response-content');
+            responseDiv.style.display = 'block';
+            responseContent.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function clearLogs() {
+            const logDiv = document.getElementById('console-log');
+            logDiv.innerHTML = '<div class="log-entry log-info"><span class="log-timestamp">[' +
+                new Date().toLocaleTimeString() + ']</span>Logs cleared.</div>';
+            log('Logs cleared', 'info');
+        }
+
+        // System diagnostics
+        function updateDiagnostics() {
+            const diagnostics = {
+                'Browser': navigator.userAgent,
+                'Origin': window.location.origin,
+                'Hostname': window.location.hostname,
+                'Port': window.location.port || '(default)',
+                'Protocol': window.location.protocol,
+                'Pathname': window.location.pathname,
+                'API Base URL': API_BASE,
+                'Local Storage Available': typeof(Storage) !== 'undefined' ? 'Yes' : 'No',
+                'Cookies Enabled': navigator.cookieEnabled ? 'Yes' : 'No',
+                'Online Status': navigator.onLine ? 'Online' : 'Offline',
+                'Screen Size': `${window.screen.width}x${window.screen.height}`,
+                'Viewport Size': `${window.innerWidth}x${window.innerHeight}`
+            };
+
+            const diagnosticsEl = document.getElementById('diagnostics');
+            diagnosticsEl.textContent = Object.entries(diagnostics)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join('\n');
+        }
+
+        // API Testing Functions
+        async function testHealth() {
+            log('Testing health endpoint...', 'info');
+            updateStatus('status-server', 'testing', 'Testing...');
+
+            try {
+                const response = await fetch(`${BASE_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'ok') {
+                    updateStatus('status-server', 'success', `✓ Server running (v${data.version})`);
+                    log(`Health check passed! Database: ${data.database}`, 'success');
+                    displayResponse(data);
+                } else {
+                    updateStatus('status-server', 'error', '✗ Server error');
+                    log(`Health check failed: ${JSON.stringify(data)}`, 'error');
+                    displayResponse(data);
+                }
+            } catch (error) {
+                updateStatus('status-server', 'error', `✗ Connection failed: ${error.message}`);
+                log(`Health check error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRequirementsAPI() {
+            log('Testing requirements API...', 'info');
+            updateStatus('status-api', 'testing', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/requirements?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const count = data.data?.length || 0;
+                    updateStatus('status-api', 'success', `✓ API working (${count} requirements)`);
+                    log(`Requirements API passed! Found ${count} requirements`, 'success');
+                    displayResponse(data);
+                } else {
+                    updateStatus('status-api', 'error', `✗ API error: ${response.status}`);
+                    log(`Requirements API failed: ${JSON.stringify(data)}`, 'error');
+                    displayResponse(data);
+                }
+            } catch (error) {
+                updateStatus('status-api', 'error', `✗ Connection failed: ${error.message}`);
+                log(`Requirements API error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDashboardAPI() {
+            log('Testing dashboard API...', 'info');
+            updateStatus('status-dashboard', 'testing', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateStatus('status-dashboard', 'success', '✓ Dashboard API working');
+                    log('Dashboard API passed!', 'success');
+                    displayResponse(data);
+                } else {
+                    updateStatus('status-dashboard', 'error', `✗ API error: ${response.status}`);
+                    log(`Dashboard API failed: ${JSON.stringify(data)}`, 'error');
+                    displayResponse(data);
+                }
+            } catch (error) {
+                updateStatus('status-dashboard', 'error', `✗ Connection failed: ${error.message}`);
+                log(`Dashboard API error: ${error.message}`, 'error');
+            }
+        }
+
+        function testWebSocket() {
+            log('Testing WebSocket connection...', 'info');
+            updateStatus('status-websocket', 'testing', 'Connecting...');
+
+            try {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}`;
+
+                log(`Attempting WebSocket connection to: ${wsUrl}`, 'info');
+
+                const socket = new WebSocket(wsUrl);
+
+                socket.onopen = () => {
+                    updateStatus('status-websocket', 'success', '✓ WebSocket connected');
+                    log('WebSocket connected successfully!', 'success');
+
+                    // Send test message
+                    socket.send(JSON.stringify({
+                        type: 'test',
+                        message: 'Diagnostic ping'
+                    }));
+
+                    // Close after test
+                    setTimeout(() => {
+                        socket.close();
+                        log('WebSocket test complete, connection closed', 'info');
+                    }, 2000);
+                };
+
+                socket.onerror = (error) => {
+                    updateStatus('status-websocket', 'error', '✗ WebSocket error');
+                    log(`WebSocket error: ${error.message || 'Connection failed'}`, 'error');
+                };
+
+                socket.onclose = () => {
+                    log('WebSocket connection closed', 'info');
+                };
+
+                socket.onmessage = (event) => {
+                    log(`WebSocket message received: ${event.data}`, 'success');
+                };
+
+            } catch (error) {
+                updateStatus('status-websocket', 'error', `✗ ${error.message}`);
+                log(`WebSocket test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllEndpoints() {
+            log('==========================================', 'info');
+            log('Starting comprehensive endpoint test...', 'info');
+            log('==========================================', 'info');
+
+            const endpoints = [
+                { name: 'Health Check', url: `${BASE_URL}/health` },
+                { name: 'API Info', url: `${API_BASE}` },
+                { name: 'Requirements', url: `${API_BASE}/requirements?limit=1` },
+                { name: 'Dashboard Stats', url: `${API_BASE}/dashboard/stats` },
+                { name: 'Dashboard Projects', url: `${API_BASE}/dashboard/projects` },
+                { name: 'BRDs', url: `${API_BASE}/brd?limit=1` },
+                { name: 'PRDs', url: `${API_BASE}/prd?limit=1` },
+                { name: 'Engineering Designs', url: `${API_BASE}/engineering-design?limit=1` },
+                { name: 'Conflicts', url: `${API_BASE}/conflicts?limit=1` },
+                { name: 'Change Log', url: `${API_BASE}/change-log?limit=1` },
+                { name: 'Project History', url: `${API_BASE}/projects?limit=1` },
+                { name: 'Presence Stats', url: `${API_BASE}/presence/stats` }
+            ];
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const endpoint of endpoints) {
+                try {
+                    log(`Testing: ${endpoint.name}...`, 'info');
+                    const response = await fetch(endpoint.url);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        successCount++;
+                        log(`✓ ${endpoint.name} - SUCCESS (${response.status})`, 'success');
+                    } else {
+                        failCount++;
+                        log(`✗ ${endpoint.name} - FAILED (${response.status}): ${data.message || 'Unknown error'}`, 'error');
+                    }
+                } catch (error) {
+                    failCount++;
+                    log(`✗ ${endpoint.name} - ERROR: ${error.message}`, 'error');
+                }
+
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+
+            log('==========================================', 'info');
+            log(`Test Complete: ${successCount} passed, ${failCount} failed`, successCount === endpoints.length ? 'success' : 'error');
+            log('==========================================', 'info');
+        }
+
+        // Auto-run tests on load
+        window.addEventListener('load', async () => {
+            log('Page loaded, starting automatic diagnostics...', 'info');
+            updateDiagnostics();
+
+            // Run basic health checks
+            setTimeout(async () => {
+                await testHealth();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await testRequirementsAPI();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await testDashboardAPI();
+
+                log('==========================================', 'info');
+                log('Initial diagnostics complete!', 'success');
+                log('Click buttons above to run specific tests', 'info');
+                log('==========================================', 'info');
+            }, 500);
+        });
+
+        // Update diagnostics every 10 seconds
+        setInterval(updateDiagnostics, 10000);
+    </script>
+</body>
+</html>
