@@ -298,9 +298,10 @@
         }
 
         /**
-         * Demo credentials helper (for development only)
+         * Demo credentials helper (always show for demo deployment)
          */
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const isDemoMode = true; // Set to false to disable demo hint
+        if (isDemoMode) {
             const demoHint = document.createElement('div');
             demoHint.className = 'message info show';
             demoHint.style.marginTop = '16px';
