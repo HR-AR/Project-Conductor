@@ -116,6 +116,7 @@ app.use(corsHandler);
 // Security headers with helmet
 app.use(helmet({
   contentSecurityPolicy: {
+    useDefaults: false, // Don't merge with Helmet defaults (they override frameSrc)
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for widgets
@@ -126,6 +127,10 @@ app.use(helmet({
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'self'"], // Allow same-origin iframes for module loading
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      upgradeInsecureRequests: [],
     },
   },
   crossOriginEmbedderPolicy: false, // Allow embedding

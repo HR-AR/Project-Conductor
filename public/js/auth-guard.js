@@ -15,6 +15,10 @@
         '/register.html',
         '/forgot-password.html',
         '/reset-password.html',
+        '/',                                    // Root dashboard (demo mode)
+        '/demo',                                // Demo route
+        '/demo/',                               // Demo route with trailing slash
+        '/conductor-unified-dashboard.html',    // Direct dashboard access
     ];
 
     // Current page path
