@@ -125,7 +125,7 @@ app.use(helmet({
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'"], // Allow same-origin iframes for module loading
     },
   },
   crossOriginEmbedderPolicy: false, // Allow embedding
