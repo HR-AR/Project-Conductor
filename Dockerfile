@@ -19,6 +19,9 @@ COPY tsconfig.json ./
 # Copy source code
 COPY src ./src
 
+# Copy public directory for static assets
+COPY public ./public
+
 # Copy demo HTML files to root
 COPY *.html ./
 
