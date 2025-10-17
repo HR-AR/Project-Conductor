@@ -839,3 +839,636 @@ Set up monitoring for:
 - With authentication: 1-2 weeks
 - With full DB integration: 2-3 weeks
 - With all recommendations: 4-6 weeks
+
+---
+
+## Self-Learning Skill System
+
+### Overview
+The system automatically detects repetitive patterns in your requests and generates reusable skills. When you explain a workflow multiple times, it becomes a permanent skill.
+
+### How It Works
+1. **Pattern Detection** - Tracks when you give similar instructions repeatedly
+2. **Skill Generation** - Creates `.claude/skills/` entries after 2-3 similar requests
+3. **Skill Refinement** - Each use improves the skill with feedback
+4. **Auto-Invocation** - Future requests automatically trigger learned skills
+
+### Directory Structure
+```
+.claude/
+├── learning/
+│   └── patterns.json          # Pattern tracking database
+├── skills/
+│   ├── skill-generator/       # Meta-skill for creating skills
+│   │   └── SKILL.md
+│   └── auto-[intent]-[id]/   # Auto-generated skills
+│       └── SKILL.md
+└── scripts/
+    └── skill_learner.py      # Pattern detection engine
+```
+
+### Installation
+
+#### Step 1: Create Skill Learner Script
+
+Create `skill-learner` bash wrapper in project root:
+
+```bash
+#!/bin/bash
+# skill-learner - Auto-generate skills from usage patterns
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+python3 "$SCRIPT_DIR/.claude/scripts/skill_learner.py" "$@"
+```
+
+Make it executable:
+```bash
+chmod +x skill-learner
+```
+
+#### Step 2: Create Python Pattern Detection Engine
+
+Create `.claude/scripts/skill_learner.py`:
+
+```python
+#!/usr/bin/env python3
+"""
+Skill Learning System - Automatically generates skills from repetitive patterns
+"""
+
+import json
+import os
+from datetime import datetime
+from pathlib import Path
+from collections import Counter
+from typing import Dict, List, Optional
+import hashlib
+
+class SkillLearner:
+    def __init__(self):
+        self.patterns_file = Path(".claude/learning/patterns.json")
+        self.patterns_file.parent.mkdir(parents=True, exist_ok=True)
+        self.skills_dir = Path(".claude/skills")
+        self.threshold = 2  # Create skill after 2 similar requests
+
+    def load_patterns(self) -> Dict:
+        """Load existing pattern tracking"""
+        if self.patterns_file.exists():
+            return json.loads(self.patterns_file.read_text())
+        return {"patterns": [], "skills_created": []}
+
+    def save_patterns(self, data: Dict):
+        """Persist pattern data"""
+        self.patterns_file.write_text(json.dumps(data, indent=2))
+
+    def extract_intent(self, user_request: str) -> str:
+        """Extract the core intent from user request"""
+        # Simple keyword extraction - could use embeddings for better matching
+        keywords = {
+            "analysis": ["analyze", "analysis", "break down", "examine", "evaluate"],
+            "api_docs": ["api", "documentation", "latest api", "current docs", "api reference"],
+            "reporting": ["report", "summary", "brief", "update", "status"],
+            "search": ["search", "find", "lookup", "query"],
+            "comparison": ["compare", "vs", "versus", "difference between"],
+            "validation": ["validate", "check", "verify", "test"],
+            "generation": ["generate", "create", "make", "build"]
+        }
+
+        request_lower = user_request.lower()
+        intent_scores = Counter()
+
+        for intent, terms in keywords.items():
+            for term in terms:
+                if term in request_lower:
+                    intent_scores[intent] += 1
+
+        return intent_scores.most_common(1)[0][0] if intent_scores else "general"
+
+    def create_signature(self, intent: str, context: str) -> str:
+        """Create unique signature for a pattern"""
+        combined = f"{intent}:{context}"
+        return hashlib.md5(combined.encode()).hexdigest()[:12]
+
+    def record_request(self, user_request: str, user_instructions: str = ""):
+        """Track a user request and detect patterns"""
+        data = self.load_patterns()
+
+        intent = self.extract_intent(user_request)
+        signature = self.create_signature(intent, user_instructions[:100])
+
+        # Find existing pattern or create new
+        pattern_found = False
+        for pattern in data["patterns"]:
+            if pattern["signature"] == signature:
+                pattern["count"] += 1
+                pattern["last_seen"] = datetime.now().isoformat()
+                pattern["examples"].append({
+                    "request": user_request[:200],
+                    "instructions": user_instructions[:500]
+                })
+                pattern_found = True
+
+                # Trigger skill creation at threshold
+                if pattern["count"] == self.threshold and not pattern.get("skill_created"):
+                    self.generate_skill(pattern)
+                    pattern["skill_created"] = True
+                break
+
+        if not pattern_found:
+            data["patterns"].append({
+                "signature": signature,
+                "intent": intent,
+                "count": 1,
+                "first_seen": datetime.now().isoformat(),
+                "last_seen": datetime.now().isoformat(),
+                "examples": [{
+                    "request": user_request[:200],
+                    "instructions": user_instructions[:500]
+                }],
+                "skill_created": False
+            })
+
+        self.save_patterns(data)
+        print(f"✅ Tracked pattern: {intent} (seen {self._get_pattern_count(signature, data)} times)")
+
+        # Check if threshold reached
+        count = self._get_pattern_count(signature, data)
+        if count == self.threshold:
+            print(f"🎯 Pattern detected {self.threshold} times - generating skill!")
+
+    def _get_pattern_count(self, signature: str, data: Dict) -> int:
+        for pattern in data["patterns"]:
+            if pattern["signature"] == signature:
+                return pattern["count"]
+        return 0
+
+    def generate_skill(self, pattern: Dict):
+        """Auto-generate a skill from detected pattern"""
+        intent = pattern["intent"]
+        examples = pattern["examples"]
+
+        # Synthesize instructions from examples
+        instructions = self._synthesize_instructions(examples)
+        triggers = self._extract_triggers(examples)
+
+        skill_name = f"auto-{intent}-{pattern['signature']}"
+        skill_dir = self.skills_dir / skill_name
+        skill_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine if this needs web search
+        needs_web_search = any(
+            keyword in intent.lower() or any(keyword in ex["request"].lower() for ex in examples)
+            for keyword in ["api", "documentation", "latest", "current", "updated", "recent"]
+        )
+
+        skill_content = f"""---
+name: {skill_name}
+description: Auto-generated skill for {intent}. Triggers on: {', '.join(triggers)}. {'Always searches web for current information.' if needs_web_search else ''}
+version: 1.0.0
+auto_generated: true
+created: {datetime.now().isoformat()}
+{'allowed-tools: [web_search, web_fetch, bash_tool, view, create_file]' if needs_web_search else ''}
+---
+
+# {intent.replace('_', ' ').title()} Skill (Auto-Generated)
+
+**⚡ This skill was automatically created after detecting a repetitive pattern.**
+
+## When to Use
+{self._format_triggers(triggers)}
+
+## Common Request Patterns
+{self._format_examples(examples)}
+
+## Instructions
+{instructions}
+
+{'## API Documentation Lookup' if needs_web_search else ''}
+{'This skill ALWAYS checks current documentation:' if needs_web_search else ''}
+{'1. Use web_search to find official docs' if needs_web_search else ''}
+{'2. Use web_fetch to read full content' if needs_web_search else ''}
+{'3. Prioritize official sources over third-party tutorials' if needs_web_search else ''}
+{'4. Check version compatibility' if needs_web_search else ''}
+
+## User's Preferred Approach
+{self._format_preferred_approach(examples)}
+
+## Validation
+```bash
+# Verify the output meets user's expectations
+{self._suggest_validation(intent)}
+```
+
+## Skill Improvement
+This skill improves with use. After each invocation:
+1. Note what worked well
+2. Identify gaps or confusion
+3. Update this file with refinements
+
+## Usage Stats
+- Created: {datetime.now().isoformat()}
+- Triggered from: {pattern['count']} similar requests
+- Last refined: {datetime.now().isoformat()}
+"""
+
+        skill_file = skill_dir / "SKILL.md"
+        skill_file.write_text(skill_content)
+
+        print(f"\n✅ Created new skill: .claude/skills/{skill_name}/SKILL.md")
+        print(f"   Intent: {intent}")
+        print(f"   Triggers: {', '.join(triggers)}")
+        if needs_web_search:
+            print(f"   🌐 Web search enabled for current documentation")
+        print(f"\n💡 This skill will now be auto-invoked for similar requests!")
+
+        # Log skill creation
+        data = self.load_patterns()
+        data["skills_created"].append({
+            "name": skill_name,
+            "intent": intent,
+            "created": datetime.now().isoformat(),
+            "from_pattern": pattern["signature"]
+        })
+        self.save_patterns(data)
+
+    def _synthesize_instructions(self, examples: List[Dict]) -> str:
+        """Create step-by-step instructions from examples"""
+        # Extract common steps from user instructions
+        all_instructions = [ex.get("instructions", "") for ex in examples if ex.get("instructions")]
+
+        if not all_instructions:
+            return "1. Analyze the request\n2. Apply relevant methodology\n3. Provide clear results"
+
+        # For now, use the most detailed instruction as template
+        most_detailed = max(all_instructions, key=len)
+
+        # Format as numbered list
+        lines = [line.strip() for line in most_detailed.split('\n') if line.strip()]
+        if not any(line[0].isdigit() for line in lines if line):
+            # Add numbering if not present
+            return '\n'.join(f"{i+1}. {line}" for i, line in enumerate(lines[:10]))
+
+        return '\n'.join(lines[:10])
+
+    def _extract_triggers(self, examples: List[Dict]) -> List[str]:
+        """Extract trigger phrases from examples"""
+        triggers = set()
+        for ex in examples:
+            request = ex["request"].lower()
+            # Extract key phrases (simple approach)
+            words = request.split()
+            for i, word in enumerate(words):
+                if word in ["analyze", "search", "find", "compare", "check", "api", "documentation"]:
+                    # Capture 2-3 word phrase
+                    phrase = ' '.join(words[i:i+3])
+                    triggers.add(phrase)
+
+        return list(triggers)[:5]  # Max 5 triggers
+
+    def _format_triggers(self, triggers: List[str]) -> str:
+        return '\n'.join(f"- User mentions: \"{trigger}\"" for trigger in triggers)
+
+    def _format_examples(self, examples: List[Dict]) -> str:
+        return '\n'.join(f"- \"{ex['request'][:100]}...\"" for ex in examples[:3])
+
+    def _format_preferred_approach(self, examples: List[Dict]) -> str:
+        """Format user's explained methodology"""
+        approaches = [ex.get("instructions", "") for ex in examples if ex.get("instructions")]
+        if approaches:
+            return f"```\n{approaches[-1][:500]}\n```"
+        return "User's approach will be refined with more examples."
+
+    def _suggest_validation(self, intent: str) -> str:
+        """Suggest validation based on intent"""
+        validations = {
+            "analysis": "# Check: Does output match expected analysis depth?",
+            "api_docs": "# Check: Is documentation current and from official source?",
+            "reporting": "# Check: Does report include all requested sections?",
+            "search": "# Check: Are results relevant and recent?",
+            "comparison": "# Check: Are all comparison points addressed?",
+        }
+        return validations.get(intent, "# Verify output meets requirements")
+
+    def list_learned_skills(self):
+        """Show all auto-generated skills"""
+        data = self.load_patterns()
+
+        print("\n📚 Learned Skills:")
+        for skill in data.get("skills_created", []):
+            print(f"\n  • {skill['name']}")
+            print(f"    Intent: {skill['intent']}")
+            print(f"    Created: {skill['created']}")
+
+        print(f"\n📊 Patterns Being Tracked: {len(data['patterns'])}")
+        for pattern in data["patterns"]:
+            if not pattern.get("skill_created"):
+                print(f"  • {pattern['intent']}: {pattern['count']}/{self.threshold} occurrences")
+
+    def track_interactive(self):
+        """Interactive mode to track current request"""
+        print("\n🎓 Skill Learning Mode")
+        print("Tell me what you're asking for and how you want it done.\n")
+
+        request = input("What are you asking for? ")
+        instructions = input("\nHow do you want it done? (your methodology): ")
+
+        self.record_request(request, instructions)
+        print("\n✅ Pattern recorded!")
+
+def main():
+    import sys
+    learner = SkillLearner()
+
+    if len(sys.argv) < 2:
+        print("""
+Skill Learning System
+
+Commands:
+  track           - Interactive: track a new request pattern
+  list            - Show all learned skills and patterns
+  record "request" "instructions"  - Record a pattern programmatically
+
+Examples:
+  ./skill-learner track
+  ./skill-learner list
+  ./skill-learner record "analyze the BRD" "First read the BRD, then..."
+        """)
+        return
+
+    cmd = sys.argv[1]
+
+    if cmd == "track":
+        learner.track_interactive()
+    elif cmd == "list":
+        learner.list_learned_skills()
+    elif cmd == "record" and len(sys.argv) >= 4:
+        learner.record_request(sys.argv[2], sys.argv[3])
+    else:
+        print("Unknown command. Use: track, list, or record")
+
+if __name__ == "__main__":
+    main()
+```
+
+#### Step 3: Create Meta-Skill for Skill Generation
+
+Create `.claude/skills/skill-generator/SKILL.md`:
+
+```markdown
+---
+name: skill-generator
+description: Meta-skill that creates new skills. Use when user repeatedly explains the same workflow, or mentions "save this as a skill", "remember this process", or "create a skill for this".
+version: 1.0.0
+---
+
+# Skill Generator (Meta-Skill)
+
+**This skill creates other skills.**
+
+## When to Use
+- User repeats similar instructions 2+ times in conversation
+- User says "remember this", "save this workflow", "create a skill"
+- You notice a pattern that should be automated
+- User provides detailed methodology that should be reusable
+
+## Detection Patterns
+Track these signals:
+1. **Repetition**: Same request type appears multiple times
+2. **Detailed Instructions**: User explains step-by-step how to do something
+3. **Explicit Request**: "Make this a skill", "Remember this process"
+4. **API/Documentation Lookups**: User asks for current docs repeatedly
+
+## Auto-Generation Process
+
+### Step 1: Detect Pattern
+After conversation where user explains methodology:
+```bash
+# Record the pattern
+./skill-learner record \
+  "User's request description" \
+  "User's detailed instructions on how they want it done"
+```
+
+### Step 2: Acknowledge to User
+```
+🎓 I notice you've explained this workflow [N] times.
+I'm tracking this pattern and will create a reusable skill after one more similar request.
+This will let me automatically handle this in the future without needing detailed instructions.
+```
+
+### Step 3: Generate Skill (after threshold)
+System automatically creates `.claude/skills/auto-[intent]-[id]/SKILL.md`
+
+### Step 4: Confirm with User
+```
+✅ I've created a new skill for [intent]!
+
+From now on, when you ask about [trigger phrases], I'll automatically:
+1. [Step 1 from user's instructions]
+2. [Step 2 from user's instructions]
+3. [Step 3 from user's instructions]
+
+The skill is saved in .claude/skills/auto-[name]/ and improves with each use.
+You can edit it anytime to refine the approach.
+```
+
+## Special Cases
+
+### API Documentation Skill
+If user asks for API docs 2+ times:
+
+```markdown
+---
+name: auto-api-docs-lookup
+description: Always search web for current API documentation. Use whenever API, SDK, or technical documentation is mentioned.
+allowed-tools: [web_search, web_fetch, bash_tool, view]
+---
+
+# API Documentation Lookup
+
+## When to Use
+- User mentions API, SDK, library documentation
+- Technical integration questions
+- "Latest" or "current" version queries
+
+## Process (Auto-search enabled)
+1. **ALWAYS web_search first**: "[library name] official documentation [current year]"
+2. Prioritize official sources (github.com/org/repo, docs.library.com)
+3. Use web_fetch to read full current docs
+4. Cross-reference version compatibility
+5. Cite sources with dates
+
+## User Instruction
+[User's explained methodology goes here]
+```
+
+### Analysis Skill
+If user repeatedly explains analysis approach:
+
+```markdown
+---
+name: auto-analysis-methodology
+description: Analysis workflow based on user's preferred methodology. Use when user asks to "analyze", "evaluate", or "assess".
+---
+
+# Analysis Methodology
+
+## When to Use
+- "Analyze this..."
+- "Evaluate the..."
+- "Break down..."
+
+## User's Preferred Approach
+[Captured from user's repeated instructions]:
+1. [Step they always mention first]
+2. [Their second step]
+3. [How they want results formatted]
+
+## Validation
+[How user checks if analysis is complete]
+```
+
+## Skill Improvement Loop
+After each use of an auto-generated skill:
+
+```python
+# In your response, include:
+"""
+📊 Skill Usage Feedback
+
+This used the auto-generated '[skill-name]' skill.
+
+Did this match your expectations? If not, I can refine the skill by:
+- Adding more detail
+- Adjusting the methodology
+- Including additional validation steps
+
+Just say "improve the [skill-name] skill" and explain what to change.
+"""
+```
+
+## Commands for Users
+
+```bash
+# Track a new pattern
+./skill-learner track
+
+# See what's being learned
+./skill-learner list
+
+# Manually create skill from current conversation
+./skill-learner record "what user asked" "how they explained to do it"
+```
+```
+
+### Integration with Claude Code
+
+When user interacts with you:
+1. **After response**: Check if this is a repetitive pattern
+2. **Call**: `./skill-learner record "user_request" "your_methodology"`
+3. **System**: Auto-generates skill at threshold
+4. **Next time**: Skill is automatically invoked
+
+### Example Workflow
+
+**First Request:**
+```
+User: "Can you analyze this BRD? First read the executive summary, then assess market fit, then evaluate technical feasibility."
+Claude: [Follows instructions, provides analysis]
+Claude (internal): Records pattern via skill-learner
+```
+
+**Second Similar Request:**
+```
+User: "Analyze this other BRD following the same approach."
+Claude: "🎓 I'm tracking this analysis pattern. One more similar request and I'll create a reusable skill."
+Claude: [Executes analysis, records pattern]
+Claude (internal): Skill auto-generated!
+```
+
+**Third Request:**
+```
+User: "Analyze the new warehouse BRD."
+Claude: "✅ Using your custom analysis methodology skill..."
+Claude: [Auto-invokes the learned skill, no detailed instructions needed]
+```
+
+### Quick Commands
+
+```bash
+# After you explain something to Claude:
+./skill-learner record \
+  "Analyze BRD for market fit" \
+  "1) Read exec summary 2) Check competitive landscape 3) Assess technical feasibility"
+
+# Check what's being learned
+./skill-learner list
+
+# Interactive tracking
+./skill-learner track
+```
+
+### Real Examples for Project Conductor Workflow
+
+**Example 1: BRD Analysis Pattern**
+```bash
+# First time: You explain in detail how to analyze BRDs
+# Second time: You explain again (slightly different BRD)
+# System: Auto-creates "auto-analysis-methodology" skill
+# Third time: Just say "analyze this BRD" - skill auto-invokes!
+```
+
+**Example 2: API Documentation**
+```bash
+# You ask: "What's the latest Express.js middleware documentation?"
+# Claude: web_search → web_fetch → provides answer
+# You ask again: "Check Socket.io docs for new authentication methods"
+# System: Creates "auto-api-docs-lookup" skill with web-search enabled
+# Future: Any API question automatically searches current docs first
+```
+
+**Example 3: Deployment Checklist**
+```bash
+# You ask: "Help me deploy to production - check env vars, run tests, build Docker"
+# You ask again: "Deploy the staging environment following same steps"
+# System: Creates "auto-deployment-checklist" skill
+# Future: "Deploy to [env]" auto-invokes comprehensive checklist
+```
+
+### Maintenance
+
+Skills are stored in `.claude/learning/patterns.json` - this tracks:
+- Pattern signatures
+- Occurrence counts
+- Example requests
+- Generated skills
+
+Clean up old patterns:
+```bash
+# Review learned patterns
+./skill-learner list
+
+# Edit/remove if needed
+nano .claude/learning/patterns.json
+```
+
+### Benefits for Project Conductor
+
+1. **Reduced Repetition**: Explain workflows once, reuse forever
+2. **Consistency**: Same methodology applied every time
+3. **Knowledge Capture**: Team workflows become permanent skills
+4. **Faster Onboarding**: New team members see documented patterns
+5. **Self-Improving**: Skills refine with each use
+
+### Adding to Git
+
+Add to `.gitignore` to keep learning local, or commit to share team skills:
+
+```bash
+# Keep learning private
+.claude/learning/
+
+# Share team skills (optional)
+# Comment out to commit skills:
+# .claude/skills/auto-*/
+```
