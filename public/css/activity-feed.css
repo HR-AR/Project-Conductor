@@ -23,6 +23,16 @@
   overflow: hidden;
 }
 
+/* Collapsed state - First Principles: Show only what matters */
+.agent-activity-feed.collapsed {
+  max-height: 60px;
+}
+
+.agent-activity-feed.collapsed .activity-feed-content,
+.agent-activity-feed.collapsed .activity-feed-footer {
+  display: none;
+}
+
 /* Minimized state */
 .agent-activity-feed.minimized {
   width: 60px;
@@ -186,6 +196,15 @@
 
 .activity-item:last-child {
   margin-bottom: 0;
+}
+
+/* First Principles: Limit to 3 visible items max */
+.activity-item:nth-child(n+4) {
+  display: none;
+}
+
+.activity-feed-content.show-all .activity-item:nth-child(n+4) {
+  display: flex;
 }
 
 /* New item highlight */
@@ -483,10 +502,27 @@
   font-size: 0.875rem;
 }
 
+.activity-show-more-btn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.activity-show-more-btn:hover {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
 .activity-feed-clear-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: #6b7280;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -496,8 +532,8 @@
 }
 
 .activity-feed-clear-btn:hover {
-  background: #f1f5f9;
-  color: #475569;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 /* ===== Responsive Design ===== */
