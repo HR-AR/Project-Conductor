@@ -442,10 +442,52 @@
 
         .matrix-checkbox {
             margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .matrix-checkbox:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
 
         .matrix-label {
             flex: 1;
+        }
+
+        .matrix-row.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .matrix-row.disabled .matrix-label {
+            color: #9ca3af;
+        }
+
+        /* Tooltip for disabled state */
+        .matrix-disabled-hint {
+            text-align: center;
+            padding: 16px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .matrix-disabled-hint.show {
+            display: block;
+        }
+
+        .matrix-disabled-hint strong {
+            color: #78350f;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .alignment-status {
@@ -825,6 +867,9 @@
                 <div id="alignmentStatus"></div>
 
                 <div class="section-subtitle">Traceability Matrix</div>
+                <div class="matrix-disabled-hint" id="matrixHint">
+                    <strong>💡 Tip:</strong> Select or create a feature first to link BRD criteria
+                </div>
                 <div class="traceability-matrix" id="traceabilityMatrix">
                     <div style="text-align: center; color: #6c757d; padding: 20px;">
                         Select a BRD to view alignment
@@ -1351,16 +1396,26 @@
         // BRD Alignment & Traceability
         function updateTraceabilityMatrix() {
             const matrix = document.getElementById('traceabilityMatrix');
+            const hint = document.getElementById('matrixHint');
 
             if (!currentBrd || !currentBrd.metadata?.successCriteria) {
                 matrix.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">Select a BRD to view alignment</div>';
+                hint.classList.remove('show');
                 return;
+            }
+
+            // Show/hide hint based on feature selection
+            if (currentFeatureIndex === -1) {
+                hint.classList.add('show');
+            } else {
+                hint.classList.remove('show');
             }
 
             matrix.innerHTML = '';
             currentBrd.metadata.successCriteria.forEach(criterion => {
                 const row = document.createElement('div');
-                row.className = 'matrix-row';
+                const isDisabled = currentFeatureIndex === -1;
+                row.className = 'matrix-row' + (isDisabled ? ' disabled' : '');
 
                 const isLinked = currentFeatureIndex !== -1 &&
                     features[currentFeatureIndex].linkedBrdCriteria.includes(criterion.id);
@@ -1369,9 +1424,21 @@
                     <input type="checkbox" class="matrix-checkbox"
                         ${isLinked ? 'checked' : ''}
                         onchange="toggleBrdCriteria('${criterion.id}')"
-                        ${currentFeatureIndex === -1 ? 'disabled' : ''}>
+                        ${isDisabled ? 'disabled' : ''}
+                        title="${isDisabled ? 'Select a feature first to link criteria' : 'Link this BRD criterion to current feature'}">
                     <span class="matrix-label">${criterion.text}</span>
                 `;
+
+                // Add click feedback for disabled state
+                if (isDisabled) {
+                    row.addEventListener('click', function() {
+                        hint.style.animation = 'shake 0.3s';
+                        setTimeout(() => {
+                            hint.style.animation = '';
+                        }, 300);
+                    });
+                }
+
                 matrix.appendChild(row);
             });
         }
