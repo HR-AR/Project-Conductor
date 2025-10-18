@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Interactive Product Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --text: #2d3748;
+            --text-light: #718096;
+            --bg: #f7fafc;
+            --white: #ffffff;
+            --shadow: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--white);
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .hero .tagline {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .hero .problem-statement {
+            font-size: 1.2em;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .cta-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.6s both;
+        }
+
+        .btn {
+            padding: 16px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--primary);
+        }
+
+        /* Demo Container */
+        .demo-container {
+            max-width: 1400px;
+            margin: -40px auto 0;
+            padding: 0 20px 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Interactive Tour */
+        .tour-section {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-lg);
+            animation: fadeInUp 0.8s ease 0.8s both;
+        }
+
+        .tour-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .tour-header h2 {
+            font-size: 2.5em;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .tour-header p {
+            font-size: 1.2em;
+            color: var(--text-light);
+        }
+
+        /* Step Cards */
+        .step-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .step-card {
+            background: var(--bg);
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .step-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            border-radius: 50%;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .step-card h3 {
+            font-size: 1.5em;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+
+        .step-card p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .step-card .badge {
+            display: inline-block;
+            background: var(--success);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        /* Interactive Demo Frame */
+        .demo-frame {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 40px 0;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        .demo-tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-light);
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .demo-tab:hover {
+            color: var(--primary);
+        }
+
+        .demo-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .demo-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .demo-content.active {
+            display: block;
+        }
+
+        /* Module Preview */
+        .module-preview {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .module-preview h3 {
+            font-size: 1.8em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .module-preview iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .feature-box {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .feature-box h4 {
+            font-size: 1.3em;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .feature-box p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        .demo-footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--white);
+            border-radius: 20px;
+            margin-top: 40px;
+        }
+
+        .demo-footer h2 {
+            font-size: 2em;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .demo-footer p {
+            font-size: 1.2em;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--text);
+            color: var(--white);
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5em;
+            }
+
+            .hero .tagline {
+                font-size: 1.2em;
+            }
+
+            .tour-section {
+                padding: 30px 20px;
+            }
+
+            .step-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-tabs {
+                flex-direction: column;
+            }
+
+            .demo-tab {
+                text-align: left;
+            }
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-indicator" id="progressBar"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>🎯 Project Conductor</h1>
+        <p class="tagline">Doc-Anchored Orchestration for Modern Product Teams</p>
+        <div class="problem-statement">
+            <strong>The $100B Problem:</strong> Requirements change, but tracking them doesn't.
+            <br>60% of software failures trace back to poor requirements management.
+            <br><strong>Project Conductor makes the narrative document your source of truth.</strong>
+        </div>
+        <div class="cta-container">
+            <a href="#start-tour" class="btn btn-primary" onclick="scrollToTour(event)">🚀 Start Interactive Tour</a>
+            <a href="conductor-unified-dashboard.html" class="btn btn-secondary">📊 Open Live Dashboard</a>
+        </div>
+    </section>
+
+    <!-- Demo Container -->
+    <div class="demo-container">
+
+        <!-- Interactive Tour Section -->
+        <div class="tour-section" id="start-tour">
+            <div class="tour-header">
+                <h2>📚 The 7-Module Workflow</h2>
+                <p>From business idea to production - all in one living document</p>
+            </div>
+
+            <div class="step-cards">
+                <div class="step-card" onclick="openModule('module-0-onboarding.html')">
+                    <div class="step-number">0</div>
+                    <h3>🎯 Onboarding</h3>
+                    <p>Get started with a guided setup wizard. Define your project vision, stakeholders, and success metrics.</p>
+                    <span class="badge">2min setup</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-1-present.html')">
+                    <div class="step-number">1</div>
+                    <h3>📊 Present (Dashboard)</h3>
+                    <p>Real-time overview of all projects. See status, health scores, blockers, and approval progress at a glance.</p>
+                    <span class="badge">Live updates</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-2-brd.html')">
+                    <div class="step-number">2</div>
+                    <h3>📝 BRD</h3>
+                    <p>Business Requirements Document. Define the "why" - market opportunity, business case, success criteria.</p>
+                    <span class="badge">Approval workflow</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-3-prd.html')">
+                    <div class="step-number">3</div>
+                    <h3>🎨 PRD</h3>
+                    <p>Product Requirements Document. The "what" - features, user stories, acceptance criteria.</p>
+                    <span class="badge">Stakeholder alignment</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-4-engineering-design.html')">
+                    <div class="step-number">4</div>
+                    <h3>⚙️ Engineering Design</h3>
+                    <p>Technical architecture and implementation plan. The "how" - system design, APIs, data models.</p>
+                    <span class="badge">Tech specs</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-5-alignment.html')">
+                    <div class="step-number">5</div>
+                    <h3>🤝 Alignment</h3>
+                    <p>Democratic conflict resolution. When requirements clash, stakeholders vote to reach consensus.</p>
+                    <span class="badge">Voting system</span>
+                </div>
+
+                <div class="step-card" onclick="openModule('module-6-implementation.html')">
+                    <div class="step-number">6</div>
+                    <h3>🚀 Implementation</h3>
+                    <p>Track progress, changes, and complete history. Bidirectional traceability from code to requirements.</p>
+                    <span class="badge">Full audit trail</span>
+                </div>
+
+                <div class="step-card tooltip" onclick="openModule('module-1.5-ai-generator.html')">
+                    <div class="step-number">✨</div>
+                    <h3>🤖 AI Generator</h3>
+                    <p>AI-powered BRD generation from simple prompts. Transform ideas into structured requirements instantly.</p>
+                    <span class="badge">Coming Soon</span>
+                    <span class="tooltiptext">AI features in beta testing</span>
+                </div>
+            </div>
+
+            <!-- Interactive Demo Tabs -->
+            <div class="demo-frame">
+                <div class="demo-tabs">
+                    <button class="demo-tab active" onclick="switchTab(event, 'features')">🎯 Key Features</button>
+                    <button class="demo-tab" onclick="switchTab(event, 'problem')">💡 The Problem</button>
+                    <button class="demo-tab" onclick="switchTab(event, 'solution')">✅ The Solution</button>
+                    <button class="demo-tab" onclick="switchTab(event, 'benefits')">📈 Benefits</button>
+                </div>
+
+                <div class="demo-content active" id="features">
+                    <div class="features-grid">
+                        <div class="feature-box">
+                            <div class="feature-icon">📖</div>
+                            <h4>Living Documents</h4>
+                            <p>Markdown + YAML frontmatter creates documents that are both human-readable and machine-queryable.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">🔗</div>
+                            <h4>Bidirectional Traceability</h4>
+                            <p>Every requirement links to code, tests, and documentation. See impact of changes instantly.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">⚡</div>
+                            <h4>Real-Time Collaboration</h4>
+                            <p>See who's editing what, comment threads, live presence tracking with Socket.io.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">🗳️</div>
+                            <h4>Democratic Voting</h4>
+                            <p>Resolve conflicts through stakeholder voting. Transparent decision-making with full audit trail.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">🎨</div>
+                            <h4>Embedded Widgets</h4>
+                            <p>Live status widgets inside documents. {{widget type="project-status"}} renders real-time data.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">📊</div>
+                            <h4>Health Scoring</h4>
+                            <p>Automatic risk detection. Projects get health scores based on blockers, delays, and approval status.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-content" id="problem">
+                    <h3>The $100B Requirements Problem</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">60%</div>
+                            <div class="stat-label">Software failures from poor requirements</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">$100B</div>
+                            <div class="stat-label">Annual cost to industry</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">3x</div>
+                            <div class="stat-label">Cost to fix requirements issues late</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">45%</div>
+                            <div class="stat-label">Of features never used</div>
+                        </div>
+                    </div>
+                    <div class="module-preview">
+                        <h3>Traditional Problems:</h3>
+                        <ul style="font-size: 1.1em; line-height: 2; color: var(--text-light); padding-left: 40px;">
+                            <li>📄 Requirements in static Word/PDF documents</li>
+                            <li>🔀 Scattered across Jira, Confluence, Slack, email</li>
+                            <li>❌ No traceability to code or tests</li>
+                            <li>⏰ Changes buried in edit history</li>
+                            <li>🤔 Who approved what? When? Why?</li>
+                            <li>🔍 Impact analysis impossible</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="demo-content" id="solution">
+                    <h3>Project Conductor's Approach</h3>
+                    <div class="module-preview">
+                        <h3>Document-Anchored Orchestration</h3>
+                        <p style="font-size: 1.2em; line-height: 1.8; color: var(--text-light); margin-bottom: 30px;">
+                            The narrative document becomes the <strong>single source of truth</strong>. Everything else -
+                            approvals, status, milestones, blockers - lives in the document's frontmatter and is
+                            automatically synced.
+                        </p>
+                        <div class="features-grid">
+                            <div class="feature-box">
+                                <h4>✅ Immutable Audit Trail</h4>
+                                <p>Every change tracked. Git-based versioning with decision register capturing who approved what and why.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4>🔗 Automatic Traceability</h4>
+                                <p>Requirements link to code commits, tests, and documentation. See impact of changes in real-time.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4>⚡ Live Collaboration</h4>
+                                <p>Multiple stakeholders edit simultaneously. See cursors, comments, and changes as they happen.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4>🎯 SLA Tracking</h4>
+                                <p>Automatic escalation when approvals stall. Health scores drop when milestones slip.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-content" id="benefits">
+                    <h3>Why Teams Love Project Conductor</h3>
+                    <div class="features-grid">
+                        <div class="feature-box">
+                            <div class="feature-icon">⏱️</div>
+                            <h4>70% Faster Approvals</h4>
+                            <p>Auto-routing and SLA tracking keep stakeholders accountable. No more chasing approvals.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">🎯</div>
+                            <h4>85% Better Alignment</h4>
+                            <p>Democratic voting resolves conflicts transparently. Everyone sees the decision history.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">📉</div>
+                            <h4>60% Fewer Reworks</h4>
+                            <p>Catch requirement conflicts early. Impact analysis shows downstream effects before code changes.</p>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon">🚀</div>
+                            <h4>50% Faster Onboarding</h4>
+                            <p>New team members read the living document. Context, decisions, and rationale all in one place.</p>
+                        </div>
+                    </div>
+
+                    <div class="module-preview" style="margin-top: 40px;">
+                        <h3>ROI Example</h3>
+                        <p style="font-size: 1.1em; line-height: 1.8; color: var(--text-light);">
+                            <strong>Before:</strong> 10-person team, 3 projects, 40 hours/week on requirements management,
+                            6 weeks avg approval cycle, 30% of features reworked due to missed requirements.
+                            <br><br>
+                            <strong>After:</strong> 8 hours/week on requirements, 2 weeks approval cycle, 12% rework rate.
+                            <br><br>
+                            <strong>Savings:</strong> $250K/year in engineering time + 4 weeks faster time-to-market per project.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action Footer -->
+        <div class="demo-footer">
+            <h2>Ready to See It In Action?</h2>
+            <p>Explore the live modules and see how Project Conductor transforms requirements management</p>
+            <div class="cta-container">
+                <a href="conductor-unified-dashboard.html" class="btn btn-primary">🚀 Open Live Dashboard</a>
+                <a href="module-0-onboarding.html" class="btn btn-secondary">📝 Start Onboarding</a>
+                <a href="test-dashboard.html" class="btn btn-secondary">🧪 API Testing Console</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(event, tabId) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.demo-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.demo-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked tab and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Open module in new tab
+        function openModule(url) {
+            window.open(url, '_blank');
+        }
+
+        // Smooth scroll to tour
+        function scrollToTour(event) {
+            event.preventDefault();
+            document.getElementById('start-tour').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Progress indicator
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.6s ease both';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.step-card, .feature-box, .stat-box').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Console log for debugging
+        console.log('Project Conductor Demo Loaded');
+        console.log('Available modules:', [
+            'module-0-onboarding.html',
+            'module-1-present.html',
+            'module-1.5-ai-generator.html',
+            'module-1.6-project-history.html',
+            'module-2-brd.html',
+            'module-3-prd.html',
+            'module-4-engineering-design.html',
+            'module-5-alignment.html',
+            'module-6-implementation.html',
+            'conductor-unified-dashboard.html'
+        ]);
+    </script>
+</body>
+</html>

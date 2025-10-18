@@ -34,7 +34,12 @@
     "conductor:rollback": "node scripts/conductor-cli.mjs rollback",
     "conductor:deploy": "node scripts/conductor-cli.mjs deploy",
     "conductor:report": "node scripts/conductor-cli.mjs report",
-    "conductor:dashboard": "node scripts/conductor-cli.mjs dashboard"
+    "conductor:dashboard": "node scripts/conductor-cli.mjs dashboard",
+    "skill:create": "node scripts/skill-helper.mjs create",
+    "skill:list": "node scripts/skill-helper.mjs list",
+    "learn:track": "node scripts/skill-learner.mjs track",
+    "learn:record": "node scripts/skill-learner.mjs record",
+    "learn:list": "node scripts/skill-learner.mjs list"
   },
   "keywords": [
     "workflow",

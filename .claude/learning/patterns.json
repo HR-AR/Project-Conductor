@@ -4,8 +4,8 @@
       "signature": "219c9431a85d",
       "intent": "analysis",
       "count": 2,
-      "first_seen": "2025-10-17T08:06:09.137350",
-      "last_seen": "2025-10-17T08:06:17.594117",
+      "firstSeen": "2025-10-17T08:06:09.137350",
+      "lastSeen": "2025-10-17T08:06:17.594117",
       "examples": [
         {
           "request": "Analyze the BRD document for market viability",
@@ -16,8 +16,15 @@
           "instructions": "1. Read the executive summary section 2. Check the competitive landscape analysis 3. Evaluate the market size and growth potential 4. Assess the technical feasibility 5. Provide a summary with risk assessment"
         }
       ],
-      "skill_created": true
+      "skillCreated": true
     }
   ],
-  "skills_created": []
+  "skills": [
+    {
+      "name": "auto-analysis-219c9431a85d",
+      "intent": "analysis",
+      "created": "2025-10-17T08:06:17.594783",
+      "fromPattern": "219c9431a85d"
+    }
+  ]
 }

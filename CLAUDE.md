@@ -1472,3 +1472,62 @@ Add to `.gitignore` to keep learning local, or commit to share team skills:
 # Comment out to commit skills:
 # .claude/skills/auto-*/
 ```
+
+## Agent Skills (Official + Custom Auto-Learning)
+
+### Overview
+Official Agent Skills with experimental auto-learning layer
+
+### Available Skills
+- **Validation Loop** - Self-correcting validation workflow
+- **Pattern Scout** - Find external code examples
+- **Skill Generator** (Meta) - Creates skills from patterns
+
+### Auto-Learning
+```bash
+npm run learn:track           # Interactive tracking
+npm run learn:record "..." "..."  # Manual tracking
+npm run learn:list           # Show learned skills
+```
+
+### How It Works
+1. Explain methodology (1st time)
+2. System tracks pattern (1/2)
+3. Similar request (2nd time)
+4. Skill auto-generated (2/2)
+5. Future requests auto-invoke
+
+### Manual Skills
+```bash
+npm run skill:create [name]   # Create skill template
+npm run skill:list           # Show all skills
+```
+
+### Official Format
+```yaml
+---
+name: [Gerund Form]
+description: [What + When]
+---
+[Instructions <500 lines]
+```
+
+### Files
+```
+.claude/
+├── skills/
+│   ├── validation/
+│   ├── scout/
+│   └── auto-*/
+└── learning/
+    └── patterns.json
+```
+
+### Integration
+Works with existing context-engine.mjs:
+- PRP → Scout → Implement → Skills
+- Skills auto-invoke based on patterns
+- npm run sync updates CLAUDE.md
+
+### References
+- [Official Docs](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
