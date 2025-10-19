@@ -1,0 +1,58 @@
+services:
+  # Demo Web Service (No Database Required)
+  - type: web
+    name: project-conductor-demo
+    env: node
+    plan: starter  # Free tier
+    region: oregon
+    buildCommand: npm ci --prefer-offline --no-audit && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+
+    # Environment variables for demo mode
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000  # Render default port
+      - key: HOST
+        value: 0.0.0.0
+
+      # Demo mode - NO DATABASE REQUIRED
+      - key: USE_MOCK_DB
+        value: "true"
+      - key: MOCK_EXTERNAL_SERVICES
+        value: "true"
+
+      # Logging
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FORMAT
+        value: json
+
+      # Security (auto-generated)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+
+      # CORS for demo (allow all origins)
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+
+      # Rate limiting (generous for demo)
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 200
+
+      # Feature flags
+      - key: ENABLE_METRICS
+        value: "true"
+      - key: ENABLE_HEALTH_CHECKS
+        value: "true"
+      - key: ENABLE_CACHING
+        value: "false"  # No Redis needed
