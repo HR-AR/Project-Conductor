@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Project Conductor - Onboarding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .wizard-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Progress Bar */
+        .progress-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            color: white;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-text {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .wizard-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Wizard Content */
+        .wizard-content {
+            padding: 3rem;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .form-group.error input,
+        .form-group.error textarea,
+        .form-group.error select {
+            border-color: #dc2626;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* Project Type Selection */
+        .project-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-type-card {
+            background: #f9fafb;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .project-type-card:hover {
+            background: #f3f4f6;
+            transform: translateY(-4px);
+        }
+
+        .project-type-card.selected {
+            background: #ede9fe;
+            border-color: #667eea;
+        }
+
+        .project-type-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .project-type-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-type-desc {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* Team Member Selection */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .team-member-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .team-member-card:hover {
+            background: #f3f4f6;
+        }
+
+        .team-member-card.selected {
+            background: #ede9fe;
+            border-color: #667eea;
+        }
+
+        .team-member-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 0.75rem;
+        }
+
+        .team-member-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .team-member-role {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* Milestone List */
+        .milestone-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .milestone-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .milestone-info h4 {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .milestone-meta {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .remove-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #fecaca;
+        }
+
+        .add-milestone-btn {
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 100%;
+            cursor: pointer;
+            color: #6b7280;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .add-milestone-btn:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        /* Goals List */
+        .goals-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .goal-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .goal-text {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        /* Review Summary */
+        .summary-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .summary-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        /* Navigation Buttons */
+        .wizard-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Success Screen */
+        .success-screen {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .success-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .wizard-content {
+                padding: 2rem 1.5rem;
+            }
+
+            .project-types {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <!-- Progress Header -->
+        <div class="progress-header">
+            <div class="step-indicator">
+                <span class="step-text" id="stepIndicator">Step 1 of 5</span>
+                <span class="wizard-title" id="wizardTitle">Welcome</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar" style="width: 20%;"></div>
+            </div>
+        </div>
+
+        <!-- Wizard Content -->
+        <div class="wizard-content">
+            <!-- Step 1: Welcome & Project Type -->
+            <div class="step active" data-step="1">
+                <div class="step-title">Welcome to Project Conductor! 🎉</div>
+                <div class="step-description">
+                    Let's create your first project. Start by choosing what type of document you want to create.
+                </div>
+
+                <div class="project-types">
+                    <div class="project-type-card" data-type="brd">
+                        <div class="project-type-icon">📊</div>
+                        <div class="project-type-name">Business Requirements</div>
+                        <div class="project-type-desc">Define business goals and stakeholder needs</div>
+                    </div>
+                    <div class="project-type-card" data-type="prd">
+                        <div class="project-type-icon">📱</div>
+                        <div class="project-type-name">Product Requirements</div>
+                        <div class="project-type-desc">Detail product features and user stories</div>
+                    </div>
+                    <div class="project-type-card" data-type="design">
+                        <div class="project-type-icon">⚙️</div>
+                        <div class="project-type-name">Engineering Design</div>
+                        <div class="project-type-desc">Technical architecture and implementation</div>
+                    </div>
+                </div>
+
+                <div class="wizard-footer">
+                    <button class="btn btn-secondary" onclick="skipOnboarding()">Skip for Now</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="step1Next" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Project Basics -->
+            <div class="step" data-step="2">
+                <div class="step-title">Project Basics</div>
+                <div class="step-description">
+                    Tell us about your project. What are you building?
+                </div>
+
+                <form id="projectBasicsForm">
+                    <div class="form-group">
+                        <label for="projectTitle">Project Title *</label>
+                        <input type="text" id="projectTitle" placeholder="e.g., Mobile App Redesign" required>
+                        <div class="error-message">Please enter a project title</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDescription">Description *</label>
+                        <textarea id="projectDescription" placeholder="Describe the purpose and scope of this project..." required></textarea>
+                        <div class="error-message">Please enter a project description</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectOwner">Project Owner *</label>
+                        <select id="projectOwner" required>
+                            <option value="">Select owner...</option>
+                        </select>
+                        <div class="error-message">Please select a project owner</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">Target End Date</label>
+                            <input type="date" id="endDate">
+                        </div>
+                    </div>
+                </form>
+
+                <div class="wizard-footer">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Team Assembly -->
+            <div class="step" data-step="3">
+                <div class="step-title">Assemble Your Team</div>
+                <div class="step-description">
+                    Select team members who will collaborate on this project.
+                </div>
+
+                <div class="team-grid" id="teamGrid">
+                    <!-- Team members populated dynamically -->
+                </div>
+
+                <div class="wizard-footer">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Goals & Milestones -->
+            <div class="step" data-step="4">
+                <div class="step-title">Define Goals & Milestones</div>
+                <div class="step-description">
+                    What do you want to achieve? Break it down into milestones.
+                </div>
+
+                <div class="form-group">
+                    <label>Project Goals</label>
+                    <div class="goals-list" id="goalsList"></div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="newGoal" placeholder="Add a goal (e.g., Increase conversion by 25%)">
+                        <button class="btn btn-primary" onclick="addGoal()" style="padding: 0.875rem 1.5rem; white-space: nowrap;">Add</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label>Key Milestones</label>
+                    <div class="milestone-list" id="milestoneList"></div>
+                    <button class="add-milestone-btn" onclick="addMilestone()">+ Add Milestone</button>
+                </div>
+
+                <div class="wizard-footer">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()">Review</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Review & Launch -->
+            <div class="step" data-step="5">
+                <div class="step-title">Review & Launch</div>
+                <div class="step-description">
+                    Everything looks good? Let's launch your project!
+                </div>
+
+                <div class="summary-section">
+                    <h3>Project Overview</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Type:</span>
+                        <span class="summary-value" id="reviewType"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Title:</span>
+                        <span class="summary-value" id="reviewTitle"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Owner:</span>
+                        <span class="summary-value" id="reviewOwner"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Timeline:</span>
+                        <span class="summary-value" id="reviewTimeline"></span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Team Members</h3>
+                    <div id="reviewTeam"></div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Goals</h3>
+                    <div id="reviewGoals"></div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Milestones</h3>
+                    <div id="reviewMilestones"></div>
+                </div>
+
+                <div class="wizard-footer">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-success" onclick="launchProject()">🚀 Launch Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/api-client.js"></script>
+    <script>
+        // Wizard State
+        const wizardState = {
+            currentStep: 1,
+            totalSteps: 5,
+            projectType: '',
+            projectTitle: '',
+            projectDescription: '',
+            projectOwner: '',
+            startDate: '',
+            endDate: '',
+            teamMembers: [],
+            goals: [],
+            milestones: [],
+            allUsers: []
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsers();
+            setupProjectTypeSelection();
+            setDefaultDates();
+        });
+
+        // Load users from API
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/v1/users');
+                const result = await response.json();
+
+                if (result.success) {
+                    wizardState.allUsers = result.data;
+                    populateOwnerDropdown();
+                    populateTeamGrid();
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                // Use mock data if API fails
+                wizardState.allUsers = getMockUsers();
+                populateOwnerDropdown();
+                populateTeamGrid();
+            }
+        }
+
+        // Mock users if API not available
+        function getMockUsers() {
+            return [
+                { id: '1', name: 'Sarah Chen', email: 'sarah@example.com', role: 'Product Manager', avatar: 'https://i.pravatar.cc/150?img=1' },
+                { id: '2', name: 'Alex Kumar', email: 'alex@example.com', role: 'Tech Lead', avatar: 'https://i.pravatar.cc/150?img=2' },
+                { id: '3', name: 'Jordan Lee', email: 'jordan@example.com', role: 'Designer', avatar: 'https://i.pravatar.cc/150?img=3' },
+                { id: '4', name: 'Taylor Swift', email: 'taylor@example.com', role: 'Engineer', avatar: 'https://i.pravatar.cc/150?img=4' },
+                { id: '5', name: 'Morgan Freeman', email: 'morgan@example.com', role: 'QA Lead', avatar: 'https://i.pravatar.cc/150?img=5' },
+                { id: '6', name: 'Emma Watson', email: 'emma@example.com', role: 'Business Analyst', avatar: 'https://i.pravatar.cc/150?img=6' }
+            ];
+        }
+
+        // Populate owner dropdown
+        function populateOwnerDropdown() {
+            const select = document.getElementById('projectOwner');
+            wizardState.allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.name} (${user.role})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Populate team grid
+        function populateTeamGrid() {
+            const grid = document.getElementById('teamGrid');
+            grid.innerHTML = '';
+
+            wizardState.allUsers.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'team-member-card';
+                card.dataset.userId = user.id;
+                card.onclick = () => toggleTeamMember(user.id);
+
+                card.innerHTML = `
+                    <img src="${user.avatar}" alt="${user.name}" class="team-member-avatar">
+                    <div class="team-member-name">${user.name}</div>
+                    <div class="team-member-role">${user.role}</div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Project type selection
+        function setupProjectTypeSelection() {
+            document.querySelectorAll('.project-type-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.project-type-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    wizardState.projectType = card.dataset.type;
+                    document.getElementById('step1Next').disabled = false;
+                });
+            });
+        }
+
+        // Toggle team member selection
+        function toggleTeamMember(userId) {
+            const card = document.querySelector(`[data-user-id="${userId}"]`);
+            card.classList.toggle('selected');
+
+            if (wizardState.teamMembers.includes(userId)) {
+                wizardState.teamMembers = wizardState.teamMembers.filter(id => id !== userId);
+            } else {
+                wizardState.teamMembers.push(userId);
+            }
+        }
+
+        // Add goal
+        function addGoal() {
+            const input = document.getElementById('newGoal');
+            const goal = input.value.trim();
+
+            if (goal) {
+                wizardState.goals.push(goal);
+                renderGoals();
+                input.value = '';
+            }
+        }
+
+        // Render goals
+        function renderGoals() {
+            const list = document.getElementById('goalsList');
+            list.innerHTML = '';
+
+            wizardState.goals.forEach((goal, index) => {
+                const item = document.createElement('div');
+                item.className = 'goal-item';
+                item.innerHTML = `
+                    <span class="goal-text">${goal}</span>
+                    <button class="remove-btn" onclick="removeGoal(${index})">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Remove goal
+        function removeGoal(index) {
+            wizardState.goals.splice(index, 1);
+            renderGoals();
+        }
+
+        // Add milestone
+        function addMilestone() {
+            const title = prompt('Milestone title:');
+            if (!title) return;
+
+            const owner = prompt('Owner (name):');
+            const endDate = prompt('Target date (YYYY-MM-DD):');
+
+            wizardState.milestones.push({ title, owner, endDate });
+            renderMilestones();
+        }
+
+        // Render milestones
+        function renderMilestones() {
+            const list = document.getElementById('milestoneList');
+            list.innerHTML = '';
+
+            wizardState.milestones.forEach((milestone, index) => {
+                const item = document.createElement('div');
+                item.className = 'milestone-item';
+                item.innerHTML = `
+                    <div class="milestone-info">
+                        <h4>${milestone.title}</h4>
+                        <div class="milestone-meta">Owner: ${milestone.owner} | Due: ${milestone.endDate}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeMilestone(${index})">Remove</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Remove milestone
+        function removeMilestone(index) {
+            wizardState.milestones.splice(index, 1);
+            renderMilestones();
+        }
+
+        // Set default dates
+        function setDefaultDates() {
+            const today = new Date();
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 3);
+
+            document.getElementById('startDate').valueAsDate = today;
+            document.getElementById('endDate').valueAsDate = endDate;
+        }
+
+        // Navigation
+        function nextStep() {
+            if (!validateCurrentStep()) return;
+
+            saveCurrentStepData();
+
+            wizardState.currentStep++;
+            updateUI();
+
+            if (wizardState.currentStep === 5) {
+                populateReviewScreen();
+            }
+        }
+
+        function previousStep() {
+            wizardState.currentStep--;
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update steps
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${wizardState.currentStep}"]`).classList.add('active');
+
+            // Update progress
+            const progress = (wizardState.currentStep / wizardState.totalSteps) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('stepIndicator').textContent = `Step ${wizardState.currentStep} of ${wizardState.totalSteps}`;
+
+            // Update title
+            const titles = ['Welcome', 'Project Basics', 'Team Assembly', 'Goals & Milestones', 'Review & Launch'];
+            document.getElementById('wizardTitle').textContent = titles[wizardState.currentStep - 1];
+        }
+
+        // Validation
+        function validateCurrentStep() {
+            if (wizardState.currentStep === 1) {
+                return wizardState.projectType !== '';
+            }
+
+            if (wizardState.currentStep === 2) {
+                const title = document.getElementById('projectTitle').value.trim();
+                const description = document.getElementById('projectDescription').value.trim();
+                const owner = document.getElementById('projectOwner').value;
+
+                let valid = true;
+
+                if (!title) {
+                    document.getElementById('projectTitle').closest('.form-group').classList.add('error');
+                    valid = false;
+                } else {
+                    document.getElementById('projectTitle').closest('.form-group').classList.remove('error');
+                }
+
+                if (!description) {
+                    document.getElementById('projectDescription').closest('.form-group').classList.add('error');
+                    valid = false;
+                } else {
+                    document.getElementById('projectDescription').closest('.form-group').classList.remove('error');
+                }
+
+                if (!owner) {
+                    document.getElementById('projectOwner').closest('.form-group').classList.add('error');
+                    valid = false;
+                } else {
+                    document.getElementById('projectOwner').closest('.form-group').classList.remove('error');
+                }
+
+                return valid;
+            }
+
+            return true;
+        }
+
+        // Save current step data
+        function saveCurrentStepData() {
+            if (wizardState.currentStep === 2) {
+                wizardState.projectTitle = document.getElementById('projectTitle').value.trim();
+                wizardState.projectDescription = document.getElementById('projectDescription').value.trim();
+                wizardState.projectOwner = document.getElementById('projectOwner').value;
+                wizardState.startDate = document.getElementById('startDate').value;
+                wizardState.endDate = document.getElementById('endDate').value;
+            }
+        }
+
+        // Populate review screen
+        function populateReviewScreen() {
+            const typeNames = {
+                'brd': 'Business Requirements Document',
+                'prd': 'Product Requirements Document',
+                'design': 'Engineering Design Document'
+            };
+
+            document.getElementById('reviewType').textContent = typeNames[wizardState.projectType];
+            document.getElementById('reviewTitle').textContent = wizardState.projectTitle;
+
+            const owner = wizardState.allUsers.find(u => u.id === wizardState.projectOwner);
+            document.getElementById('reviewOwner').textContent = owner ? owner.name : 'Not set';
+
+            document.getElementById('reviewTimeline').textContent =
+                `${wizardState.startDate} to ${wizardState.endDate}`;
+
+            // Team
+            const teamHtml = wizardState.teamMembers.map(id => {
+                const user = wizardState.allUsers.find(u => u.id === id);
+                return `<div class="summary-item">
+                    <span class="summary-label">${user.name}</span>
+                    <span class="summary-value">${user.role}</span>
+                </div>`;
+            }).join('');
+            document.getElementById('reviewTeam').innerHTML = teamHtml || '<div style="color: #6b7280;">No team members selected</div>';
+
+            // Goals
+            const goalsHtml = wizardState.goals.map(goal =>
+                `<div class="summary-item"><span class="summary-label">•</span><span class="summary-value">${goal}</span></div>`
+            ).join('');
+            document.getElementById('reviewGoals').innerHTML = goalsHtml || '<div style="color: #6b7280;">No goals defined</div>';
+
+            // Milestones
+            const milestonesHtml = wizardState.milestones.map(m =>
+                `<div class="summary-item">
+                    <span class="summary-label">${m.title}</span>
+                    <span class="summary-value">${m.owner} - ${m.endDate}</span>
+                </div>`
+            ).join('');
+            document.getElementById('reviewMilestones').innerHTML = milestonesHtml || '<div style="color: #6b7280;">No milestones defined</div>';
+        }
+
+        // Launch project
+        async function launchProject() {
+            const btn = document.querySelector('.btn-success');
+            btn.disabled = true;
+            btn.textContent = 'Creating project...';
+
+            try {
+                const response = await fetch('/api/v1/onboarding/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(wizardState)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccessScreen();
+                    // Store project data
+                    sessionStorage.setItem('new_project', JSON.stringify(result.data));
+                    setTimeout(() => {
+                        window.location.href = `/project-detail.html?id=${result.data.id}`;
+                    }, 3000);
+                } else {
+                    alert('Failed to create project: ' + result.message);
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Launch Project';
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Failed to create project. Please try again.');
+                btn.disabled = false;
+                btn.textContent = '🚀 Launch Project';
+            }
+        }
+
+        // Show success screen
+        function showSuccessScreen() {
+            const container = document.querySelector('.wizard-content');
+            container.innerHTML = `
+                <div class="success-screen">
+                    <div class="success-icon">🎉</div>
+                    <div class="success-title">Project Created!</div>
+                    <div class="success-message">
+                        Your project has been created successfully. Redirecting to dashboard...
+                    </div>
+                </div>
+            `;
+
+            // Confetti
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => createConfetti(), i * 30);
+            }
+        }
+
+        // Create confetti
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.background = ['#667eea', '#764ba2', '#f093fb', '#4facfe'][Math.floor(Math.random() * 4)];
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.body.appendChild(confetti);
+
+            setTimeout(() => confetti.remove(), 3000);
+        }
+
+        // Skip onboarding
+        function skipOnboarding() {
+            if (confirm('Skip onboarding and go to dashboard?')) {
+                window.location.href = '/conductor-unified-dashboard.html';
+            }
+        }
+
+        // Enter key for goals
+        document.addEventListener('DOMContentLoaded', () => {
+            const goalInput = document.getElementById('newGoal');
+            if (goalInput) {
+                goalInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addGoal();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

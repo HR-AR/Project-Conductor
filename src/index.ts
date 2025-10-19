@@ -70,6 +70,12 @@ import approvalsRoutes from './routes/approvals.routes';
 // Import dashboard routes
 import dashboardRoutes from './routes/dashboard.routes';
 
+// Import demo routes
+import demoRoutes from './routes/demo.routes';
+
+// Import onboarding routes
+import onboardingRoutes from './routes/onboarding.routes';
+
 // Import authentication and user routes
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
@@ -341,6 +347,12 @@ app.use('/api/v1/approvals', approvalsRoutes);
 
 // Dashboard routes
 app.use('/api/v1/dashboard', dashboardRoutes);
+
+// Demo routes (for scenario-based exploration)
+app.use('/api/v1/demo', demoRoutes);
+
+// Onboarding routes (for first-time user setup)
+app.use('/api/v1/onboarding', onboardingRoutes);
 
 // Authentication routes (public)
 app.use('/api/v1/auth', authRoutes);

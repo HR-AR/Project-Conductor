@@ -185,6 +185,109 @@
             text-align: center;
         }
 
+        /* Demo Mode Banner */
+        .demo-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-bottom: 2px solid #f59e0b;
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-banner-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .demo-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .demo-banner-icon {
+            font-size: 1.5rem;
+        }
+
+        .demo-banner-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .demo-banner-text strong {
+            font-size: 0.95rem;
+            color: #92400e;
+            font-weight: 600;
+        }
+
+        .demo-banner-description {
+            font-size: 0.85rem;
+            color: #78350f;
+        }
+
+        #demoScenarioName {
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .demo-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .demo-banner-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .demo-banner-btn.secondary {
+            background: rgba(255, 255, 255, 0.7);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .demo-banner-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.02);
+        }
+
+        .demo-banner-btn.primary {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .demo-banner-btn.primary:hover {
+            background: #d97706;
+            transform: scale(1.02);
+        }
+
         /* User Profile Dropdown */
         .user-profile {
             position: relative;
@@ -1684,6 +1787,23 @@
             </div>
         </div>
     </nav>
+
+    <!-- Demo Mode Banner (only visible when in demo mode) -->
+    <div id="demoBanner" class="demo-banner" style="display: none;">
+        <div class="demo-banner-content">
+            <div class="demo-banner-left">
+                <span class="demo-banner-icon">ℹ️</span>
+                <div class="demo-banner-text">
+                    <strong>Demo Mode</strong>
+                    <span class="demo-banner-description">Explore safely! This is sample data from the <span id="demoScenarioName"></span> scenario. Changes won't be saved.</span>
+                </div>
+            </div>
+            <div class="demo-banner-actions">
+                <button class="demo-banner-btn secondary" onclick="resetDemoData()">🔄 Reset Demo</button>
+                <button class="demo-banner-btn primary" onclick="exitDemoMode()">Exit Demo</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Progress Tracker -->
     <div class="progress-tracker">
@@ -3919,6 +4039,286 @@
                 window.activityTracker.stop();
             }
         });
+    </script>
+
+    <!-- Demo Mode Management -->
+    <script>
+        // Demo Data Loader
+        function loadDemoData() {
+            const demoDataRaw = sessionStorage.getItem('demo_data');
+            if (!demoDataRaw) return null;
+            try {
+                return JSON.parse(demoDataRaw);
+            } catch (e) {
+                console.error('Failed to parse demo data:', e);
+                return null;
+            }
+        }
+
+        // Populate Dashboard with Demo Data
+        function populateDashboardWithDemoData(demoData) {
+            if (!demoData) return;
+            console.log('[Demo] Populating dashboard with:', demoData);
+
+            // Update project info from first demo project
+            if (demoData.projects && demoData.projects.length > 0) {
+                const project = demoData.projects[0];
+                const summaryValues = document.querySelectorAll('.summary-value');
+                if (summaryValues[0]) summaryValues[0].textContent = project.title;
+                if (summaryValues[1]) {
+                    summaryValues[1].textContent = `${project.health_score}% Complete`;
+                    summaryValues[1].style.color = project.health_score > 70 ? '#2ecc71' : '#f39c12';
+                }
+                if (summaryValues[2]) summaryValues[2].textContent = project.owner.name;
+
+                // Populate team members from first project
+                if (project.team && project.team.length > 0) {
+                    populateTeamMembers(project.team);
+                }
+            }
+
+            // Update progress from milestones
+            if (demoData.milestones) {
+                const completed = demoData.milestones.filter(m => m.status === 'completed').length;
+                const total = demoData.milestones.length;
+                const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressPercentage');
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (progressText) progressText.textContent = `${percent}%`;
+            }
+
+            // Populate recent activity from comments
+            if (demoData.comments && demoData.comments.length > 0) {
+                populateRecentActivity(demoData.comments);
+            }
+
+            // Update action items from approvals
+            if (demoData.approvals) {
+                populateActionItems(demoData.approvals);
+            }
+        }
+
+        // Helper: Populate team members
+        function populateTeamMembers(teamMembers) {
+            const activityList = document.querySelector('.activity-list');
+            if (!activityList || teamMembers.length === 0) return;
+
+            // Clear existing items
+            activityList.innerHTML = '';
+
+            // Add team member activities
+            teamMembers.slice(0, 5).forEach((member, index) => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.style.borderLeftColor = '#3498db';
+
+                const timeAgo = ['Just now', '2 mins ago', '1 hour ago', '3 hours ago', '1 day ago'][index % 5];
+                const activities = [
+                    'joined the project',
+                    'updated requirements',
+                    'approved milestone',
+                    'added feedback',
+                    'reviewed design'
+                ];
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <img src="${member.avatar}" alt="${member.name}" style="width: 32px; height: 32px; border-radius: 50%;">
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            <strong>${member.name}</strong> ${activities[index % activities.length]}
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+
+                activityList.appendChild(activityItem);
+            });
+
+            console.log(`[Demo] Populated ${teamMembers.length} team members`);
+        }
+
+        // Helper: Populate recent activity from comments
+        function populateRecentActivity(comments) {
+            const activityList = document.querySelector('.activity-list');
+            if (!activityList || comments.length === 0) return;
+
+            // If team members already populated, append comments
+            comments.slice(0, 3).forEach(comment => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.style.borderLeftColor = '#9b59b6';
+
+                const timeAgo = new Date(comment.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">💬</div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            <strong>${comment.user.name}</strong> commented: "${comment.content.substring(0, 50)}${comment.content.length > 50 ? '...' : ''}"
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+
+                activityList.appendChild(activityItem);
+            });
+        }
+
+        // Helper: Populate action items from approvals
+        function populateActionItems(approvals) {
+            const actionItemsContainer = document.querySelector('.action-items');
+            if (!actionItemsContainer) return;
+
+            const pending = approvals.filter(a => a.status === 'pending');
+            const approved = approvals.filter(a => a.status === 'approved');
+            const atRisk = pending.filter(a => a.hours_elapsed > a.sla_hours * 0.75);
+
+            // Clear existing action items
+            actionItemsContainer.innerHTML = '';
+
+            // Critical: SLA at risk
+            if (atRisk.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item critical';
+                item.onclick = () => navigateToModule(2);
+                item.innerHTML = `
+                    <span>🔴</span>
+                    <div>
+                        <div style="font-weight: 600;">${atRisk.length} approval${atRisk.length > 1 ? 's' : ''} at risk of missing SLA</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Urgent attention needed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+
+            // Warning: Pending approvals
+            if (pending.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item warning';
+                item.onclick = () => navigateToModule(2);
+                item.innerHTML = `
+                    <span>🟡</span>
+                    <div>
+                        <div style="font-weight: 600;">${pending.length} approval${pending.length > 1 ? 's' : ''} pending</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Follow up needed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+
+            // Success: Approved items
+            if (approved.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item success';
+                item.onclick = () => navigateToModule(3);
+                item.innerHTML = `
+                    <span>🟢</span>
+                    <div>
+                        <div style="font-weight: 600;">${approved.length} approval${approved.length > 1 ? 's' : ''} completed</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Ready to proceed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+        }
+
+        // Check if in demo mode on page load
+        (function() {
+            const isDemo = sessionStorage.getItem('demo') === 'true';
+            const demoScenario = sessionStorage.getItem('demo_scenario');
+
+            if (isDemo) {
+                // Show demo banner
+                const banner = document.getElementById('demoBanner');
+                const scenarioName = document.getElementById('demoScenarioName');
+
+                if (banner && scenarioName) {
+                    banner.style.display = 'block';
+
+                    // Set scenario name
+                    const scenarioNames = {
+                        'business': 'Business Team',
+                        'engineering': 'Engineering Team',
+                        'product': 'Product Team'
+                    };
+                    scenarioName.textContent = scenarioNames[demoScenario] || 'Demo';
+                }
+
+                // Load and populate demo data
+                const demoData = loadDemoData();
+                if (demoData) {
+                    // Wait for DOM if needed, then populate
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => populateDashboardWithDemoData(demoData));
+                    } else {
+                        setTimeout(() => populateDashboardWithDemoData(demoData), 500);
+                    }
+                }
+
+                // Auto-reset after 60 minutes
+                setTimeout(() => {
+                    if (sessionStorage.getItem('demo') === 'true') {
+                        alert('Demo session expired (60 minutes). Refreshing with new data...');
+                        resetDemoData();
+                    }
+                }, 60 * 60 * 1000);
+            }
+        })();
+
+        // Exit demo mode
+        function exitDemoMode() {
+            if (confirm('Exit demo mode? This will clear demo data and return to your real projects.')) {
+                sessionStorage.removeItem('demo');
+                sessionStorage.removeItem('demo_data');
+                sessionStorage.removeItem('demo_scenario');
+
+                // Redirect to scenario picker or home
+                window.location.href = '/conductor-unified-dashboard.html';
+            }
+        }
+
+        // Reset demo data (reload the same scenario)
+        async function resetDemoData() {
+            const demoScenario = sessionStorage.getItem('demo_scenario');
+
+            if (!demoScenario) {
+                alert('No demo scenario found');
+                return;
+            }
+
+            try {
+                // Call seed API again
+                const response = await fetch('/api/v1/demo/seed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ scenario: demoScenario })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update demo data in sessionStorage
+                    sessionStorage.setItem('demo_data', JSON.stringify(result.data));
+
+                    // Reload page to show fresh data
+                    window.location.reload();
+                } else {
+                    alert('Failed to reset demo: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Failed to reset demo:', error);
+                alert('Failed to reset demo. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>

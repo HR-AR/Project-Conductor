@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #d1fae5; }
+        .stat-icon.yellow { background: #fef3c7; }
+        .stat-icon.purple { background: #ede9fe; }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        /* Charts Container */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Progress Chart */
+        .progress-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .progress-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .progress-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar-fill.blue { background: #667eea; }
+        .progress-bar-fill.green { background: #10b981; }
+        .progress-bar-fill.yellow { background: #f59e0b; }
+
+        /* Activity Chart */
+        .activity-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 200px;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .activity-bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .activity-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .activity-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* Team Performance */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .team-member-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .member-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .member-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .member-info h3 {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .member-role {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .member-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .member-stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .member-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .member-stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Insights */
+        .insights-section {
+            margin-top: 2rem;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+        }
+
+        .insight-card.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .insight-card.success {
+            border-left-color: #10b981;
+        }
+
+        .insight-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .insight-action {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .insight-action:hover {
+            background: #e5e7eb;
+        }
+
+        /* Time Range Selector */
+        .time-range {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .time-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .time-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="page-title">📊 Analytics Dashboard</div>
+            <div class="header-actions">
+                <div class="time-range">
+                    <button class="time-btn" onclick="setTimeRange('7d')">7 Days</button>
+                    <button class="time-btn active" onclick="setTimeRange('30d')">30 Days</button>
+                    <button class="time-btn" onclick="setTimeRange('90d')">90 Days</button>
+                </div>
+                <button class="btn btn-secondary" onclick="exportReport()">📥 Export</button>
+                <button class="btn btn-primary" onclick="window.location.href='/conductor-unified-dashboard.html'">Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Active Projects</span>
+                    <div class="stat-icon blue">📁</div>
+                </div>
+                <div class="stat-value" id="activeProjects">12</div>
+                <div class="stat-change positive">↑ 3 from last month</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Completion Rate</span>
+                    <div class="stat-icon green">✅</div>
+                </div>
+                <div class="stat-value" id="completionRate">87%</div>
+                <div class="stat-change positive">↑ 5% from last month</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Avg. Approval Time</span>
+                    <div class="stat-icon yellow">⏱️</div>
+                </div>
+                <div class="stat-value" id="avgApprovalTime">2.3d</div>
+                <div class="stat-change negative">↑ 0.5d from last month</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Team Velocity</span>
+                    <div class="stat-icon purple">🚀</div>
+                </div>
+                <div class="stat-value" id="teamVelocity">42</div>
+                <div class="stat-change positive">↑ 12% from last month</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-container">
+            <!-- Activity Over Time -->
+            <div class="chart-card">
+                <div class="chart-title">Project Activity (Last 7 Days)</div>
+                <div class="activity-chart" id="activityChart"></div>
+                <div class="activity-label">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                    <span>Sun</span>
+                </div>
+            </div>
+
+            <!-- Progress by Phase -->
+            <div class="chart-card">
+                <div class="chart-title">Progress by Phase</div>
+                <div class="progress-chart">
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span class="progress-label">Requirements</span>
+                            <span class="progress-value">92%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill blue" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span class="progress-label">Design</span>
+                            <span class="progress-value">76%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill green" style="width: 76%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span class="progress-label">Development</span>
+                            <span class="progress-value">58%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill yellow" style="width: 58%"></div>
+                        </div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span class="progress-label">Testing</span>
+                            <span class="progress-value">45%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill blue" style="width: 45%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="chart-card" style="margin-bottom: 2rem;">
+            <div class="chart-title">Team Performance</div>
+            <div class="team-grid" id="teamPerformance"></div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="insights-section">
+            <div class="chart-title" style="margin-bottom: 1.5rem;">🤖 AI-Powered Insights</div>
+            <div class="insights-grid">
+                <div class="insight-card success">
+                    <div class="insight-icon">🎉</div>
+                    <div class="insight-title">Great Momentum!</div>
+                    <div class="insight-description">
+                        Your team completed 3 major milestones this week, 25% faster than average. Keep up the excellent work!
+                    </div>
+                    <button class="insight-action">View Details</button>
+                </div>
+
+                <div class="insight-card warning">
+                    <div class="insight-icon">⚠️</div>
+                    <div class="insight-title">Approval Bottleneck Detected</div>
+                    <div class="insight-description">
+                        2 projects are waiting on approvals for over 48 hours. Consider setting up automated reminders or re-assigning approvers.
+                    </div>
+                    <button class="insight-action" onclick="window.location.href='/project-detail.html'">Review Approvals</button>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">📈</div>
+                    <div class="insight-title">Trending Up</div>
+                    <div class="insight-description">
+                        Your team's velocity has increased by 15% over the last 30 days. Document quality scores are also improving.
+                    </div>
+                    <button class="insight-action">See Metrics</button>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-title">Optimization Opportunity</div>
+                    <div class="insight-description">
+                        Projects with 5+ team members take 30% longer to approve. Consider breaking large projects into smaller workstreams.
+                    </div>
+                    <button class="insight-action">Learn More</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            renderActivityChart();
+            renderTeamPerformance();
+        });
+
+        // Load analytics data
+        async function loadAnalytics() {
+            // In production, fetch from API
+            // const response = await fetch('/api/v1/analytics');
+            // const data = await response.json();
+
+            // For now, use mock data
+            const data = {
+                activeProjects: 12,
+                completionRate: 87,
+                avgApprovalTime: 2.3,
+                teamVelocity: 42,
+                activity: [45, 52, 38, 65, 70, 55, 48],
+                teamPerformance: [
+                    { name: 'Sarah Chen', role: 'Product Manager', avatar: 'https://i.pravatar.cc/150?img=1', commits: 23, reviews: 15 },
+                    { name: 'Alex Kumar', role: 'Tech Lead', avatar: 'https://i.pravatar.cc/150?img=2', commits: 38, reviews: 22 },
+                    { name: 'Jordan Lee', role: 'Designer', avatar: 'https://i.pravatar.cc/150?img=3', commits: 18, reviews: 12 },
+                    { name: 'Taylor Swift', role: 'Engineer', avatar: 'https://i.pravatar.cc/150?img=4', commits: 31, reviews: 18 }
+                ]
+            };
+
+            updateStats(data);
+        }
+
+        // Update stats
+        function updateStats(data) {
+            document.getElementById('activeProjects').textContent = data.activeProjects;
+            document.getElementById('completionRate').textContent = data.completionRate + '%';
+            document.getElementById('avgApprovalTime').textContent = data.avgApprovalTime + 'd';
+            document.getElementById('teamVelocity').textContent = data.teamVelocity;
+        }
+
+        // Render activity chart
+        function renderActivityChart() {
+            const chart = document.getElementById('activityChart');
+            const data = [45, 52, 38, 65, 70, 55, 48];
+            const max = Math.max(...data);
+
+            data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'activity-bar';
+                const height = (value / max) * 100;
+                bar.style.height = height + '%';
+                bar.title = `${value} activities`;
+                chart.appendChild(bar);
+            });
+        }
+
+        // Render team performance
+        function renderTeamPerformance() {
+            const container = document.getElementById('teamPerformance');
+            const team = [
+                { name: 'Sarah Chen', role: 'Product Manager', avatar: 'https://i.pravatar.cc/150?img=1', commits: 23, reviews: 15 },
+                { name: 'Alex Kumar', role: 'Tech Lead', avatar: 'https://i.pravatar.cc/150?img=2', commits: 38, reviews: 22 },
+                { name: 'Jordan Lee', role: 'Designer', avatar: 'https://i.pravatar.cc/150?img=3', commits: 18, reviews: 12 },
+                { name: 'Taylor Swift', role: 'Engineer', avatar: 'https://i.pravatar.cc/150?img=4', commits: 31, reviews: 18 }
+            ];
+
+            team.forEach(member => {
+                const card = document.createElement('div');
+                card.className = 'team-member-card';
+                card.innerHTML = `
+                    <div class="member-header">
+                        <img src="${member.avatar}" alt="${member.name}" class="member-avatar">
+                        <div class="member-info">
+                            <h3>${member.name}</h3>
+                            <div class="member-role">${member.role}</div>
+                        </div>
+                    </div>
+                    <div class="member-stats">
+                        <div class="member-stat">
+                            <div class="member-stat-value">${member.commits}</div>
+                            <div class="member-stat-label">Contributions</div>
+                        </div>
+                        <div class="member-stat">
+                            <div class="member-stat-value">${member.reviews}</div>
+                            <div class="member-stat-label">Reviews</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Set time range
+        function setTimeRange(range) {
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // In production, reload data for selected range
+            console.log('Loading data for:', range);
+        }
+
+        // Export report
+        function exportReport() {
+            // In production, generate PDF or CSV
+            alert('Generating analytics report...\n\nReport will include:\n- Performance metrics\n- Team statistics\n- AI insights\n- Trend analysis');
+        }
+    </script>
+</body>
+</html>

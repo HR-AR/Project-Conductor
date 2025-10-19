@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Document-Centric Project Management</title>
+    <meta name="description" content="A modern project collaboration platform with real-time editing, AI-powered suggestions, and intelligent workflows.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        /* Feature Cards */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* CTA Buttons */
+        .cta-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-4px);
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Demo Preview */
+        .demo-preview {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .demo-preview h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .screenshot-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .screenshot {
+            width: 100%;
+            border-radius: 8px;
+            background: #f5f7fa;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 1.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.125rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="badge">✨ Live Demo Available</div>
+        <div class="logo">📋</div>
+        <h1>Project Conductor</h1>
+        <p class="tagline">
+            Document-centric project management with real-time collaboration,<br>
+            AI-powered suggestions, and intelligent workflows.
+        </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">50+</div>
+            <div class="stat-label">Features</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Phases Built</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">Real-Time</div>
+            <div class="stat-label">Collaboration</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">AI-Powered</div>
+            <div class="stat-label">Suggestions</div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">✍️</div>
+            <div class="feature-title">Markdown Editor</div>
+            <div class="feature-description">
+                Write documents in Markdown with live preview. Real-time cursor tracking shows where teammates are editing.
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-title">AI Suggestions</div>
+            <div class="feature-description">
+                Intelligent document analysis detects missing sections, TODOs, and unclear language. Get suggestions in real-time.
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">Analytics Dashboard</div>
+            <div class="feature-description">
+                Track team performance, velocity, and project health with beautiful charts and AI-powered insights.
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📜</div>
+            <div class="feature-title">Version History</div>
+            <div class="feature-description">
+                Every save creates a version. Restore to any previous state with one click. Track who changed what and when.
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">✅</div>
+            <div class="feature-title">Approval Workflows</div>
+            <div class="feature-description">
+                Visual approval pipeline with SLA tracking. See who's approved, pending, or needs follow-up at a glance.
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-title">Milestone Tracking</div>
+            <div class="feature-description">
+                Visual progress bars, status badges, and owner assignments. See blocked milestones and take action.
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <div class="cta-buttons">
+            <a href="/demo-scenario-picker.html" class="btn btn-primary">
+                <span>🎭</span>
+                <span>Try Demo Scenarios</span>
+            </a>
+            <a href="/module-0-onboarding.html" class="btn btn-secondary">
+                <span>🚀</span>
+                <span>Create Your Project</span>
+            </a>
+            <a href="/analytics-dashboard.html" class="btn btn-secondary">
+                <span>📊</span>
+                <span>View Analytics</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Demo Preview -->
+    <div class="demo-preview">
+        <h2>Experience the Platform</h2>
+        <div class="screenshot-container">
+            <div class="screenshot">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+                    <div>Click "Try Demo Scenarios" above to start!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features List -->
+    <div style="max-width: 1200px; margin: 0 auto 4rem; padding: 0 2rem;">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem;">What You Can Do</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">📝 For Product Managers</h3>
+                <ul style="list-style: none; line-height: 2;">
+                    <li>✓ Create BRDs with templates</li>
+                    <li>✓ Track stakeholder approvals</li>
+                    <li>✓ View project analytics</li>
+                    <li>✓ Export to Markdown</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">⚙️ For Engineering Teams</h3>
+                <ul style="list-style: none; line-height: 2;">
+                    <li>✓ Design documents with templates</li>
+                    <li>✓ Real-time collaborative editing</li>
+                    <li>✓ Version control built-in</li>
+                    <li>✓ Technical architecture diagrams</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">👥 For Teams</h3>
+                <ul style="list-style: none; line-height: 2;">
+                    <li>✓ See who's online and editing</li>
+                    <li>✓ Comment and discuss in-line</li>
+                    <li>✓ Track milestone progress</li>
+                    <li>✓ AI-powered quality checks</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stack -->
+    <div style="max-width: 800px; margin: 0 auto 4rem; padding: 0 2rem; text-align: center;">
+        <h2 style="font-size: 2rem; margin-bottom: 2rem;">Built With Modern Tech</h2>
+        <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 12px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">TypeScript</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">Node.js</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">Express</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">Socket.IO</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">PostgreSQL</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">Redis</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Built with ❤️ using Claude Code</p>
+        <p style="margin-top: 0.5rem; opacity: 0.7;">4 Phases • 50+ Features • 6000+ Lines of Code • One Amazing Session</p>
+    </div>
+
+    <script>
+        // Add subtle parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.feature-card');
+            const x = e.clientX / window.innerWidth - 0.5;
+            const y = e.clientY / window.innerHeight - 0.5;
+
+            cards.forEach((card, index) => {
+                const speed = (index + 1) * 2;
+                card.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

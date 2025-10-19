@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Detail - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        /* Project Header */
+        .project-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .project-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge.active {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge.in_review {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.approved {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* Tabs */
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f9fafb;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Editor */
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            min-height: 600px;
+        }
+
+        .editor-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-textarea {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .editor-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .preview-panel {
+            flex: 1;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+
+        .preview-panel h1 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .preview-panel h2 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.75rem;
+            color: #374151;
+        }
+
+        .preview-panel h3 {
+            font-size: 1.15rem;
+            margin: 1.25rem 0 0.5rem;
+            color: #4b5563;
+        }
+
+        .preview-panel p {
+            margin-bottom: 1rem;
+        }
+
+        .preview-panel ul, .preview-panel ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-panel code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+
+        /* Milestones */
+        .milestone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .milestone-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .milestone-card:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .milestone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .milestone-title {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .milestone-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .milestone-status.completed {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .milestone-status.in_progress {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .milestone-status.blocked {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .milestone-status.not_started {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .milestone-progress {
+            margin-top: 0.75rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .milestone-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* Comments */
+        .comments-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .comment-card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .comment-time {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+
+        .comment-content {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .comment-input-container {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 0.875rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: #1a1a1a;
+        }
+
+        /* Team Members */
+        .team-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .team-member {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .team-member:hover {
+            background: #f9fafb;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1a1a1a;
+        }
+
+        .member-role {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .member-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .member-status.offline {
+            background: #d1d5db;
+        }
+
+        /* Approval Status */
+        .approval-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .approval-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .approval-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .approval-info {
+            flex: 1;
+        }
+
+        .approval-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1a1a1a;
+        }
+
+        .approval-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .approval-status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .approval-status-badge.approved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .approval-status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .approval-status-badge.rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Activity Feed */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 50%;
+            font-size: 1rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.85rem;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        /* Real-time Indicator */
+        .realtime-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #d1fae5;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .realtime-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <a href="/conductor-unified-dashboard.html">Dashboard</a>
+                <span>/</span>
+                <span id="projectBreadcrumb">Loading...</span>
+            </div>
+            <div class="header-actions">
+                <div class="realtime-indicator">
+                    <div class="realtime-dot"></div>
+                    <span>Live</span>
+                </div>
+                <button class="btn btn-secondary" onclick="showVersionHistory()">📜 History</button>
+                <button class="btn btn-secondary" onclick="exportDocument()">📥 Export</button>
+                <button class="btn btn-secondary" onclick="shareProject()">Share</button>
+                <button class="btn btn-primary" onclick="saveDocument()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Main Content -->
+        <div>
+            <!-- Project Header -->
+            <div class="project-header">
+                <div class="project-title" id="projectTitle">Loading...</div>
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span>📊</span>
+                        <span id="projectType">BRD</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>👤</span>
+                        <span id="projectOwner">Loading...</span>
+                    </div>
+                    <div class="meta-item">
+                        <span id="statusBadge" class="status-badge active">Active</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span id="projectDates">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="switchTab('document')">Document</button>
+                    <button class="tab-button" onclick="switchTab('milestones')">Milestones</button>
+                    <button class="tab-button" onclick="switchTab('comments')">Comments</button>
+                </div>
+
+                <!-- Document Tab -->
+                <div class="tab-content active" id="documentTab">
+                    <div class="editor-container">
+                        <div class="editor-panel">
+                            <div class="panel-header">
+                                <span>Markdown Editor</span>
+                                <button class="btn btn-secondary" style="padding: 0.375rem 0.875rem; font-size: 0.8rem;" onclick="insertTemplate()">Insert Template</button>
+                            </div>
+                            <textarea class="editor-textarea" id="documentEditor" placeholder="Start writing your document in Markdown...">
+# Project Overview
+
+## Executive Summary
+[Describe the project purpose and goals]
+
+## Business Goals
+- Goal 1
+- Goal 2
+- Goal 3
+
+## Success Metrics
+- Metric 1
+- Metric 2
+
+## Timeline
+- Phase 1: [Dates]
+- Phase 2: [Dates]
+
+## Stakeholders
+- Stakeholder 1
+- Stakeholder 2
+                            </textarea>
+                        </div>
+                        <div class="editor-panel">
+                            <div class="panel-header">
+                                <span>Live Preview</span>
+                            </div>
+                            <div class="preview-panel" id="documentPreview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestones Tab -->
+                <div class="tab-content" id="milestonesTab">
+                    <div class="milestone-list" id="milestoneList">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Comments Tab -->
+                <div class="tab-content" id="commentsTab">
+                    <div class="comments-section" id="commentsList">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="comment-input-container">
+                        <textarea class="comment-input" id="newComment" placeholder="Add a comment..."></textarea>
+                        <button class="btn btn-primary" onclick="postComment()">Post</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Team Members -->
+            <div class="card">
+                <div class="card-title">Team Members</div>
+                <div class="team-list" id="teamList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Approval Status -->
+            <div class="card">
+                <div class="card-title">Approval Status</div>
+                <div class="approval-list" id="approvalList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-title">Recent Activity</div>
+                <div class="activity-list" id="activityList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Get project ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
+
+        // Initialize Socket.IO
+        const socket = io();
+
+        // Project data
+        let projectData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProject();
+            setupEditor();
+            setupWebSocket();
+        });
+
+        // Load project data
+        async function loadProject() {
+            // Check if coming from onboarding with new project
+            const newProjectData = sessionStorage.getItem('new_project');
+            if (newProjectData) {
+                const data = JSON.parse(newProjectData);
+                projectData = {
+                    ...data,
+                    owner: { name: 'You', role: 'Owner' },
+                    team: data.team_members ? data.team_members.map((id, i) => ({
+                        id,
+                        name: `Team Member ${i + 1}`,
+                        role: 'Collaborator',
+                        avatar: `https://i.pravatar.cc/150?img=${parseInt(id) || i + 1}`,
+                        online: true
+                    })) : [],
+                    approvals: [],
+                    comments: []
+                };
+                sessionStorage.removeItem('new_project'); // Clear after loading
+                populateProjectUI();
+                return;
+            }
+
+            if (!projectId) {
+                // Try to get from sessionStorage (if coming from demo)
+                const demoData = sessionStorage.getItem('demo_data');
+                if (demoData) {
+                    const data = JSON.parse(demoData);
+                    if (data.projects && data.projects.length > 0) {
+                        projectData = data.projects[0];
+                        projectData.approvals = data.approvals || [];
+                        projectData.comments = data.comments || [];
+                        projectData.milestones = data.milestones || [];
+                        projectData.team = data.projects[0].team || [];
+                        populateProjectUI();
+                        return;
+                    }
+                }
+
+                // Create mock project if no data available
+                projectData = createMockProject();
+                populateProjectUI();
+                return;
+            }
+
+            // In production, fetch from API
+            // const response = await fetch(`/api/v1/projects/${projectId}`);
+            // projectData = await response.json();
+        }
+
+        // Create mock project
+        function createMockProject() {
+            return {
+                id: 'PRJ-MOCK-001',
+                title: 'Website Redesign - Q2 2025',
+                type: 'brd',
+                status: 'in_review',
+                owner: { name: 'Sarah Chen', role: 'Product Manager' },
+                start_date: '2025-10-19',
+                end_date: '2026-01-19',
+                team: [
+                    { id: '1', name: 'Sarah Chen', role: 'Product Manager', avatar: 'https://i.pravatar.cc/150?img=1', online: true },
+                    { id: '2', name: 'Alex Kumar', role: 'Tech Lead', avatar: 'https://i.pravatar.cc/150?img=2', online: true },
+                    { id: '3', name: 'Jordan Lee', role: 'Designer', avatar: 'https://i.pravatar.cc/150?img=3', online: false },
+                    { id: '4', name: 'Taylor Swift', role: 'Engineer', avatar: 'https://i.pravatar.cc/150?img=4', online: true }
+                ],
+                approvals: [
+                    { user: { name: 'Alex Kumar', avatar: 'https://i.pravatar.cc/150?img=2' }, status: 'approved', time: '2 hours ago' },
+                    { user: { name: 'Jordan Lee', avatar: 'https://i.pravatar.cc/150?img=3' }, status: 'pending', time: '' },
+                    { user: { name: 'Morgan Freeman', avatar: 'https://i.pravatar.cc/150?img=5' }, status: 'pending', time: '' }
+                ],
+                comments: [
+                    { user: { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?img=1' }, content: 'Great progress on the design system! Can we add more mobile-first examples?', time: '1 hour ago' },
+                    { user: { name: 'Alex Kumar', avatar: 'https://i.pravatar.cc/150?img=2' }, content: 'I\'ve reviewed the technical requirements. Looks good overall, but we should discuss API versioning.', time: '3 hours ago' }
+                ],
+                milestones: [
+                    { title: 'Design System Audit', status: 'completed', progress: 100, owner: 'Jordan Lee', end_date: '2025-11-01' },
+                    { title: 'User Research & Personas', status: 'completed', progress: 100, owner: 'Sarah Chen', end_date: '2025-11-15' },
+                    { title: 'Wireframes & Prototypes', status: 'in_progress', progress: 75, owner: 'Jordan Lee', end_date: '2025-12-01' },
+                    { title: 'Content Strategy', status: 'blocked', progress: 30, owner: 'Emma Watson', end_date: '2025-12-01' },
+                    { title: 'Development Kickoff', status: 'not_started', progress: 0, owner: 'Alex Kumar', end_date: '2026-01-15' }
+                ]
+            };
+        }
+
+        // Populate UI
+        function populateProjectUI() {
+            if (!projectData) return;
+
+            // Header
+            document.getElementById('projectTitle').textContent = projectData.title;
+            document.getElementById('projectBreadcrumb').textContent = projectData.title;
+            document.getElementById('projectType').textContent = projectData.type.toUpperCase();
+            document.getElementById('projectOwner').textContent = projectData.owner.name;
+            document.getElementById('projectDates').textContent =
+                `${projectData.start_date} to ${projectData.end_date}`;
+
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = projectData.status.replace('_', ' ');
+            statusBadge.className = `status-badge ${projectData.status}`;
+
+            // Team
+            populateTeam();
+
+            // Approvals
+            populateApprovals();
+
+            // Milestones
+            populateMilestones();
+
+            // Comments
+            populateComments();
+
+            // Activity
+            populateActivity();
+        }
+
+        // Populate team
+        function populateTeam() {
+            const list = document.getElementById('teamList');
+            list.innerHTML = '';
+
+            projectData.team.forEach(member => {
+                const item = document.createElement('div');
+                item.className = 'team-member';
+                item.innerHTML = `
+                    <img src="${member.avatar}" alt="${member.name}" class="member-avatar">
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-role">${member.role}</div>
+                    </div>
+                    <div class="member-status ${member.online ? '' : 'offline'}"></div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Populate approvals
+        function populateApprovals() {
+            const list = document.getElementById('approvalList');
+            list.innerHTML = '';
+
+            projectData.approvals.forEach(approval => {
+                const item = document.createElement('div');
+                item.className = 'approval-item';
+                item.innerHTML = `
+                    <img src="${approval.user.avatar}" alt="${approval.user.name}" class="approval-avatar">
+                    <div class="approval-info">
+                        <div class="approval-name">${approval.user.name}</div>
+                        ${approval.time ? `<div class="approval-time">${approval.time}</div>` : ''}
+                    </div>
+                    <span class="approval-status-badge ${approval.status}">${approval.status}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Populate milestones
+        function populateMilestones() {
+            const list = document.getElementById('milestoneList');
+            list.innerHTML = '';
+
+            projectData.milestones.forEach(milestone => {
+                const card = document.createElement('div');
+                card.className = 'milestone-card';
+                card.innerHTML = `
+                    <div class="milestone-header">
+                        <div class="milestone-title">${milestone.title}</div>
+                        <div class="milestone-status ${milestone.status}">${milestone.status.replace('_', ' ')}</div>
+                    </div>
+                    <div class="milestone-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${milestone.progress}%"></div>
+                        </div>
+                    </div>
+                    <div class="milestone-meta">
+                        <span>Owner: ${milestone.owner}</span>
+                        <span>Due: ${milestone.end_date}</span>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Populate comments
+        function populateComments() {
+            const list = document.getElementById('commentsList');
+            list.innerHTML = '';
+
+            projectData.comments.forEach(comment => {
+                const card = document.createElement('div');
+                card.className = 'comment-card';
+                card.innerHTML = `
+                    <div class="comment-header">
+                        <img src="${comment.user.avatar}" alt="${comment.user.name}" class="comment-avatar">
+                        <div>
+                            <div class="comment-author">${comment.user.name}</div>
+                            <div class="comment-time">${comment.time}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">${comment.content}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Populate activity
+        function populateActivity() {
+            const activities = [
+                { icon: '✅', text: 'Sarah Chen approved milestone "Design System"', time: '2 hours ago' },
+                { icon: '💬', text: 'Alex Kumar commented on the document', time: '3 hours ago' },
+                { icon: '📝', text: 'Jordan Lee updated wireframes', time: '5 hours ago' },
+                { icon: '🔔', text: 'Milestone "User Research" marked as complete', time: '1 day ago' }
+            ];
+
+            const list = document.getElementById('activityList');
+            list.innerHTML = '';
+
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-content">
+                        <div class="activity-text">${activity.text}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Setup editor
+        function setupEditor() {
+            const editor = document.getElementById('documentEditor');
+            const preview = document.getElementById('documentPreview');
+
+            editor.addEventListener('input', () => {
+                updatePreview();
+                emitCursorPosition();
+                runAISuggestions();
+            });
+
+            // Cursor tracking
+            editor.addEventListener('click', emitCursorPosition);
+            editor.addEventListener('keyup', emitCursorPosition);
+
+            // Initial preview
+            updatePreview();
+        }
+
+        // Real-time cursor tracking
+        function emitCursorPosition() {
+            const editor = document.getElementById('documentEditor');
+            const position = editor.selectionStart;
+            const line = editor.value.substr(0, position).split('\n').length;
+
+            // Emit to WebSocket
+            socket.emit('cursor_move', {
+                projectId: projectId || 'mock',
+                user: 'You',
+                line: line,
+                position: position
+            });
+        }
+
+        // Listen for other users' cursors
+        socket.on('cursor_update', (data) => {
+            showRemoteCursor(data);
+        });
+
+        function showRemoteCursor(data) {
+            // Visual indicator of where teammates are editing
+            console.log(`${data.user} is editing line ${data.line}`);
+            // In production, show actual cursor overlay
+        }
+
+        // AI-powered suggestions
+        let suggestionTimeout;
+        function runAISuggestions() {
+            clearTimeout(suggestionTimeout);
+
+            suggestionTimeout = setTimeout(() => {
+                const content = document.getElementById('documentEditor').value;
+                const suggestions = analyzeDocument(content);
+
+                if (suggestions.length > 0) {
+                    showSuggestions(suggestions);
+                }
+            }, 2000); // Wait 2 seconds after typing stops
+        }
+
+        function analyzeDocument(content) {
+            const suggestions = [];
+            const lines = content.split('\n');
+
+            // Check for missing sections (BRD/PRD/Design)
+            const requiredSections = {
+                'brd': ['Executive Summary', 'Business Objectives', 'Success Metrics', 'Stakeholders'],
+                'prd': ['Product Vision', 'User Stories', 'Features', 'Acceptance Criteria'],
+                'design': ['Architecture', 'Technology Stack', 'API Endpoints', 'Security']
+            };
+
+            const docType = projectData?.type || 'brd';
+            const required = requiredSections[docType] || [];
+
+            required.forEach(section => {
+                if (!content.toLowerCase().includes(section.toLowerCase())) {
+                    suggestions.push({
+                        type: 'missing_section',
+                        severity: 'warning',
+                        message: `Consider adding "${section}" section`,
+                        action: `Insert ${section} template`
+                    });
+                }
+            });
+
+            // Check document length
+            if (lines.length < 10) {
+                suggestions.push({
+                    type: 'too_short',
+                    severity: 'info',
+                    message: 'Document is quite short. Consider adding more detail.',
+                    action: 'View examples'
+                });
+            }
+
+            // Check for TODOs
+            const todoCount = content.match(/\[TODO\]|\[FIXME\]|\[TBD\]/gi)?.length || 0;
+            if (todoCount > 0) {
+                suggestions.push({
+                    type: 'todos_found',
+                    severity: 'warning',
+                    message: `Found ${todoCount} TODO items that need attention`,
+                    action: 'Review TODOs'
+                });
+            }
+
+            // Check for unclear language
+            const vagueTerms = ['maybe', 'probably', 'might', 'could', 'should consider'];
+            let vagueCount = 0;
+            vagueTerms.forEach(term => {
+                const matches = content.toLowerCase().match(new RegExp(term, 'g'));
+                if (matches) vagueCount += matches.length;
+            });
+
+            if (vagueCount > 3) {
+                suggestions.push({
+                    type: 'unclear_language',
+                    severity: 'info',
+                    message: 'Document contains vague language. Be more specific for clarity.',
+                    action: 'Review wording'
+                });
+            }
+
+            return suggestions;
+        }
+
+        function showSuggestions(suggestions) {
+            // Check if suggestion panel already exists
+            let panel = document.getElementById('aiSuggestionsPanel');
+
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'aiSuggestionsPanel';
+                panel.style.cssText = `
+                    position: fixed;
+                    bottom: 2rem;
+                    right: 2rem;
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                    padding: 1.5rem;
+                    max-width: 350px;
+                    z-index: 1000;
+                    animation: slideInRight 0.3s ease;
+                `;
+                document.body.appendChild(panel);
+            }
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.5rem;">🤖</span>
+                        <h3 style="font-weight: 600; font-size: 1rem;">AI Suggestions</h3>
+                    </div>
+                    <button onclick="document.getElementById('aiSuggestionsPanel').remove()" style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: #6b7280;">×</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            `;
+
+            suggestions.forEach((suggestion, index) => {
+                const colors = {
+                    warning: { bg: '#fef3c7', text: '#d97706', icon: '⚠️' },
+                    info: { bg: '#dbeafe', text: '#2563eb', icon: 'ℹ️' },
+                    success: { bg: '#d1fae5', text: '#059669', icon: '✅' }
+                };
+
+                const style = colors[suggestion.severity] || colors.info;
+
+                html += `
+                    <div style="padding: 0.75rem; background: ${style.bg}; border-radius: 8px; font-size: 0.85rem;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span>${style.icon}</span>
+                            <div style="flex: 1; color: ${style.text}; font-weight: 600;">${suggestion.message}</div>
+                        </div>
+                        <button onclick="handleSuggestionAction('${suggestion.action}')" style="background: white; border: none; padding: 0.375rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: ${style.text}; cursor: pointer;">${suggestion.action}</button>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            panel.innerHTML = html;
+
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function handleSuggestionAction(action) {
+            alert(`Action: ${action}\n\nThis would help you: ${action}`);
+            // In production, implement actual actions
+        }
+
+        // Update preview (simple Markdown parsing)
+        function updatePreview() {
+            const editor = document.getElementById('documentEditor');
+            const preview = document.getElementById('documentPreview');
+            let content = editor.value;
+
+            // Simple Markdown to HTML conversion
+            content = content
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\*(.*)\*/gim, '<em>$1</em>')
+                .replace(/`(.*?)`/gim, '<code>$1</code>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            // Wrap lists
+            content = content.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+
+            preview.innerHTML = '<p>' + content + '</p>';
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // WebSocket setup
+        function setupWebSocket() {
+            if (!projectId) return;
+
+            socket.emit('join_project', { projectId });
+
+            // Listen for updates
+            socket.on('document_updated', (data) => {
+                console.log('Document updated:', data);
+                // Update editor if different user
+            });
+
+            socket.on('comment_added', (data) => {
+                console.log('Comment added:', data);
+                // Add comment to list
+            });
+
+            socket.on('milestone_updated', (data) => {
+                console.log('Milestone updated:', data);
+                // Update milestone
+            });
+        }
+
+        // Save document
+        async function saveDocument() {
+            const content = document.getElementById('documentEditor').value;
+
+            // In production, save to API
+            // await fetch(`/api/v1/projects/${projectId}/document`, {
+            //     method: 'PUT',
+            //     body: JSON.stringify({ content })
+            // });
+
+            // Emit socket event
+            socket.emit('document_update', {
+                projectId: projectId || 'mock',
+                content
+            });
+
+            // Show feedback
+            alert('Document saved successfully!');
+        }
+
+        // Post comment
+        function postComment() {
+            const input = document.getElementById('newComment');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            const comment = {
+                user: { name: 'You', avatar: 'https://i.pravatar.cc/150?img=10' },
+                content,
+                time: 'Just now'
+            };
+
+            projectData.comments.unshift(comment);
+            populateComments();
+
+            input.value = '';
+
+            // Emit socket event
+            socket.emit('comment_add', {
+                projectId: projectId || 'mock',
+                content
+            });
+        }
+
+        // Insert template
+        function insertTemplate() {
+            const templates = {
+                'brd': `# Business Requirements Document
+
+## Executive Summary
+[Brief overview of the business need and proposed solution]
+
+## Business Objectives
+- Objective 1
+- Objective 2
+- Objective 3
+
+## Stakeholders
+- **Sponsor**: [Name]
+- **Product Owner**: [Name]
+- **Key Users**: [Names]
+
+## Success Metrics
+| Metric | Current | Target | Timeline |
+|--------|---------|--------|----------|
+| [Metric 1] | [Value] | [Value] | [Date] |
+
+## Assumptions
+- Assumption 1
+- Assumption 2
+
+## Constraints
+- Constraint 1
+- Constraint 2
+
+## Risks
+- Risk 1: [Impact & Mitigation]
+- Risk 2: [Impact & Mitigation]`,
+                'prd': `# Product Requirements Document
+
+## Product Vision
+[What is this product and why are we building it?]
+
+## User Personas
+### Persona 1: [Name]
+- **Goals**:
+- **Pain Points**:
+- **Behaviors**:
+
+## User Stories
+- As a [user type], I want to [action] so that [benefit]
+- As a [user type], I want to [action] so that [benefit]
+
+## Features
+### Feature 1: [Name]
+**Description**:
+**User Stories**:
+**Acceptance Criteria**:
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Non-Functional Requirements
+- **Performance**:
+- **Security**:
+- **Scalability**:
+
+## Success Metrics
+- Metric 1: [Target]
+- Metric 2: [Target]`,
+                'design': `# Engineering Design Document
+
+## Architecture Overview
+[High-level system architecture]
+
+## Technology Stack
+- **Frontend**:
+- **Backend**:
+- **Database**:
+- **Infrastructure**:
+
+## System Components
+### Component 1: [Name]
+**Responsibility**:
+**Interfaces**:
+**Dependencies**:
+
+## Data Models
+\`\`\`
+Entity 1:
+  - field1: type
+  - field2: type
+\`\`\`
+
+## API Endpoints
+### GET /api/resource
+**Description**:
+**Parameters**:
+**Response**:
+
+## Security Considerations
+- Authentication:
+- Authorization:
+- Data Protection:
+
+## Performance Considerations
+- Caching Strategy:
+- Load Balancing:
+- Scaling Plan:
+
+## Testing Strategy
+- Unit Tests:
+- Integration Tests:
+- E2E Tests:
+
+## Deployment Plan
+1. Step 1
+2. Step 2
+3. Step 3`
+            };
+
+            const template = templates[projectData.type] || templates['brd'];
+            document.getElementById('documentEditor').value = template;
+            updatePreview();
+        }
+
+        // Share project
+        function shareProject() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url);
+            alert('Project link copied to clipboard!');
+        }
+
+        // Export document
+        function exportDocument() {
+            const content = document.getElementById('documentEditor').value;
+            const filename = `${projectData.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.md`;
+
+            // Create download link
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            // Show success message
+            alert(`✅ Document exported as ${filename}`);
+        }
+
+        // Version history
+        const documentVersions = [];
+
+        function saveDocumentVersion() {
+            const content = document.getElementById('documentEditor').value;
+            const version = {
+                id: `v${documentVersions.length + 1}`,
+                timestamp: new Date().toISOString(),
+                content: content,
+                author: 'You',
+                changes: documentVersions.length > 0 ? calculateChanges(documentVersions[documentVersions.length - 1].content, content) : 'Initial version'
+            };
+
+            documentVersions.push(version);
+            localStorage.setItem(`project_${projectData.id}_versions`, JSON.stringify(documentVersions));
+        }
+
+        function calculateChanges(oldContent, newContent) {
+            const oldLines = oldContent.split('\n').length;
+            const newLines = newContent.split('\n').length;
+            const diff = newLines - oldLines;
+
+            if (diff > 0) return `+${diff} lines added`;
+            if (diff < 0) return `${Math.abs(diff)} lines removed`;
+            return 'Content modified';
+        }
+
+        function showVersionHistory() {
+            // Load versions from localStorage
+            const stored = localStorage.getItem(`project_${projectData.id}_versions`);
+            const versions = stored ? JSON.parse(stored) : [];
+
+            if (versions.length === 0) {
+                alert('No version history available yet. Save the document to create versions.');
+                return;
+            }
+
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            versions.reverse().forEach(version => {
+                const date = new Date(version.timestamp);
+                html += `
+                    <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; cursor: pointer;" onclick="restoreVersion('${version.id}')">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">${version.id} - ${date.toLocaleString()}</div>
+                        <div style="font-size: 0.85rem; color: #6b7280;">By ${version.author} • ${version.changes}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;';
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 12px; padding: 2rem; max-width: 600px; width: 90%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="font-size: 1.5rem; font-weight: 700;">Version History</h2>
+                        <button onclick="this.closest('div[style*=fixed]').remove()" style="background: #f3f4f6; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 600;">Close</button>
+                    </div>
+                    ${html}
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function restoreVersion(versionId) {
+            const stored = localStorage.getItem(`project_${projectData.id}_versions`);
+            const versions = stored ? JSON.parse(stored) : [];
+            const version = versions.find(v => v.id === versionId);
+
+            if (version && confirm(`Restore version ${versionId}?\n\nThis will replace the current document content.`)) {
+                document.getElementById('documentEditor').value = version.content;
+                updatePreview();
+                document.querySelector('div[style*="fixed"]').remove();
+                alert(`✅ Restored to ${versionId}`);
+            }
+        }
+
+        // Enhanced save with version tracking
+        const originalSaveDocument = saveDocument;
+        saveDocument = async function() {
+            saveDocumentVersion();
+            await originalSaveDocument();
+        };
+    </script>
+</body>
+</html>
