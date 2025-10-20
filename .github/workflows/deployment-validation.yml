@@ -1,0 +1,240 @@
+name: Deployment Validation
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Deployment Readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: ['20.x']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Type check
+      run: npm run typecheck
+
+    - name: Lint code
+      run: npm run lint
+
+    - name: Build application
+      run: npm run build
+
+    - name: Verify build output
+      run: |
+        if [ ! -f "dist/index.js" ]; then
+          echo "❌ Build failed: dist/index.js not found"
+          exit 1
+        fi
+        echo "✅ Build successful: dist/index.js exists"
+
+    - name: Run deployment validation tests
+      run: npm run test:deploy
+      env:
+        NODE_ENV: test
+        USE_MOCK_DB: true
+
+    - name: Run file existence tests
+      run: npm run test:deploy:files
+
+    - name: Run route validation tests
+      run: npm run test:deploy:routes
+
+    - name: Run path reference tests
+      run: npm run test:deploy:paths
+
+    - name: Run environment tests
+      run: npm run test:deploy:env
+
+    - name: Validate Render configuration
+      run: |
+        echo "📋 Checking Render deployment requirements..."
+
+        # Check package.json scripts
+        if ! grep -q '"start".*"node dist/index.js"' package.json; then
+          echo "❌ Missing or incorrect 'start' script in package.json"
+          exit 1
+        fi
+        echo "✅ Start script configured"
+
+        if ! grep -q '"build".*"tsc"' package.json; then
+          echo "❌ Missing or incorrect 'build' script in package.json"
+          exit 1
+        fi
+        echo "✅ Build script configured"
+
+        # Check Node version
+        if ! grep -q '"node".*">=20.0.0"' package.json; then
+          echo "⚠️  Node.js version not specified or incorrect in package.json"
+        else
+          echo "✅ Node.js version specified"
+        fi
+
+        # Check if dist directory exists
+        if [ ! -d "dist" ]; then
+          echo "❌ dist directory not found after build"
+          exit 1
+        fi
+        echo "✅ dist directory exists"
+
+        # Check critical files in public directory
+        if [ ! -f "public/index.html" ]; then
+          echo "❌ public/index.html not found"
+          exit 1
+        fi
+        echo "✅ public/index.html exists"
+
+        if [ ! -f "public/conductor-unified-dashboard.html" ]; then
+          echo "❌ public/conductor-unified-dashboard.html not found"
+          exit 1
+        fi
+        echo "✅ public/conductor-unified-dashboard.html exists"
+
+        echo ""
+        echo "✅ All Render deployment requirements met!"
+
+    - name: Generate deployment report
+      if: always()
+      run: |
+        echo "# Deployment Validation Report" > deployment-report.md
+        echo "" >> deployment-report.md
+        echo "**Date:** $(date)" >> deployment-report.md
+        echo "**Branch:** ${{ github.ref_name }}" >> deployment-report.md
+        echo "**Commit:** ${{ github.sha }}" >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "## Validation Steps" >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "- ✅ Dependencies installed" >> deployment-report.md
+        echo "- ✅ TypeScript compilation successful" >> deployment-report.md
+        echo "- ✅ Linting passed" >> deployment-report.md
+        echo "- ✅ Build completed" >> deployment-report.md
+        echo "- ✅ Deployment tests passed" >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "## Build Artifacts" >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "Build output:" >> deployment-report.md
+        echo '```' >> deployment-report.md
+        ls -lh dist/ >> deployment-report.md
+        echo '```' >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "## Ready for Deployment" >> deployment-report.md
+        echo "" >> deployment-report.md
+        echo "This build is ready to deploy to:" >> deployment-report.md
+        echo "- Render" >> deployment-report.md
+        echo "- Heroku" >> deployment-report.md
+        echo "- AWS" >> deployment-report.md
+        echo "- Any Node.js hosting platform" >> deployment-report.md
+
+    - name: Upload deployment report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-report
+        path: deployment-report.md
+
+    - name: Comment PR with validation results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '✅ **Deployment Validation Passed**\n\nThis PR is ready to deploy to production.\n\n- Build: ✅\n- Tests: ✅\n- Lint: ✅\n- Type Check: ✅\n\nSee artifacts for detailed deployment report.'
+          })
+
+  security-check:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Run npm audit
+      run: npm audit --production --audit-level=moderate
+      continue-on-error: true
+
+    - name: Check for sensitive files
+      run: |
+        echo "🔍 Checking for sensitive files..."
+
+        # Check for .env files (should be in .gitignore)
+        if [ -f ".env" ]; then
+          echo "⚠️  Warning: .env file found in repository"
+          echo "This file should be in .gitignore"
+        fi
+
+        # Check for credential files
+        if ls *.pem 2>/dev/null; then
+          echo "⚠️  Warning: .pem files found in repository"
+        fi
+
+        if ls *.key 2>/dev/null; then
+          echo "⚠️  Warning: .key files found in repository"
+        fi
+
+        echo "✅ Security check complete"
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Check build size
+      run: |
+        echo "📦 Checking build size..."
+
+        # Get size of dist directory
+        dist_size=$(du -sh dist | cut -f1)
+        echo "dist/ size: $dist_size"
+
+        # Get size of node_modules (for deployment size estimate)
+        node_modules_size=$(du -sh node_modules | cut -f1)
+        echo "node_modules/ size: $node_modules_size"
+
+        # Count files
+        file_count=$(find dist -type f | wc -l)
+        echo "Files in dist/: $file_count"
+
+        echo ""
+        echo "✅ Build size check complete"

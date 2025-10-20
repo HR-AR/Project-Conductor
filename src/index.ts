@@ -243,8 +243,25 @@ app.use('/public', express.static(publicDir, {
   },
 }));
 
-// Serve demo/HTML files from project root
-app.use('/demo', express.static(projectRoot, {
+// Root route - serve landing page (index.html from /public)
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+// Demo routes - serve unified dashboard (MUST be before static middleware)
+// These explicit routes override the static middleware to serve the dashboard instead of index.html
+app.get('/demo', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'conductor-unified-dashboard.html'));
+});
+
+app.get('/demo/', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'conductor-unified-dashboard.html'));
+});
+
+// Serve demo/HTML files from public directory (FIXED: changed from projectRoot to publicDir)
+// This ensures demo files are served from /public where they were moved
+// Note: This MUST come AFTER the explicit /demo and /demo/ routes above
+app.use('/demo', express.static(publicDir, {
   setHeaders: (res, filePath) => {
     // Set MIME type for HTML files
     if (filePath.endsWith('.html')) {
@@ -271,11 +288,6 @@ app.use('/demo', express.static(projectRoot, {
     }
   },
 }));
-
-// Root route - serve landing page
-app.get('/', (_req, res) => {
-  res.sendFile(path.join(publicDir, 'index.html'));
-});
 
 // Health check endpoint (no rate limiting)
 app.get('/health', async (_req, res) => {
@@ -424,32 +436,12 @@ app.get('/api/v1/presence/requirement/:requirementId', (req, res) => {
   }
 });
 
-// Root endpoint - Serve unified dashboard
-app.get('/', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
-});
-
-// Demo index route - serve unified dashboard
-app.get('/demo', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
-});
-
-app.get('/demo/', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
-});
-
-// Direct access to dashboard
-app.get('/conductor-unified-dashboard.html', (_req, res) => {
-  res.sendFile(path.join(projectRoot, 'conductor-unified-dashboard.html'));
-});
-
-// Other demo routes are handled by static middleware above at line 121
-// Accessing via:
-// - /demo/conductor-unified-dashboard.html
-// - /demo/live-demo.html
-// - /demo/orchestration-demo.html
-// - /demo/prd-orchestration-demo.html
-// - /demo/PROJECT_CONDUCTOR_DEMO.html
+// Direct access to dashboard HTML files
+// The static middleware at line 199 serves /conductor-unified-dashboard.html from publicDir
+// The static middleware at line 248 serves /demo/* files from publicDir
+//
+// Note: All HTML files now correctly served from publicDir (not projectRoot)
+// This ensures compatibility with Render deployment where files are in /public directory
 
 // API documentation endpoint
 app.get('/api/v1', (_req, res) => {

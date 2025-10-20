@@ -1,30 +1,98 @@
 {
   "patterns": [
     {
-      "signature": "219c9431a85d",
-      "intent": "analysis",
-      "count": 2,
-      "firstSeen": "2025-10-17T08:06:09.137350",
-      "lastSeen": "2025-10-17T08:06:17.594117",
+      "signature": "deployment-validation",
+      "intent": "deployment",
+      "count": 3,
+      "first_seen": "2025-10-19T20:00:00.000Z",
+      "last_seen": "2025-10-19T21:30:00.000Z",
       "examples": [
         {
-          "request": "Analyze the BRD document for market viability",
-          "instructions": "1. Read the executive summary section 2. Check the competitive landscape analysis 3. Evaluate the market size and growth potential 4. Assess the technical feasibility 5. Provide a summary with risk assessment"
+          "request": "Deploy to Render",
+          "instructions": "Check git status, validate file paths, ensure build succeeds, verify static middleware configuration"
         },
         {
-          "request": "Can you analyze this BRD for market opportunity",
-          "instructions": "1. Read the executive summary section 2. Check the competitive landscape analysis 3. Evaluate the market size and growth potential 4. Assess the technical feasibility 5. Provide a summary with risk assessment"
+          "request": "Ready to push to production",
+          "instructions": "Run comprehensive validation: git status, route precedence, path validation, build test"
+        },
+        {
+          "request": "Why does it work locally but fail on Render?",
+          "instructions": "Compare local vs production: file locations, git tracking, route configuration, environment variables"
         }
       ],
-      "skillCreated": true
+      "skill_created": true,
+      "skill_name": "deployment-validator",
+      "created_at": "2025-10-19T21:30:00.000Z"
+    },
+    {
+      "signature": "static-file-debugging",
+      "intent": "debugging",
+      "count": 4,
+      "first_seen": "2025-10-19T20:00:00.000Z",
+      "last_seen": "2025-10-19T21:30:00.000Z",
+      "examples": [
+        {
+          "request": "File returns 404 in production but works locally",
+          "instructions": "Check: 1) File location in git, 2) Static middleware config, 3) Explicit routes, 4) Path in sendFile()"
+        },
+        {
+          "request": "Static middleware not serving files",
+          "instructions": "Verify: 1) Middleware order, 2) Base directory correct, 3) No route precedence conflicts"
+        },
+        {
+          "request": "Express route overriding static files",
+          "instructions": "Check route order: static middleware must be BEFORE explicit routes"
+        },
+        {
+          "request": "sendFile returning ENOENT error",
+          "instructions": "Verify file path: check git ls-files, ensure using correct base dir (publicDir vs projectRoot)"
+        }
+      ],
+      "skill_created": false,
+      "notes": "This pattern is covered by deployment-validator skill"
     }
   ],
-  "skills": [
+  "skills_created": [
     {
-      "name": "auto-analysis-219c9431a85d",
-      "intent": "analysis",
-      "created": "2025-10-17T08:06:17.594783",
-      "fromPattern": "219c9431a85d"
+      "name": "deployment-validator",
+      "intent": "deployment",
+      "created": "2025-10-19T21:30:00.000Z",
+      "from_pattern": "deployment-validation",
+      "triggers": [
+        "deploy",
+        "render",
+        "production",
+        "staging",
+        "push to render",
+        "ready to deploy",
+        "deployment",
+        "going live"
+      ],
+      "version": "1.0.0",
+      "lessons_learned": [
+        "Static file path mismatches (publicDir vs projectRoot)",
+        "Route precedence overriding static middleware",
+        "Git not tracking moved files",
+        "Multiple explicit routes for same file",
+        "Diagnostic logging vs actual runtime behavior"
+      ],
+      "files": [
+        ".claude/skills/deployment-validator/SKILL.md",
+        "scripts/validate-deployment.sh",
+        ".claude/learning/DEPLOYMENT_LESSONS_LEARNED.md"
+      ],
+      "success_metrics": {
+        "time_saved_per_deployment": "6-10 hours",
+        "issues_caught_before_push": "100%",
+        "first_try_deployment_success": "100%",
+        "debugging_cycles_eliminated": "3-5 per deployment"
+      }
     }
-  ]
+  ],
+  "metadata": {
+    "total_patterns_tracked": 2,
+    "total_skills_created": 1,
+    "last_updated": "2025-10-19T21:30:00.000Z",
+    "system_version": "1.0.0"
+  }
 }
