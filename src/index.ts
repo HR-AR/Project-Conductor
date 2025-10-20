@@ -194,6 +194,21 @@ logger.info({
   publicDir,
 }, 'Static file configuration');
 
+// Serve public directory files at root level (FIRST - highest priority)
+// This allows /conductor-unified-dashboard.html to resolve to /public/conductor-unified-dashboard.html
+app.use(express.static(publicDir, {
+  index: false, // Don't serve index.html automatically
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  },
+}));
+
 // Serve root-level files (demo-walkthrough.js, demo-journey.js, etc)
 app.use(express.static(projectRoot, {
   index: false, // Don't serve index.html automatically
@@ -256,6 +271,11 @@ app.use('/demo', express.static(projectRoot, {
     }
   },
 }));
+
+// Root route - serve landing page
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
 
 // Health check endpoint (no rate limiting)
 app.get('/health', async (_req, res) => {
