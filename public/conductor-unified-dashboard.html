@@ -4319,6 +4319,220 @@
                 alert('Failed to reset demo. Please try again.');
             }
         }
+
+        // Interactive Tour / Demo Walkthrough System
+        window.demoWalkthrough = {
+            currentStep: 0,
+            tourActive: false,
+            progressKey: 'conductor_tour_progress',
+
+            start: function() {
+                console.log('[DemoWalkthrough] Starting interactive tour');
+                this.tourActive = true;
+                this.currentStep = 0;
+                this.saveProgress();
+
+                // Navigate to first module (Learn/Onboarding)
+                navigateToModule(0);
+
+                // Show welcome message
+                setTimeout(() => {
+                    this.showTourMessage(
+                        'Welcome to Project Conductor!',
+                        'This interactive tour will guide you through all modules. Click Next to continue.',
+                        0
+                    );
+                }, 1000);
+            },
+
+            jumpToModule: function(moduleId) {
+                console.log(`[DemoWalkthrough] Jumping to module ${moduleId}`);
+                this.currentStep = moduleId;
+                this.tourActive = true;
+                this.saveProgress();
+
+                navigateToModule(moduleId);
+
+                setTimeout(() => {
+                    const messages = [
+                        { title: 'Learn Module', text: 'Discover how Project Conductor works.' },
+                        { title: 'Present Module', text: 'View your dashboard and project analytics.' },
+                        { title: 'Problem Input (BRD)', text: 'Create and manage business requirements.' },
+                        { title: 'PRD Alignment', text: 'Align stakeholders on product requirements.' },
+                        { title: 'Engineering Design', text: 'Document technical architecture and design.' },
+                        { title: 'Alignment Module', text: 'Track approval status across all phases.' },
+                        { title: 'Implementation', text: 'Monitor development progress and changes.' }
+                    ];
+
+                    const msg = messages[moduleId] || { title: 'Module Tour', text: 'Exploring this module.' };
+                    this.showTourMessage(msg.title, msg.text, moduleId);
+                }, 1000);
+            },
+
+            showTourMessage: function(title, text, moduleId) {
+                // Create a non-intrusive toast notification instead of a blocking alert
+                const toast = document.createElement('div');
+                toast.className = 'tour-toast';
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 2rem;
+                    right: 2rem;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    z-index: 10000;
+                    animation: slideInUp 0.3s ease-out;
+                `;
+
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <span style="font-size: 2rem;">🎓</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">${title}</div>
+                            <div style="opacity: 0.9; font-size: 0.95rem; line-height: 1.4;">${text}</div>
+                            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                                <button onclick="window.demoWalkthrough.nextStep()" style="
+                                    background: white;
+                                    color: #667eea;
+                                    border: none;
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">Next</button>
+                                <button onclick="window.demoWalkthrough.endTour()" style="
+                                    background: rgba(255, 255, 255, 0.2);
+                                    color: white;
+                                    border: 1px solid rgba(255, 255, 255, 0.3);
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">End Tour</button>
+                            </div>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" style="
+                            background: none;
+                            border: none;
+                            color: white;
+                            font-size: 1.5rem;
+                            cursor: pointer;
+                            padding: 0;
+                            line-height: 1;
+                        ">×</button>
+                    </div>
+                `;
+
+                // Remove any existing tour toast
+                const existing = document.querySelector('.tour-toast');
+                if (existing) existing.remove();
+
+                document.body.appendChild(toast);
+
+                // Auto-dismiss after 10 seconds
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.style.animation = 'slideOutDown 0.3s ease-out';
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 10000);
+            },
+
+            nextStep: function() {
+                this.currentStep++;
+                if (this.currentStep >= MODULES.length) {
+                    this.endTour();
+                    return;
+                }
+
+                this.jumpToModule(this.currentStep);
+            },
+
+            endTour: function() {
+                console.log('[DemoWalkthrough] Ending tour');
+                this.tourActive = false;
+                this.saveProgress();
+
+                // Remove any existing toast
+                const toast = document.querySelector('.tour-toast');
+                if (toast) toast.remove();
+
+                // Show completion message
+                alert('Tour completed! You can restart it anytime from the Settings menu (⚙️).');
+            },
+
+            resetProgress: function() {
+                this.currentStep = 0;
+                this.tourActive = false;
+                localStorage.removeItem(this.progressKey);
+                console.log('[DemoWalkthrough] Progress reset');
+            },
+
+            saveProgress: function() {
+                localStorage.setItem(this.progressKey, JSON.stringify({
+                    step: this.currentStep,
+                    active: this.tourActive,
+                    lastUpdated: new Date().toISOString()
+                }));
+            },
+
+            loadProgress: function() {
+                try {
+                    const saved = localStorage.getItem(this.progressKey);
+                    if (saved) {
+                        const progress = JSON.parse(saved);
+                        this.currentStep = progress.step || 0;
+                        this.tourActive = progress.active || false;
+                        return progress;
+                    }
+                } catch (e) {
+                    console.error('[DemoWalkthrough] Failed to load progress:', e);
+                }
+                return null;
+            }
+        };
+
+        // Add animation keyframes for tour toast
+        if (!document.querySelector('#tour-toast-animations')) {
+            const style = document.createElement('style');
+            style.id = 'tour-toast-animations';
+            style.textContent = `
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOutDown {
+                    from {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Load saved tour progress on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedProgress = window.demoWalkthrough.loadProgress();
+            if (savedProgress && savedProgress.active) {
+                console.log('[DemoWalkthrough] Resuming tour from step', savedProgress.step);
+            }
+        });
+
+        console.log('[DemoWalkthrough] Interactive tour system initialized');
     </script>
 </body>
 </html>
