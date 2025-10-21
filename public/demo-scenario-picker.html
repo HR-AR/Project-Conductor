@@ -382,6 +382,9 @@
         <p class="loading-text" id="loadingText">Loading scenario...</p>
     </div>
 
+    <!-- Notification System -->
+    <script src="/public/js/notification-system.js"></script>
+
     <script>
         // Fetch and render scenarios
         async function loadScenarios() {
@@ -473,12 +476,12 @@
                         window.location.href = '/conductor-unified-dashboard.html';
                     }, 800);
                 } else {
-                    alert('Failed to load scenario: ' + result.message);
+                    notify.error('Failed to load scenario: ' + result.message);
                     loadingOverlay.classList.remove('active');
                 }
             } catch (error) {
                 console.error('Failed to load scenario:', error);
-                alert('Failed to load scenario. Please try again.');
+                notify.error('Failed to load scenario. Please try again.');
                 loadingOverlay.classList.remove('active');
             }
         }

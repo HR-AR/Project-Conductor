@@ -676,6 +676,7 @@
         </div>
     </div>
 
+    <script src="/public/js/notification-system.js"></script>
     <script src="/api-client.js"></script>
     <script>
         // Wizard State
@@ -1023,13 +1024,13 @@
                         window.location.href = `/project-detail.html?id=${result.data.id}`;
                     }, 3000);
                 } else {
-                    alert('Failed to create project: ' + result.message);
+                    notify.error('Failed to create project: ' + result.message);
                     btn.disabled = false;
                     btn.textContent = '🚀 Launch Project';
                 }
             } catch (error) {
                 console.error('Error creating project:', error);
-                alert('Failed to create project. Please try again.');
+                notify.error('Failed to create project. Please try again.');
                 btn.disabled = false;
                 btn.textContent = '🚀 Launch Project';
             }
@@ -1067,8 +1068,13 @@
         }
 
         // Skip onboarding
-        function skipOnboarding() {
-            if (confirm('Skip onboarding and go to dashboard?')) {
+        async function skipOnboarding() {
+            const confirmed = await notify.confirm('Skip onboarding and go to dashboard?', {
+                title: 'Skip Onboarding',
+                confirmText: 'Skip',
+                cancelText: 'Continue Setup'
+            });
+            if (confirmed) {
                 window.location.href = '/conductor-unified-dashboard.html';
             }
         }

@@ -2208,7 +2208,7 @@
                     <span>5️⃣</span>
                     <span>Replay: Change Impact</span>
                 </a>
-                <button class="quick-start-btn secondary" onclick="if(confirm('Reset tour progress?')) { window.demoWalkthrough.resetProgress(); alert('Tour progress reset!'); }" style="width: 100%; margin-top: 0.5rem;">
+                <button class="quick-start-btn secondary" onclick="resetTourProgress()" style="width: 100%; margin-top: 0.5rem;">
                     <span>🔄 Reset Tour Progress</span>
                 </button>
             </div>
@@ -2422,10 +2422,14 @@
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                     console.log('[ServiceWorker] New version available, reload to update');
 
-                                    // Optional: Show notification to user
-                                    if (confirm('A new version of Project Conductor is available. Reload to update?')) {
-                                        window.location.reload();
-                                    }
+                                    // Show notification to user
+                                    notify.confirm('A new version of Project Conductor is available. Reload to update?', {
+                                        title: 'Update Available',
+                                        confirmText: 'Reload Now',
+                                        cancelText: 'Later'
+                                    }).then(confirmed => {
+                                        if (confirmed) window.location.reload();
+                                    });
                                 }
                             });
                         });
@@ -3194,13 +3198,18 @@
 
         // View profile (placeholder)
         function viewProfile() {
-            alert('User profile page coming soon!');
+            notify.info('User profile page coming soon!');
             toggleUserDropdown();
         }
 
         // Handle logout
         async function handleLogout() {
-            if (confirm('Are you sure you want to sign out?')) {
+            const confirmed = await notify.confirm('Are you sure you want to sign out?', {
+                title: 'Sign Out',
+                confirmText: 'Sign Out',
+                cancelText: 'Cancel'
+            });
+            if (confirmed) {
                 try {
                     if (typeof AuthClient !== 'undefined') {
                         const authClient = new AuthClient();
@@ -3262,7 +3271,7 @@
             AppState.settings.darkMode = toggle.classList.contains('active');
             saveState();
             // Implement dark mode styling here
-            alert('Dark mode coming soon!');
+            notify.info('Dark mode coming soon!');
         }
 
         function toggleEmailNotifications() {
@@ -3272,8 +3281,17 @@
             saveState();
         }
 
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+        async function clearAllData() {
+            const confirmed = await notify.confirm(
+                'Are you sure you want to clear all data? This action cannot be undone.',
+                {
+                    title: 'Clear All Data',
+                    confirmText: 'Clear Data',
+                    cancelText: 'Cancel',
+                    danger: true
+                }
+            );
+            if (confirmed) {
                 localStorage.clear();
                 location.reload();
             }
@@ -3302,9 +3320,9 @@
                         Object.assign(AppState, imported);
                         saveState();
                         updateUIFromState();
-                        alert('Data imported successfully!');
+                        notify.success('Data imported successfully!');
                     } catch (err) {
-                        alert('Error importing data: ' + err.message);
+                        notify.error('Error importing data: ' + err.message);
                     }
                 };
                 reader.readAsText(file);
@@ -3323,28 +3341,28 @@
 
         // Quick Actions
         function showAddRequirement() {
-            alert('Add Requirement modal coming soon!');
+            notify.info('Add Requirement modal coming soon!');
             toggleFabMenu();
         }
 
         function showInviteStakeholder() {
-            alert('Invite Stakeholder modal coming soon!');
+            notify.info('Invite Stakeholder modal coming soon!');
             toggleFabMenu();
         }
 
         function showStartDiscussion() {
-            alert('Start Discussion modal coming soon!');
+            notify.info('Start Discussion modal coming soon!');
             toggleFabMenu();
         }
 
         function showViewMetrics() {
-            alert('View Metrics dashboard coming soon!');
+            notify.info('View Metrics dashboard coming soon!');
             toggleFabMenu();
         }
 
         // Help
         function openHelp() {
-            alert('Context-sensitive help system:\n\n• Video Tutorials\n• Documentation\n• Example PRDs\n• Contact Support\n\nOpening help center...');
+            notify.info('Context-sensitive help system:<br><br>• Video Tutorials<br>• Documentation<br>• Example PRDs<br>• Contact Support<br><br>Opening help center...');
         }
 
         function openVideoTutorials() {
@@ -3858,7 +3876,7 @@
          */
         function testAgentActivity() {
             if (!window.agentActivityFeed) {
-                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                notify.warning('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
                 return;
             }
 
@@ -3894,12 +3912,12 @@
          */
         function startAgentDemo() {
             if (!window.agentActivityFeed) {
-                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                notify.warning('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
                 return;
             }
 
             window.agentActivityFeed.startDemoMode();
-            alert('Agent demo mode started! Watch the activity feed for simulated agent actions.');
+            notify.success('Agent demo mode started! Watch the activity feed for simulated agent actions.');
             console.log('[Demo] Started agent activity demo mode');
         }
 
@@ -3908,7 +3926,7 @@
          */
         function clearAgentActivity() {
             if (!window.agentActivityFeed) {
-                alert('Agent Activity Feed not initialized yet.');
+                notify.warning('Agent Activity Feed not initialized yet.');
                 return;
             }
 
@@ -3921,7 +3939,7 @@
          */
         function testConflictDetection(severity = 'high') {
             if (!window.conflictHandler) {
-                alert('Conflict Handler not initialized yet. Retrying in 1 second...');
+                notify.warning('Conflict Handler not initialized yet. Retrying in 1 second...');
                 setTimeout(() => testConflictDetection(severity), 1000);
                 return;
             }
@@ -3935,7 +3953,7 @@
          */
         function testWorkflowResume() {
             if (!window.conflictHandler) {
-                alert('Conflict Handler not initialized yet.');
+                notify.warning('Conflict Handler not initialized yet.');
                 return;
             }
 
@@ -3987,6 +4005,9 @@
             observer.observe(feedContent, { childList: true, subtree: true });
         });
     </script>
+
+    <!-- Notification System (Mobile-Friendly) -->
+    <script src="/public/js/notification-system.js"></script>
 
     <!-- Demo Walkthrough System -->
     <script src="demo-walkthrough.js"></script>
@@ -4265,16 +4286,41 @@
                 // Auto-reset after 60 minutes
                 setTimeout(() => {
                     if (sessionStorage.getItem('demo') === 'true') {
-                        alert('Demo session expired (60 minutes). Refreshing with new data...');
+                        notify.info('Demo session expired (60 minutes). Refreshing with new data...');
                         resetDemoData();
                     }
                 }, 60 * 60 * 1000);
             }
         })();
 
+        // Reset tour progress
+        async function resetTourProgress() {
+            const confirmed = await notify.confirm('Reset tour progress?', {
+                title: 'Reset Tour',
+                confirmText: 'Reset',
+                cancelText: 'Cancel'
+            });
+            if (confirmed) {
+                if (window.demoWalkthrough) {
+                    window.demoWalkthrough.resetProgress();
+                    notify.success('Tour progress reset!');
+                } else {
+                    notify.warning('Tour system not loaded yet');
+                }
+            }
+        }
+
         // Exit demo mode
-        function exitDemoMode() {
-            if (confirm('Exit demo mode? This will clear demo data and return to your real projects.')) {
+        async function exitDemoMode() {
+            const confirmed = await notify.confirm(
+                'Exit demo mode? This will clear demo data and return to your real projects.',
+                {
+                    title: 'Exit Demo Mode',
+                    confirmText: 'Exit Demo',
+                    cancelText: 'Stay in Demo'
+                }
+            );
+            if (confirmed) {
                 sessionStorage.removeItem('demo');
                 sessionStorage.removeItem('demo_data');
                 sessionStorage.removeItem('demo_scenario');
@@ -4289,7 +4335,7 @@
             const demoScenario = sessionStorage.getItem('demo_scenario');
 
             if (!demoScenario) {
-                alert('No demo scenario found');
+                notify.warning('No demo scenario found');
                 return;
             }
 
@@ -4312,11 +4358,11 @@
                     // Reload page to show fresh data
                     window.location.reload();
                 } else {
-                    alert('Failed to reset demo: ' + result.message);
+                    notify.error('Failed to reset demo: ' + result.message);
                 }
             } catch (error) {
                 console.error('Failed to reset demo:', error);
-                alert('Failed to reset demo. Please try again.');
+                notify.error('Failed to reset demo. Please try again.');
             }
         }
     </script>
