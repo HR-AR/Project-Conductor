@@ -13,6 +13,10 @@ import {
   LinkType
 } from '../models/link.model';
 
+interface ErrorWithMessage {
+  message: string;
+}
+
 class LinksController {
 
   /**
@@ -59,10 +63,11 @@ class LinksController {
         success: true,
         data: link
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(400).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -88,10 +93,11 @@ class LinksController {
         success: true,
         data: links
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -123,10 +129,11 @@ class LinksController {
         success: true,
         data: links
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -166,16 +173,17 @@ class LinksController {
         success: true,
         data: link
       });
-    } catch (error: any) {
-      if (error.message.includes('not found')) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message
+          error: errorMessage
         });
       } else {
         res.status(400).json({
           success: false,
-          error: error.message
+          error: errorMessage
         });
       }
     }
@@ -216,16 +224,17 @@ class LinksController {
         success: true,
         data: link
       });
-    } catch (error: any) {
-      if (error.message.includes('not found')) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      if (errorMessage.includes('not found')) {
         res.status(404).json({
           success: false,
-          error: error.message
+          error: errorMessage
         });
       } else {
         res.status(500).json({
           success: false,
-          error: error.message
+          error: errorMessage
         });
       }
     }
@@ -260,10 +269,11 @@ class LinksController {
         success: true,
         message: 'Link deleted successfully'
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -307,10 +317,11 @@ class LinksController {
         success: true,
         data: validation
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -341,10 +352,11 @@ class LinksController {
         success: true,
         data: statistics
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }

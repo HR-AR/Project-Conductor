@@ -885,8 +885,10 @@
         }
 
         function previousStep() {
-            wizardState.currentStep--;
-            updateUI();
+            if (wizardState.currentStep > 1) {
+                wizardState.currentStep--;
+                updateUI();
+            }
         }
 
         function updateUI() {

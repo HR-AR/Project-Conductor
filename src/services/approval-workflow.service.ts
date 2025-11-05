@@ -411,10 +411,12 @@ export class ApprovalWorkflowService {
    */
   private buildWhereClause(filters: ApprovalFilters): {
     whereClause: string;
-    queryParams: (number | string | boolean | string[])[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryParams: any[];
   } {
     const conditions: string[] = [];
-    const queryParams: (number | string | boolean | string[])[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryParams: any[] = [];
     let paramCount = 0;
 
     if (filters.narrative_id !== undefined) {

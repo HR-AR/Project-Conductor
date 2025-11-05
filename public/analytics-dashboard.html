@@ -428,9 +428,9 @@
             <div class="page-title">📊 Analytics Dashboard</div>
             <div class="header-actions">
                 <div class="time-range">
-                    <button class="time-btn" onclick="setTimeRange('7d')">7 Days</button>
-                    <button class="time-btn active" onclick="setTimeRange('30d')">30 Days</button>
-                    <button class="time-btn" onclick="setTimeRange('90d')">90 Days</button>
+                    <button class="time-btn" onclick="setTimeRange('7d', event)">7 Days</button>
+                    <button class="time-btn active" onclick="setTimeRange('30d', event)">30 Days</button>
+                    <button class="time-btn" onclick="setTimeRange('90d', event)">90 Days</button>
                 </div>
                 <button class="btn btn-secondary" onclick="exportReport()">📥 Export</button>
                 <button class="btn btn-primary" onclick="window.location.href='/conductor-unified-dashboard.html'">Dashboard</button>
@@ -682,7 +682,8 @@
         }
 
         // Set time range
-        function setTimeRange(range) {
+        function setTimeRange(range, event) {
+            if (!event || !event.target) return;
             document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 

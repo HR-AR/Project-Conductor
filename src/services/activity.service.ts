@@ -352,7 +352,8 @@ class ActivityService {
     // Get total count
     const countQuery = `SELECT COUNT(*) as count FROM activity_log ${whereClause}`;
     const countResult = await db.query(countQuery, values);
-    const total = parseInt(countResult.rows[0].count, 10);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const total = parseInt((countResult.rows[0] as any)?.count, 10);
 
     // Get paginated results
     const query = `
@@ -389,7 +390,8 @@ class ActivityService {
       GROUP BY event_type
     `;
     const eventTypeResult = await db.query(eventTypeQuery, values);
-    const eventsByType = eventTypeResult.rows.reduce((acc: any, row: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const eventsByType = eventTypeResult.rows.reduce((acc: Record<string, number>, row: any) => {
       acc[row.event_type] = parseInt(row.count, 10);
       return acc;
     }, {} as Record<AgentActivityEventType, number>);
@@ -470,13 +472,14 @@ class ActivityService {
 
     const totalQuery = `SELECT COUNT(*) as count FROM activity_log ${whereClause}`;
     const totalResult = await db.query(totalQuery, values);
-    const totalEvents = parseInt(totalResult.rows[0].count, 10);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalEvents = parseInt((totalResult.rows[0] as any)?.count, 10);
 
     return {
       totalEvents,
-      eventsByType,
-      eventsBySeverity,
-      eventsByStatus,
+      eventsByType: eventsByType as Record<AgentActivityEventType, number>,
+      eventsBySeverity: eventsBySeverity as Record<ActivitySeverity, number>,
+      eventsByStatus: eventsByStatus as Record<ActivityStatus, number>,
       agentStats,
       recentErrors,
       recentConflicts

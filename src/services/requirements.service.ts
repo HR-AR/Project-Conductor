@@ -175,6 +175,72 @@ class RequirementsService {
   }
 
   /**
+   * Bulk update multiple requirements in a single transaction
+   */
+  async bulkUpdate(
+    updates: Array<{ id: string; data: UpdateRequirementRequest }>,
+    updatedBy: string
+  ): Promise<void> {
+    const client = await db.getClient();
+
+    try {
+      await client.query('BEGIN');
+
+      for (const update of updates) {
+        // Build update query dynamically
+        const updateFields: string[] = [];
+        const updateValues: (string | number | string[] | Date | Record<string, any> | null)[] = [];
+        let paramCount = 0;
+
+        if (update.data.title !== undefined) {
+          updateFields.push(`title = $${++paramCount}`);
+          updateValues.push(update.data.title);
+        }
+        if (update.data.description !== undefined) {
+          updateFields.push(`description = $${++paramCount}`);
+          updateValues.push(update.data.description);
+        }
+        if (update.data.status !== undefined) {
+          updateFields.push(`status = $${++paramCount}`);
+          updateValues.push(update.data.status);
+
+          if (update.data.status === REQUIREMENT_STATUS.COMPLETED) {
+            updateFields.push(`completed_at = CURRENT_TIMESTAMP`);
+          }
+        }
+        if (update.data.priority !== undefined) {
+          updateFields.push(`priority = $${++paramCount}`);
+          updateValues.push(update.data.priority);
+        }
+        if (update.data.assignedTo !== undefined) {
+          updateFields.push(`assigned_to = $${++paramCount}`);
+          updateValues.push(update.data.assignedTo);
+        }
+
+        if (updateFields.length > 0) {
+          const updateQuery = `
+            UPDATE requirements
+            SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $${++paramCount}
+          `;
+          updateValues.push(update.id);
+
+          await client.query(updateQuery, updateValues);
+        }
+      }
+
+      await client.query('COMMIT');
+      logger.info({ count: updates.length, updatedBy }, 'Bulk update successful');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error({ error, count: updates.length }, 'Bulk update failed - rolled back');
+      throw new Error('Bulk update failed');
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
    * Get paginated list of requirements with filters
    */
   async getRequirements(

@@ -6,6 +6,8 @@ import { Request, Response, NextFunction } from 'express';
 import { ValidationError as ExpressValidationError } from 'express-validator';
 import logger from '../utils/logger';
 
+type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void> | void;
+
 export interface ApiError extends Error {
   statusCode?: number;
   isOperational?: boolean;
@@ -93,7 +95,17 @@ export const errorHandler = (
   }, 'Error occurred');
 
   // Prepare error response
-  const errorResponse: any = {
+  interface ErrorResponse {
+    success: boolean;
+    error: {
+      message: string;
+      statusCode: number;
+      validationErrors?: Array<{ field: string; message: string; value: unknown }>;
+      stack?: string;
+    };
+  }
+
+  const errorResponse: ErrorResponse = {
     success: false,
     error: {
       message: err.message,
@@ -103,11 +115,15 @@ export const errorHandler = (
 
   // Include validation errors if present
   if (err.errors && err.errors.length > 0) {
-    errorResponse.error.validationErrors = err.errors.map((validationError: any) => ({
-      field: validationError.path || validationError.param,
-      message: validationError.msg,
-      value: validationError.value,
-    }));
+    errorResponse.error.validationErrors = err.errors.map((validationError) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ve = validationError as any;
+      return {
+        field: ve.path || ve.param || 'unknown',
+        message: ve.msg || 'Validation failed',
+        value: ve.value,
+      };
+    });
   }
 
   // Include stack trace in development
@@ -147,7 +163,7 @@ export const notFoundHandler = (req: Request, res: Response): void => {
 /**
  * Async wrapper to catch errors in async route handlers
  */
-export const asyncHandler = (fn: Function) => {
+export const asyncHandler = (fn: AsyncHandler) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

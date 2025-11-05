@@ -19,7 +19,8 @@ export const responseTimeMiddleware = (req: Request, res: Response, next: NextFu
   let headerSet = false;
 
   // Override write to set header on first write
-  res.write = function(this: Response, _chunk: any, _encoding?: any, _callback?: any): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  res.write = function(this: Response, _chunk?: any, _encoding?: any, _callback?: any): boolean {
     if (!headerSet && !res.headersSent) {
       const duration = Date.now() - start;
       try {
@@ -29,10 +30,12 @@ export const responseTimeMiddleware = (req: Request, res: Response, next: NextFu
       }
       headerSet = true;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return originalWrite.apply(this, arguments as any);
   };
 
   // Override end to set header and log slow requests
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res.end = function(this: Response, _chunk?: any, _encoding?: any, _callback?: any): Response {
     const duration = Date.now() - start;
 
@@ -57,6 +60,7 @@ export const responseTimeMiddleware = (req: Request, res: Response, next: NextFu
     }
 
     // Call original end with proper arguments
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return originalEnd.apply(this, arguments as any);
   };
 

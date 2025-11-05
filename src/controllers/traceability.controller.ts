@@ -19,10 +19,11 @@ class TraceabilityController {
         success: true,
         data: matrix
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -39,10 +40,11 @@ class TraceabilityController {
         success: true,
         data: analytics
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -83,10 +85,11 @@ class TraceabilityController {
         success: true,
         data: report
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -112,10 +115,11 @@ class TraceabilityController {
         success: true,
         data: analysis
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -143,10 +147,11 @@ class TraceabilityController {
         success: true,
         data: pathAnalysis
       });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        error: error.message
+        error: errorMessage
       });
     }
   }

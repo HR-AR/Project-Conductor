@@ -127,6 +127,11 @@
             gap: 0.75rem;
         }
 
+        .btn:focus {
+            outline: 3px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 3px;
+        }
+
         .btn-primary {
             background: white;
             color: #667eea;
@@ -429,16 +434,23 @@
     </div>
 
     <script>
-        // Add subtle parallax effect
+        // Add subtle parallax effect with throttling
+        let ticking = false;
         document.addEventListener('mousemove', (e) => {
-            const cards = document.querySelectorAll('.feature-card');
-            const x = e.clientX / window.innerWidth - 0.5;
-            const y = e.clientY / window.innerHeight - 0.5;
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const cards = document.querySelectorAll('.feature-card');
+                    const x = e.clientX / window.innerWidth - 0.5;
+                    const y = e.clientY / window.innerHeight - 0.5;
 
-            cards.forEach((card, index) => {
-                const speed = (index + 1) * 2;
-                card.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
-            });
+                    cards.forEach((card, index) => {
+                        const speed = (index + 1) * 2;
+                        card.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
+                    });
+                    ticking = false;
+                });
+                ticking = true;
+            }
         });
     </script>
 </body>

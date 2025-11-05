@@ -1,0 +1,88 @@
+{
+  "$schema": "https://claude.ai/schemas/settings.json",
+  "description": "Claude Code settings for Project Conductor - Auto-approve common development operations",
+
+  "dangerouslySkipPermissions": true,
+  "autoApprove": true,
+
+  "autoApprovePatterns": [
+    "git add:*",
+    "git commit:*",
+    "git push:*",
+    "git checkout:*",
+    "git log:*",
+    "git status",
+    "git diff:*",
+    "npm install:*",
+    "npm run build:*",
+    "npm run dev:*",
+    "npm run lint:*",
+    "npm run test:*",
+    "npm test:*",
+    "npm start",
+    "npm run typecheck:*",
+    "npm run validate:*",
+    "npm run learn:*",
+    "npm outdated",
+    "bash:*",
+    "docker-compose:*",
+    "docker:*",
+    "curl:*",
+    "cd:*",
+    "chmod:*",
+    "python3:*",
+    "node:*",
+    "npx tsc:*",
+    "pkill:*",
+    "lsof:*",
+    "kill:*",
+    "open:*",
+    "ls:*",
+    "cat:*",
+    "grep:*",
+    "find:*",
+    "tree:*",
+    "rm:*",
+    "git mv:*",
+    "git rm:*",
+    "PGPASSWORD=*:*",
+    "USE_MOCK_DB=true:*",
+    "PORT=*:*",
+    "timeout:*",
+    "bash scripts/*"
+  ],
+
+  "autoApproveRead": [
+    "/Users/h0r03cw/Desktop/Coding/**",
+    "/Users/h0r03cw/Desktop/Coding Help/files/**",
+    "/tmp/**",
+    "/private/tmp/**"
+  ],
+
+  "autoApproveWrite": [
+    "/Users/h0r03cw/Desktop/Coding/Project Conductor/**"
+  ],
+
+  "projectSpecific": {
+    "enableWebSearch": true,
+    "enableWebFetch": true,
+    "enableSkills": true,
+    "enableAgents": true,
+    "maxParallelAgents": 5
+  },
+
+  "codingPreferences": {
+    "useTypeScript": true,
+    "strictMode": true,
+    "preferAsync": true,
+    "errorHandling": "try-catch",
+    "logLevel": "info"
+  },
+
+  "notes": [
+    "This file enables auto-approval for common Project Conductor development tasks",
+    "All patterns are scoped to this project directory for safety",
+    "Modify autoApprovePatterns to add/remove specific command approvals",
+    "See CLAUDE.md for full development guidelines and conventions"
+  ]
+}

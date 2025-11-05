@@ -10,6 +10,7 @@ import {
   DecisionRegisterEntry,
   VoteRequest,
 } from '../models/approval.model';
+import { DecisionRow } from '../models/database.types';
 import logger from '../utils/logger';
 
 export class DecisionRegisterService {
@@ -94,9 +95,9 @@ export class DecisionRegisterService {
     const values = version ? [narrativeId, version] : [narrativeId];
 
     try {
-      const result = await db.query(query, values);
+      const result = await db.query<DecisionRow>(query, values);
 
-      return result.rows.map((row: any) => this.mapRowToDecisionRegisterEntry(row));
+      return result.rows.map((row) => this.mapRowToDecisionRegisterEntry(row));
     } catch (error) {
       logger.error({ error, narrativeId, version }, 'Error getting decisions');
       throw new Error('Failed to get decisions');
@@ -118,9 +119,9 @@ export class DecisionRegisterService {
     `;
 
     try {
-      const result = await db.query(query, [reviewerId]);
+      const result = await db.query<DecisionRow>(query, [reviewerId]);
 
-      return result.rows.map((row: any) => this.mapRowToDecisionRegisterEntry(row));
+      return result.rows.map((row) => this.mapRowToDecisionRegisterEntry(row));
     } catch (error) {
       logger.error({ error, reviewerId }, 'Error getting decisions by reviewer');
       throw new Error('Failed to get decisions by reviewer');
@@ -162,17 +163,18 @@ export class DecisionRegisterService {
         throw new Error('Approval not found');
       }
 
-      const row = result.rows[0];
-      const totalReviewers = parseInt(row.total_reviewers);
-      const decisionsCount = parseInt(row.decisions_count);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const row = result.rows[0] as any;
+      const totalReviewers = parseInt(row?.total_reviewers);
+      const decisionsCount = parseInt(row?.decisions_count);
 
       return {
         all_voted: totalReviewers > 0 && totalReviewers === decisionsCount,
         total_reviewers: totalReviewers,
         decisions_count: decisionsCount,
-        approved_count: parseInt(row.approved_count),
-        rejected_count: parseInt(row.rejected_count),
-        conditional_count: parseInt(row.conditional_count),
+        approved_count: parseInt(row?.approved_count),
+        rejected_count: parseInt(row?.rejected_count),
+        conditional_count: parseInt(row?.conditional_count),
       };
     } catch (error) {
       logger.error({ error, approvalId }, 'Error checking approval status');
@@ -227,7 +229,7 @@ export class DecisionRegisterService {
     try {
       const result = await db.query(query, [narrativeId, narrativeVersion]);
 
-      return result.rows.map((row: any) => this.mapRowToDecision(row));
+      return result.rows.map((row) => this.mapRowToDecision(row));
     } catch (error) {
       logger.error({ error, narrativeId, narrativeVersion }, 'Error getting conditional decisions');
       throw new Error('Failed to get conditional decisions');
@@ -237,7 +239,7 @@ export class DecisionRegisterService {
   /**
    * Map database row to Decision
    */
-  private mapRowToDecision(row: any): Decision {
+  private mapRowToDecision(row: DecisionRow): Decision {
     return {
       id: row.id as number,
       narrative_id: row.narrative_id as number,
@@ -253,7 +255,7 @@ export class DecisionRegisterService {
   /**
    * Map database row to DecisionRegisterEntry
    */
-  private mapRowToDecisionRegisterEntry(row: any): DecisionRegisterEntry {
+  private mapRowToDecisionRegisterEntry(row: DecisionRow & { reviewer_name?: string }): DecisionRegisterEntry {
     return {
       decision_id: row.id as number,
       narrative_id: row.narrative_id as number,

@@ -386,12 +386,19 @@
         // Fetch and render scenarios
         async function loadScenarios() {
             try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
                 const response = await fetch('/api/v1/demo/scenarios', {
                     cache: 'no-cache',
                     headers: {
                         'Cache-Control': 'no-cache'
-                    }
+                    },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
                 const result = await response.json();
 
                 if (result.success) {
@@ -399,6 +406,20 @@
                 }
             } catch (error) {
                 console.error('Failed to load scenarios:', error);
+
+                const grid = document.getElementById('scenariosGrid');
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                        <h2 style="color: white; margin-bottom: 0.5rem;">Unable to Load Scenarios</h2>
+                        <p style="color: rgba(255,255,255,0.8); margin-bottom: 1.5rem;">
+                            There was a problem connecting to the server. Please check your connection and try again.
+                        </p>
+                        <button onclick="loadScenarios()" class="btn" style="background: white; color: #667eea; padding: 0.875rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;">
+                            Retry
+                        </button>
+                    </div>
+                `;
             }
         }
 

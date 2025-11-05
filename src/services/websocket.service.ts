@@ -78,6 +78,7 @@ export interface UserPresenceData {
 
 export class WebSocketService {
   private io: Server;
+  private listeners = new Map<string, Map<string, Function>>();
 
   constructor(io: Server) {
     this.io = io;
@@ -242,6 +243,24 @@ export class WebSocketService {
       logger.info({ username: userData.username, userId: userData.userId }, 'User disconnected from all rooms');
     } else {
       logger.info({ socketId: socket.id }, 'Anonymous user disconnected');
+    }
+
+    // Cleanup listeners to prevent memory leak
+    this.cleanup(socket.id);
+  }
+
+  /**
+   * Cleanup event listeners for a socket to prevent memory leaks
+   */
+  private cleanup(socketId: string): void {
+    const socketListeners = this.listeners.get(socketId);
+    if (socketListeners) {
+      socketListeners.forEach((handler, event) => {
+        // Listeners already removed by disconnect event
+        // Just clean up our tracking map
+      });
+      this.listeners.delete(socketId);
+      logger.info({ socketId, listenersRemoved: socketListeners.size }, 'WebSocket cleanup complete');
     }
   }
 

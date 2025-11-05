@@ -83,9 +83,9 @@ export const cacheMiddleware = (
 
       // Intercept response to cache it
       const originalJson = res.json.bind(res);
-      res.json = function (body: any): Response {
+      res.json = function (body: unknown): Response {
         // Only cache successful responses
-        if (res.statusCode === 200) {
+        if (res.statusCode === 200 && body) {
           redisClient.setEx(cacheKey, defaultOptions.ttl || 300, JSON.stringify(body))
             .catch(err => logger.error({ err, cacheKey }, 'Failed to cache response'));
         }

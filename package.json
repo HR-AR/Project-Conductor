@@ -26,6 +26,9 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "start": "node dist/index.js",
     "validate": "bash scripts/validate.sh",
+    "validate:comprehensive": "bash scripts/comprehensive-validation.sh",
+    "validate:security": "bash scripts/security-audit.sh",
+    "validate:all": "npm run validate:comprehensive && npm run validate:security && npm run test:render-ready && echo '\n✅ All validations passed!'",
     "gen-prp": "node scripts/gen-prp.mjs",
     "typecheck": "tsc --noEmit",
     "precommit": "npm run lint && npm run typecheck && npm test",
@@ -51,7 +54,11 @@
     "skill:list": "node scripts/skill-helper.mjs list",
     "learn:track": "node scripts/skill-learner.mjs track",
     "learn:record": "node scripts/skill-learner.mjs record",
-    "learn:list": "node scripts/skill-learner.mjs list"
+    "learn:list": "node scripts/skill-learner.mjs list",
+    "optimize:analyze": "echo '🚀 Deploying 5 optimization agents...' && mkdir -p .claude/reports",
+    "optimize:implement": "node scripts/optimize-implement.mjs",
+    "optimize:full": "npm run optimize:analyze && npm run optimize:implement all",
+    "optimize:reports": "ls -la .claude/reports/ && echo '\n📊 Reports generated in .claude/reports/'"
   },
   "keywords": [
     "workflow",

@@ -654,6 +654,8 @@
             }
         }
     </style>
+    <!-- Add marked.js for proper Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -706,9 +708,9 @@
             <!-- Tabs -->
             <div class="tabs">
                 <div class="tab-nav">
-                    <button class="tab-button active" onclick="switchTab('document')">Document</button>
-                    <button class="tab-button" onclick="switchTab('milestones')">Milestones</button>
-                    <button class="tab-button" onclick="switchTab('comments')">Comments</button>
+                    <button class="tab-button active" onclick="switchTab('document', event)">Document</button>
+                    <button class="tab-button" onclick="switchTab('milestones', event)">Milestones</button>
+                    <button class="tab-button" onclick="switchTab('comments', event)">Comments</button>
                 </div>
 
                 <!-- Document Tab -->
@@ -1256,33 +1258,32 @@
             // In production, implement actual actions
         }
 
-        // Update preview (simple Markdown parsing)
+        // Update preview using marked.js library
         function updatePreview() {
             const editor = document.getElementById('documentEditor');
             const preview = document.getElementById('documentPreview');
-            let content = editor.value;
+            const content = editor.value;
 
-            // Simple Markdown to HTML conversion
-            content = content
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/^\* (.*$)/gim, '<li>$1</li>')
-                .replace(/^- (.*$)/gim, '<li>$1</li>')
-                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                .replace(/`(.*?)`/gim, '<code>$1</code>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br>');
+            // Configure marked for better rendering
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    mangle: false
+                });
 
-            // Wrap lists
-            content = content.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
-
-            preview.innerHTML = '<p>' + content + '</p>';
+                // Use marked.js for proper Markdown parsing
+                preview.innerHTML = marked.parse(content);
+            } else {
+                // Fallback if marked.js fails to load
+                preview.innerHTML = '<p>' + content.replace(/\n/g, '<br>') + '</p>';
+            }
         }
 
         // Tab switching
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
+            if (!event || !event.target) return;
             // Update buttons
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -1294,10 +1295,7 @@
 
         // WebSocket setup
         function setupWebSocket() {
-            if (!projectId) return;
-
-            socket.emit('join_project', { projectId });
-
+            // Set up listeners even without projectId
             // Listen for updates
             socket.on('document_updated', (data) => {
                 console.log('Document updated:', data);
@@ -1313,6 +1311,11 @@
                 console.log('Milestone updated:', data);
                 // Update milestone
             });
+
+            // Only join project room if we have a projectId
+            if (projectId) {
+                socket.emit('join_project', { projectId });
+            }
         }
 
         // Save document

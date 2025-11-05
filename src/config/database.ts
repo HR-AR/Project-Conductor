@@ -47,10 +47,20 @@ class Database {
 
     this.pool = new Pool(this.config);
 
-    // Handle pool errors
-    this.pool.on('error', (err) => {
-      logger.error({ err }, 'Unexpected error on idle client');
-      process.exit(-1);
+    // Handle pool errors - graceful degradation
+    this.pool.on('error', (err: Error & { code?: string }) => {
+      logger.error({ error: err.message, code: err.code }, 'Database connection error');
+
+      // Graceful degradation - don't kill server
+      if (err.code === 'ECONNREFUSED') {
+        logger.warn('Database connection refused - retrying in 5s');
+        setTimeout(() => {
+          // Attempt reconnection
+          this.testConnection();
+        }, 5000);
+      }
+
+      // Don't exit - let health check endpoint show degraded state
     });
 
     // Handle pool connect events
@@ -81,7 +91,8 @@ class Database {
   /**
    * Execute a query with automatic client management
    */
-  async query(text: string, params?: any[]): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async query<T = unknown>(text: string, params?: any[]): Promise<{ rows: T[]; rowCount: number | null }> {
     const start = Date.now();
     const client = await this.pool.connect();
 
@@ -105,6 +116,7 @@ class Database {
   /**
    * Execute multiple queries in a transaction
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async transaction<T>(queries: Array<{ text: string; params?: any[] }>): Promise<T[]> {
     const client = await this.pool.connect();
 
