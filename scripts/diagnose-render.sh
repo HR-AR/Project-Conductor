@@ -73,7 +73,7 @@ echo ""
 echo "4️⃣  Testing module HTML files..."
 MODULES=(
     "module-0-onboarding.html"
-    "module-4-implementation.html"
+    "module-4-engineering-design.html"
     "demo-scenario-picker.html"
     "conductor-unified-dashboard.html"
     "analytics-dashboard.html"
