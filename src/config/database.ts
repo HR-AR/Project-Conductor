@@ -16,36 +16,82 @@ interface DatabaseConfig extends PoolConfig {
 class Database {
   private static instance: Database;
   private pool: Pool;
-  private config: DatabaseConfig;
+  private config?: DatabaseConfig;
 
   private constructor() {
-    this.config = {
-      host: process.env['DB_HOST'] || 'localhost',
-      port: parseInt(process.env['DB_PORT'] || '5432'),
-      database: process.env['DB_NAME'] || 'conductor',
-      user: process.env['DB_USER'] || 'conductor',
-      password: process.env['DB_PASSWORD'] || 'conductor',
+    // Check for DATABASE_URL first (Render, Heroku, Railway, etc.)
+    if (process.env['DATABASE_URL']) {
+      logger.info('Database configured from DATABASE_URL (cloud platform)');
 
-      // Optimized connection pool settings for production
-      max: parseInt(process.env['DB_POOL_MAX'] || '20'), // Maximum 20 connections
-      min: parseInt(process.env['DB_POOL_MIN'] || '2'), // Minimum 2 connections always ready
-      idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000'), // 30s idle timeout
-      connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000'), // 2s connection timeout
+      this.pool = new Pool({
+        connectionString: process.env['DATABASE_URL'],
 
-      // Query timeout to prevent long-running queries
-      query_timeout: parseInt(process.env['DB_QUERY_TIMEOUT'] || '30000'), // 30s query timeout
+        // Enable SSL for production cloud databases (Render, Heroku, etc.)
+        ssl: process.env['NODE_ENV'] === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
 
-      // Statement timeout for safety
-      statement_timeout: parseInt(process.env['DB_STATEMENT_TIMEOUT'] || '30000'), // 30s statement timeout
+        // Optimized connection pool settings for production
+        max: parseInt(process.env['DB_POOL_MAX'] || '20'), // Maximum 20 connections
+        min: parseInt(process.env['DB_POOL_MIN'] || '2'), // Minimum 2 connections always ready
+        idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000'), // 30s idle timeout
+        connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '5000'), // 5s connection timeout (increased for cloud)
 
-      // SSL configuration
-      ssl: process.env['DB_SSL'] === 'true' ? { rejectUnauthorized: false } : false,
+        // Query timeout to prevent long-running queries
+        query_timeout: parseInt(process.env['DB_QUERY_TIMEOUT'] || '30000'), // 30s query timeout
 
-      // Application name for tracking
-      application_name: process.env['DB_APP_NAME'] || 'project-conductor',
-    };
+        // Statement timeout for safety
+        statement_timeout: parseInt(process.env['DB_STATEMENT_TIMEOUT'] || '30000'), // 30s statement timeout
 
-    this.pool = new Pool(this.config);
+        // Application name for tracking
+        application_name: process.env['DB_APP_NAME'] || 'project-conductor',
+      });
+
+      logger.info({
+        ssl: process.env['NODE_ENV'] === 'production',
+        environment: process.env['NODE_ENV'],
+        poolMax: parseInt(process.env['DB_POOL_MAX'] || '20'),
+      }, 'Database pool initialized from DATABASE_URL');
+    } else {
+      // Fall back to individual environment variables (local development)
+      logger.info('Database configured from individual environment variables (local development)');
+
+      this.config = {
+        host: process.env['DB_HOST'] || 'localhost',
+        port: parseInt(process.env['DB_PORT'] || '5432'),
+        database: process.env['DB_NAME'] || 'conductor',
+        user: process.env['DB_USER'] || 'conductor',
+        password: process.env['DB_PASSWORD'] || 'conductor',
+
+        // Optimized connection pool settings for production
+        max: parseInt(process.env['DB_POOL_MAX'] || '20'), // Maximum 20 connections
+        min: parseInt(process.env['DB_POOL_MIN'] || '2'), // Minimum 2 connections always ready
+        idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000'), // 30s idle timeout
+        connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000'), // 2s connection timeout
+
+        // Query timeout to prevent long-running queries
+        query_timeout: parseInt(process.env['DB_QUERY_TIMEOUT'] || '30000'), // 30s query timeout
+
+        // Statement timeout for safety
+        statement_timeout: parseInt(process.env['DB_STATEMENT_TIMEOUT'] || '30000'), // 30s statement timeout
+
+        // SSL configuration
+        ssl: process.env['DB_SSL'] === 'true' ? { rejectUnauthorized: false } : false,
+
+        // Application name for tracking
+        application_name: process.env['DB_APP_NAME'] || 'project-conductor',
+      };
+
+      this.pool = new Pool(this.config);
+
+      logger.info({
+        host: this.config.host,
+        port: this.config.port,
+        database: this.config.database,
+        user: this.config.user,
+        ssl: !!this.config.ssl,
+      }, 'Database pool initialized from individual env vars');
+    }
 
     // Handle pool errors - graceful degradation
     this.pool.on('error', (err: Error & { code?: string }) => {
