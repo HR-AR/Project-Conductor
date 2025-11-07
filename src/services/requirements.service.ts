@@ -113,7 +113,7 @@ class RequirementsService {
 
     try {
       const result = await db.query(query, values);
-      const requirement = result.rows[0];
+      const requirement = result.rows[0] as Requirement;
 
       // Create initial version
       await this.createVersion(requirement, createdBy, 'Initial creation');
