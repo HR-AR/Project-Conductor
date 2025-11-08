@@ -419,6 +419,9 @@
                 grid-template-columns: 1fr;
             }
         }
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
     </style>
 </head>
 <body>
@@ -694,7 +697,7 @@
         // Export report
         function exportReport() {
             // In production, generate PDF or CSV
-            alert('Generating analytics report...\n\nReport will include:\n- Performance metrics\n- Team statistics\n- AI insights\n- Trend analysis');
+            toast.info('Generating analytics report...\n\nReport will include:\n- Performance metrics\n- Team statistics\n- AI insights\n- Trend analysis');
         }
     </script>
 </body>

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Redesign Demo - Project Conductor</title>
+
+    <!-- New UX Systems -->
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <link rel="stylesheet" href="/css/activity-feed-redesign.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9375rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-error {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .avatar-demo {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 4px 0;
+            color: #64748b;
+        }
+
+        .feature-card li::before {
+            content: "✓ ";
+            color: #22c55e;
+            font-weight: bold;
+        }
+    </style>
+
+    <!-- JavaScript Utilities -->
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
+</head>
+<body>
+    <!-- Activity Feed Toggle Button (new design) -->
+    <button class="activity-feed-toggle has-activity" onclick="toggleActivityFeed()" aria-label="Toggle activity feed">
+        ⚡
+        <span class="activity-badge">3</span>
+    </button>
+
+    <!-- Activity Feed Overlay -->
+    <div class="activity-feed-overlay" onclick="toggleActivityFeed()"></div>
+
+    <!-- Right-Side Activity Feed Panel -->
+    <div class="agent-activity-feed">
+        <div class="activity-feed-header">
+            <div class="activity-feed-title">
+                <span class="activity-feed-icon">⚡</span>
+                <span>Live Activity</span>
+                <span class="activity-count">3</span>
+            </div>
+            <div class="activity-feed-controls">
+                <button class="activity-feed-btn" onclick="toggleActivityFeed()" aria-label="Close">×</button>
+            </div>
+        </div>
+
+        <div class="activity-feed-content">
+            <div class="activity-item agent-business new">
+                <div class="activity-icon-wrapper">💼</div>
+                <div class="activity-details">
+                    <div class="activity-agent">
+                        Business Agent
+                        <span class="activity-status-badge status-progress">In Progress</span>
+                    </div>
+                    <div class="activity-message">Analyzing market trends and competitive landscape</div>
+                    <div class="activity-timestamp">
+                        <span class="activity-timestamp-icon">🕐</span>
+                        Just now
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-item agent-quality">
+                <div class="activity-icon-wrapper">✓</div>
+                <div class="activity-details">
+                    <div class="activity-agent">
+                        Quality Agent
+                        <span class="activity-status-badge status-completed">Completed</span>
+                    </div>
+                    <div class="activity-message">Requirements validation passed with 98% score</div>
+                    <div class="activity-timestamp">
+                        <span class="activity-timestamp-icon">🕐</span>
+                        2 minutes ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-item agent-engineering">
+                <div class="activity-icon-wrapper">⚙️</div>
+                <div class="activity-details">
+                    <div class="activity-agent">
+                        Engineering Agent
+                        <span class="activity-status-badge status-started">Started</span>
+                    </div>
+                    <div class="activity-message">Generating technical architecture diagram</div>
+                    <div class="activity-timestamp">
+                        <span class="activity-timestamp-icon">🕐</span>
+                        5 minutes ago
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="activity-feed-footer">
+            <div class="activity-feed-stats">
+                <span class="activity-stat">
+                    <span class="activity-stat-icon">⚡</span>
+                    3 active
+                </span>
+            </div>
+            <button class="activity-feed-clear-btn">Clear All</button>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <h1>🎨 UI Redesign Demo</h1>
+
+        <!-- Toast Notifications Demo -->
+        <div class="section">
+            <h2>1. Toast Notifications</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">
+                Elegant, non-blocking notifications that replace browser alerts. Auto-dismiss after 3 seconds.
+            </p>
+
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="toast.success('Operation completed successfully!')">
+                    Success Toast
+                </button>
+                <button class="btn btn-error" onclick="toast.error('An error occurred. Please try again.')">
+                    Error Toast
+                </button>
+                <button class="btn btn-warning" onclick="toast.warning('This action cannot be undone.')">
+                    Warning Toast
+                </button>
+                <button class="btn btn-info" onclick="toast.info('New features are now available!')">
+                    Info Toast
+                </button>
+            </div>
+
+            <div class="code-block">
+// Usage Examples:<br>
+toast.success('Document saved successfully!');<br>
+toast.error('Failed to load data.');<br>
+toast.warning('Unsaved changes will be lost.');<br>
+toast.info('New version available.', { duration: 5000 });<br>
+<br>
+// Custom options:<br>
+toast.show('Custom message', {<br>
+  type: 'success',<br>
+  title: 'Custom Title',<br>
+  duration: 3000,<br>
+  closable: true<br>
+});</div>
+        </div>
+
+        <!-- Avatar Fallback Demo -->
+        <div class="section">
+            <h2>2. Avatar Fallback System</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">
+                Initials-based colored avatars (like Gmail) - no external dependencies, CSP-safe.
+            </p>
+
+            <div class="avatar-demo" id="avatarDemo"></div>
+
+            <div class="code-block">
+// Usage Examples:<br>
+<br>
+// Create avatar element:<br>
+const avatar = avatarFallback.create('John Doe', { size: 40 });<br>
+document.body.appendChild(avatar);<br>
+<br>
+// Create data URL for img src:<br>
+const dataUrl = avatarFallback.createDataUrl('Jane Smith', 50);<br>
+img.src = dataUrl;<br>
+<br>
+// Auto-replace all broken avatar images:<br>
+avatarFallback.replaceAll('img.user-avatar');</div>
+        </div>
+
+        <!-- Activity Feed Demo -->
+        <div class="section">
+            <h2>3. Activity Feed Redesign</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">
+                Right-side slide-out panel (replaces messy bottom-left panel). Hidden by default, smooth animations.
+            </p>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="toggleActivityFeed()">
+                    Open Activity Feed
+                </button>
+                <button class="btn btn-info" onclick="addMockActivity()">
+                    Add Mock Activity
+                </button>
+            </div>
+
+            <div class="code-block">
+<!-- HTML Structure --><br>
+&lt;button class="activity-feed-toggle" onclick="toggleActivityFeed()"&gt;<br>
+  ⚡ &lt;span class="activity-badge"&gt;3&lt;/span&gt;<br>
+&lt;/button&gt;<br>
+<br>
+&lt;div class="activity-feed-overlay"&gt;&lt;/div&gt;<br>
+&lt;div class="agent-activity-feed"&gt;...&lt;/div&gt;<br>
+<br>
+// JavaScript:<br>
+function toggleActivityFeed() {<br>
+  document.querySelector('.agent-activity-feed').classList.toggle('active');<br>
+  document.querySelector('.activity-feed-overlay').classList.toggle('active');<br>
+}</div>
+        </div>
+
+        <!-- Features Overview -->
+        <div class="section">
+            <h2>4. Key Improvements</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Toast Notifications</h3>
+                    <ul>
+                        <li>Non-blocking UI</li>
+                        <li>Auto-dismiss (3s)</li>
+                        <li>Success/Error/Warning/Info</li>
+                        <li>Smooth animations</li>
+                        <li>Stacked notifications</li>
+                        <li>Pause on hover</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Avatar System</h3>
+                    <ul>
+                        <li>Initials-based</li>
+                        <li>Consistent colors (hash)</li>
+                        <li>No external URLs</li>
+                        <li>CSP compliant</li>
+                        <li>Auto-fallback</li>
+                        <li>Customizable size</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Activity Feed</h3>
+                    <ul>
+                        <li>Right-side panel</li>
+                        <li>Hidden by default</li>
+                        <li>Smooth slide animation</li>
+                        <li>Mobile responsive</li>
+                        <li>Clean, minimal design</li>
+                        <li>Keyboard accessible</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Module Stubs</h3>
+                    <ul>
+                        <li>Prominent status badge</li>
+                        <li>Animated pulsing glow</li>
+                        <li>Clear messaging</li>
+                        <li>Better visual hierarchy</li>
+                        <li>Friendly design</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Guide -->
+        <div class="section">
+            <h2>5. Integration Guide</h2>
+
+            <div class="code-block">
+&lt;!-- 1. Add CSS files in &lt;head&gt; --&gt;<br>
+&lt;link rel="stylesheet" href="/css/toast-notifications.css"&gt;<br>
+&lt;link rel="stylesheet" href="/css/activity-feed-redesign.css"&gt;<br>
+<br>
+&lt;!-- 2. Add JavaScript files before &lt;/head&gt; --&gt;<br>
+&lt;script src="/js/toast-manager.js"&gt;&lt;/script&gt;<br>
+&lt;script src="/js/avatar-fallback.js"&gt;&lt;/script&gt;<br>
+<br>
+&lt;!-- 3. Replace all alert() calls --&gt;<br>
+// Before:<br>
+alert('Document saved successfully!');<br>
+<br>
+// After:<br>
+toast.success('Document saved successfully!');<br>
+<br>
+&lt;!-- 4. Replace external avatar images --&gt;<br>
+// Before:<br>
+&lt;img src="https://i.pravatar.cc/150?img=1" alt="User Name"&gt;<br>
+<br>
+// After (auto-replaced on page load):<br>
+&lt;img class="user-avatar" alt="User Name" data-user-name="User Name"&gt;</div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle activity feed
+        function toggleActivityFeed() {
+            document.querySelector('.agent-activity-feed').classList.toggle('active');
+            document.querySelector('.activity-feed-overlay').classList.toggle('active');
+        }
+
+        // Add mock activity
+        function addMockActivity() {
+            toast.info('Mock activity added to feed!');
+            // In real app, this would add to the activity feed
+        }
+
+        // Generate avatar demo
+        window.addEventListener('DOMContentLoaded', () => {
+            const avatarDemo = document.getElementById('avatarDemo');
+            const names = [
+                'John Doe',
+                'Jane Smith',
+                'Alice Johnson',
+                'Bob Wilson',
+                'Carol Martinez',
+                'David Lee',
+                'Emma Brown',
+                'Frank Taylor'
+            ];
+
+            names.forEach(name => {
+                const avatar = avatarFallback.create(name, {
+                    size: 50,
+                    style: { margin: '4px' }
+                });
+                avatarDemo.appendChild(avatar);
+            });
+
+            // Show welcome toast
+            setTimeout(() => {
+                toast.success('UI Redesign Demo loaded successfully!', {
+                    title: 'Welcome!',
+                    duration: 5000
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

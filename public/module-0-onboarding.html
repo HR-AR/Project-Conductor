@@ -488,6 +488,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
 </head>
 <body>
     <div class="wizard-container">
@@ -1024,13 +1027,13 @@
                         window.location.href = `/project-detail.html?id=${result.data.id}`;
                     }, 3000);
                 } else {
-                    alert('Failed to create project: ' + result.message);
+                    toast.error('Failed to create project: ' + result.message);
                     btn.disabled = false;
                     btn.textContent = '🚀 Launch Project';
                 }
             } catch (error) {
                 console.error('Error creating project:', error);
-                alert('Failed to create project. Please try again.');
+                toast.error('Failed to create project. Please try again.');
                 btn.disabled = false;
                 btn.textContent = '🚀 Launch Project';
             }

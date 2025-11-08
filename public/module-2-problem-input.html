@@ -115,12 +115,38 @@
 
         .status {
             display: inline-block;
-            padding: 8px 20px;
-            background: #fff3cd;
-            color: #856404;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-top: 20px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border-radius: 16px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-top: 40px;
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+            border: 2px solid #fbbf24;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 8px 24px rgba(251, 191, 36, 0.3);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 12px 32px rgba(251, 191, 36, 0.5);
+                transform: scale(1.02);
+            }
+        }
+
+        .status-icon {
+            font-size: 1.5rem;
+            margin-right: 8px;
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -143,7 +169,7 @@
             </ul>
         </div>
 
-        <span class="status">⚙️ Module in Development</span>
+        <span class="status"><span class="status-icon">⚙️</span>Module in Development</span>
 
         <div style="margin-top: 40px;">
             <a href="/conductor-unified-dashboard.html" class="btn">Return to Dashboard</a>

@@ -654,8 +654,16 @@
             }
         }
     </style>
+
+    <!-- Toast Notifications -->
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+
     <!-- Add marked.js for proper Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+
+    <!-- Toast Manager & Avatar Fallback -->
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -944,16 +952,26 @@
             const list = document.getElementById('teamList');
             list.innerHTML = '';
 
+            if (!projectData.team || projectData.team.length === 0) {
+                list.innerHTML = '<p style="color: #6b7280; font-size: 0.9rem; text-align: center;">No team members yet</p>';
+                return;
+            }
+
             projectData.team.forEach(member => {
+                const memberName = member.name || 'Team Member';
+                const memberAvatar = member.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"%3E%3Ccircle cx="18" cy="18" r="18" fill="%23667eea"/%3E%3Ctext x="18" y="22" text-anchor="middle" fill="white" font-size="16" font-weight="bold"%3E' + (memberName.charAt(0).toUpperCase()) + '%3C/text%3E%3C/svg%3E';
+                const memberRole = member.role || 'Collaborator';
+                const isOnline = member.online !== undefined ? member.online : false;
+
                 const item = document.createElement('div');
                 item.className = 'team-member';
                 item.innerHTML = `
-                    <img src="${member.avatar}" alt="${member.name}" class="member-avatar">
+                    <img src="${memberAvatar}" alt="${memberName}" class="member-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2236%22 height=%2236%22 viewBox=%220 0 36 36%22%3E%3Ccircle cx=%2218%22 cy=%2218%22 r=%2218%22 fill=%22%23667eea%22/%3E%3Ctext x=%2218%22 y=%2222%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2216%22 font-weight=%22bold%22%3E?%3C/text%3E%3C/svg%3E'">
                     <div class="member-info">
-                        <div class="member-name">${member.name}</div>
-                        <div class="member-role">${member.role}</div>
+                        <div class="member-name">${memberName}</div>
+                        <div class="member-role">${memberRole}</div>
                     </div>
-                    <div class="member-status ${member.online ? '' : 'offline'}"></div>
+                    <div class="member-status ${isOnline ? '' : 'offline'}"></div>
                 `;
                 list.appendChild(item);
             });
@@ -964,16 +982,27 @@
             const list = document.getElementById('approvalList');
             list.innerHTML = '';
 
+            if (!projectData.approvals || projectData.approvals.length === 0) {
+                list.innerHTML = '<p style="color: #6b7280; font-size: 0.9rem; text-align: center;">No approvals yet</p>';
+                return;
+            }
+
             projectData.approvals.forEach(approval => {
+                // Safely access user data with fallbacks
+                const userName = approval.user?.name || approval.userName || 'Unknown User';
+                const userAvatar = approval.user?.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"%3E%3Ccircle cx="16" cy="16" r="16" fill="%23667eea"/%3E%3Ctext x="16" y="20" text-anchor="middle" fill="white" font-size="14" font-weight="bold"%3E' + (userName.charAt(0).toUpperCase()) + '%3C/text%3E%3C/svg%3E';
+                const approvalStatus = approval.status || 'pending';
+                const approvalTime = approval.time || '';
+
                 const item = document.createElement('div');
                 item.className = 'approval-item';
                 item.innerHTML = `
-                    <img src="${approval.user.avatar}" alt="${approval.user.name}" class="approval-avatar">
+                    <img src="${userAvatar}" alt="${userName}" class="approval-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2216%22 fill=%22%23667eea%22/%3E%3Ctext x=%2216%22 y=%2220%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2214%22 font-weight=%22bold%22%3E?%3C/text%3E%3C/svg%3E'">
                     <div class="approval-info">
-                        <div class="approval-name">${approval.user.name}</div>
-                        ${approval.time ? `<div class="approval-time">${approval.time}</div>` : ''}
+                        <div class="approval-name">${userName}</div>
+                        ${approvalTime ? `<div class="approval-time">${approvalTime}</div>` : ''}
                     </div>
-                    <span class="approval-status-badge ${approval.status}">${approval.status}</span>
+                    <span class="approval-status-badge ${approvalStatus}">${approvalStatus}</span>
                 `;
                 list.appendChild(item);
             });
@@ -1011,18 +1040,28 @@
             const list = document.getElementById('commentsList');
             list.innerHTML = '';
 
+            if (!projectData.comments || projectData.comments.length === 0) {
+                list.innerHTML = '<p style="color: #6b7280; font-size: 0.9rem; text-align: center; padding: 2rem;">No comments yet. Be the first to comment!</p>';
+                return;
+            }
+
             projectData.comments.forEach(comment => {
+                const userName = comment.user?.name || comment.author || 'Anonymous';
+                const userAvatar = comment.user?.avatar || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Ccircle cx="20" cy="20" r="20" fill="%23667eea"/%3E%3Ctext x="20" y="25" text-anchor="middle" fill="white" font-size="18" font-weight="bold"%3E' + (userName.charAt(0).toUpperCase()) + '%3C/text%3E%3C/svg%3E';
+                const commentTime = comment.time || 'Recently';
+                const commentContent = comment.content || '';
+
                 const card = document.createElement('div');
                 card.className = 'comment-card';
                 card.innerHTML = `
                     <div class="comment-header">
-                        <img src="${comment.user.avatar}" alt="${comment.user.name}" class="comment-avatar">
+                        <img src="${userAvatar}" alt="${userName}" class="comment-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23667eea%22/%3E%3Ctext x=%2220%22 y=%2225%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2218%22 font-weight=%22bold%22%3E?%3C/text%3E%3C/svg%3E'">
                         <div>
-                            <div class="comment-author">${comment.user.name}</div>
-                            <div class="comment-time">${comment.time}</div>
+                            <div class="comment-author">${userName}</div>
+                            <div class="comment-time">${commentTime}</div>
                         </div>
                     </div>
-                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-content">${commentContent}</div>
                 `;
                 list.appendChild(card);
             });
@@ -1254,7 +1293,7 @@
         }
 
         function handleSuggestionAction(action) {
-            alert(`Action: ${action}\n\nThis would help you: ${action}`);
+            toast.info(`This would help you: ${action}`, { title: `Action: ${action}` });
             // In production, implement actual actions
         }
 
@@ -1321,21 +1360,105 @@
         // Save document
         async function saveDocument() {
             const content = document.getElementById('documentEditor').value;
+            const saveBtn = event?.target;
 
-            // In production, save to API
-            // await fetch(`/api/v1/projects/${projectId}/document`, {
-            //     method: 'PUT',
-            //     body: JSON.stringify({ content })
-            // });
+            // Show loading state
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+            }
 
-            // Emit socket event
-            socket.emit('document_update', {
-                projectId: projectId || 'mock',
-                content
-            });
+            try {
+                // Save to localStorage for persistence
+                if (projectData) {
+                    projectData.content = content;
+                    projectData.lastModified = new Date().toISOString();
+                    localStorage.setItem(`project_${projectData.id}`, JSON.stringify(projectData));
+                }
 
-            // Show feedback
-            alert('Document saved successfully!');
+                // In production, save to API
+                // await fetch(`/api/v1/projects/${projectId}/document`, {
+                //     method: 'PUT',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({ content })
+                // });
+
+                // Emit socket event for real-time sync
+                socket.emit('document_update', {
+                    projectId: projectId || 'mock',
+                    content
+                });
+
+                // Show success message using toast manager
+                if (typeof toast !== 'undefined') {
+                    toast.success('Document saved successfully!');
+                } else {
+                    showSuccessToast('Document saved successfully!');
+                }
+
+                // Navigate to dashboard after short delay
+                setTimeout(() => {
+                    window.location.href = '/conductor-unified-dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Save failed:', error);
+                if (typeof toast !== 'undefined') {
+                    toast.error('Failed to save document. Please try again.');
+                } else {
+                    showErrorToast('Failed to save document. Please try again.');
+                }
+            } finally {
+                // Reset button state
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save';
+                }
+            }
+        }
+
+        // Success toast notification
+        function showSuccessToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                background: #10b981;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease, fadeOut 0.3s ease 1.2s;
+            `;
+            toast.textContent = '✓ ' + message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 1500);
+        }
+
+        // Error toast notification
+        function showErrorToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                background: #ef4444;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease;
+            `;
+            toast.textContent = '✕ ' + message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // Post comment
@@ -1488,7 +1611,7 @@ Entity 1:
         function shareProject() {
             const url = window.location.href;
             navigator.clipboard.writeText(url);
-            alert('Project link copied to clipboard!');
+            toast.success('Project link copied to clipboard!');
         }
 
         // Export document
@@ -1506,7 +1629,7 @@ Entity 1:
             URL.revokeObjectURL(url);
 
             // Show success message
-            alert(`✅ Document exported as ${filename}`);
+            toast.success(`Document exported as ${filename}`);
         }
 
         // Version history
@@ -1542,7 +1665,7 @@ Entity 1:
             const versions = stored ? JSON.parse(stored) : [];
 
             if (versions.length === 0) {
-                alert('No version history available yet. Save the document to create versions.');
+                toast.info('No version history available yet. Save the document to create versions.');
                 return;
             }
 
@@ -1581,7 +1704,7 @@ Entity 1:
                 document.getElementById('documentEditor').value = version.content;
                 updatePreview();
                 document.querySelector('div[style*="fixed"]').remove();
-                alert(`✅ Restored to ${versionId}`);
+                toast.success(`Restored to ${versionId}`);
             }
         }
 

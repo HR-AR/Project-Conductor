@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 2: Business Requirements Document (BRD) - Project Conductor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 30px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .autosave {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .autosave-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0 40px;
+        }
+
+        .nav-tab {
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        /* Split View */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: calc(100vh - 280px);
+        }
+
+        .form-section {
+            padding: 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+            border-right: 2px solid #e5e7eb;
+        }
+
+        .preview-section {
+            padding: 40px;
+            background: #f9fafb;
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 32px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .form-group .hint {
+            display: block;
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .char-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .char-counter.error {
+            color: #ef4444;
+        }
+
+        .char-counter.success {
+            color: #10b981;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea.error, input.error {
+            border-color: #ef4444;
+        }
+
+        input {
+            min-height: unset;
+        }
+
+        input[type="date"], input[type="number"] {
+            padding: 10px 12px;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 6px;
+            font-size: 13px;
+            border-left: 3px solid #ef4444;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Impact Assessment Grid */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .impact-item {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .impact-item label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .impact-item input {
+            margin-top: 8px;
+        }
+
+        .impact-type {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .impact-type button {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .impact-type button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Success Criteria Builder */
+        .criteria-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .criterion-item {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .criterion-item .remove-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .criterion-item .remove-btn:hover {
+            background: #fca5a5;
+        }
+
+        .criterion-fields {
+            display: grid;
+            grid-template-columns: 1fr 150px 100px;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .add-criterion-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-criterion-btn:hover {
+            background: #e5e7eb;
+            border-color: #667eea;
+        }
+
+        /* Stakeholder Management */
+        .stakeholder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stakeholder-item {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stakeholder-item .approval-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .stakeholder-item .approval-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stakeholder-item .approval-status.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .stakeholder-item .approval-status.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Timeline & Budget */
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .gantt-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .gantt-bar {
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        /* ROI Calculator */
+        .roi-calculator {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+        }
+
+        .roi-result {
+            font-size: 32px;
+            font-weight: 700;
+            color: #059669;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* Approval Workflow */
+        .approval-workflow {
+            margin-top: 20px;
+        }
+
+        .approval-step {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .approval-step.completed {
+            background: #d1fae5;
+            border-color: #86efac;
+        }
+
+        .approval-step.active {
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+
+        /* Preview Section */
+        .preview-header {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .preview-card h3 {
+            font-size: 18px;
+            color: #4b5563;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .preview-content {
+            color: #6b7280;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 16px;
+            padding: 30px 40px;
+            background: #f9fafb;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4b5563;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Collaboration Indicators */
+        .collaborator-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 13px;
+            color: #667eea;
+            display: none;
+        }
+
+        .collaborator-indicator.visible {
+            display: block;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .template-card {
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .template-card:hover {
+            border-color: #667eea;
+            background: #f0f9ff;
+        }
+
+        .template-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .template-card p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Global Navigation */
+        .global-nav {
+            background: #1f2937;
+            color: white;
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .global-nav-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .global-nav-brand:hover {
+            color: #a5b4fc;
+        }
+
+        .global-nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .global-nav-link {
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .global-nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .global-nav-link.active {
+            background: #667eea;
+            color: white;
+            border-color: #818cf8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Global Navigation -->
+    <div class="global-nav">
+        <a href="/demo" class="global-nav-brand">
+            🎯 Project Conductor
+        </a>
+        <div class="global-nav-links">
+            <a href="/demo" class="global-nav-link">📊 Dashboard</a>
+            <a href="/demo/module-0-onboarding.html" class="global-nav-link">🚀 Onboarding</a>
+            <a href="/demo/module-1.5-ai-generator.html" class="global-nav-link">✨ AI Generator</a>
+            <a href="/demo/module-2-brd.html" class="global-nav-link active">📋 BRD</a>
+            <a href="/demo/module-3-prd.html" class="global-nav-link">📝 PRD</a>
+            <a href="/demo/module-4-implementation.html" class="global-nav-link">⚙️ Implementation</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <h1>Business Requirements Document (BRD)</h1>
+                    <p>Define business problems, objectives, and success criteria</p>
+                </div>
+                <a href="/demo/module-1.5-ai-generator.html" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(240, 147, 251, 0.6)';" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 12px rgba(240, 147, 251, 0.4)';">
+                    ✨ Generate with AI
+                </a>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge" id="statusBadge">Draft</div>
+                <div class="autosave">
+                    <div class="autosave-dot"></div>
+                    <span id="autosaveText">Auto-saved just now</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="switchTab('impact')">Business Impact</button>
+            <button class="nav-tab" onclick="switchTab('success')">Success Criteria</button>
+            <button class="nav-tab" onclick="switchTab('stakeholders')">Stakeholders</button>
+            <button class="nav-tab" onclick="switchTab('timeline')">Timeline & Budget</button>
+            <button class="nav-tab" onclick="switchTab('approval')">Approval</button>
+        </div>
+
+        <!-- Split View -->
+        <div class="split-view">
+            <!-- Form Section -->
+            <div class="form-section">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content active">
+                    <div class="form-group">
+                        <label>Business Problem Statement</label>
+                        <span class="hint">Clearly describe the business problem or opportunity (100-2000 characters)</span>
+                        <textarea id="problemStatement" placeholder="Describe the business problem or opportunity..." oninput="validateProblemStatement()"></textarea>
+                        <div class="char-counter" id="problemCounter">
+                            <span>0 / 100 min</span>
+                            <span id="problemHint">Keep typing...</span>
+                        </div>
+                        <div class="error-message" id="problemError">Problem statement must be at least 100 characters</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Business Objectives</label>
+                        <span class="hint">What business goals will this solve?</span>
+                        <textarea id="objectives" placeholder="List key business objectives..." oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Constraints & Dependencies</label>
+                        <span class="hint">Budget, timeline, technical, or regulatory constraints</span>
+                        <textarea id="constraints" placeholder="Describe any constraints or dependencies..." oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+                <!-- Business Impact Tab -->
+                <div id="impact-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Business Impact Assessment</label>
+                        <div class="impact-grid">
+                            <div class="impact-item">
+                                <label>Revenue Impact</label>
+                                <div class="impact-type">
+                                    <button type="button" onclick="setImpactType('revenue', 'increase')">Increase</button>
+                                    <button type="button" onclick="setImpactType('revenue', 'decrease')">Decrease</button>
+                                </div>
+                                <input type="number" id="revenueImpact" placeholder="Amount ($)" oninput="calculateROI()">
+                            </div>
+
+                            <div class="impact-item">
+                                <label>Cost Savings</label>
+                                <div class="impact-type">
+                                    <button type="button" onclick="setImpactType('cost', 'savings')">Savings</button>
+                                    <button type="button" onclick="setImpactType('cost', 'investment')">Investment</button>
+                                </div>
+                                <input type="number" id="costImpact" placeholder="Amount ($)" oninput="calculateROI()">
+                            </div>
+
+                            <div class="impact-item">
+                                <label>Customer Satisfaction</label>
+                                <input type="number" id="customerImpact" placeholder="% improvement" min="0" max="100" oninput="updatePreview()">
+                            </div>
+
+                            <div class="impact-item">
+                                <label>Market Position</label>
+                                <select id="marketImpact" onchange="updatePreview()">
+                                    <option value="">Select impact...</option>
+                                    <option value="high">High - Game changer</option>
+                                    <option value="medium">Medium - Competitive edge</option>
+                                    <option value="low">Low - Minor improvement</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="roi-calculator">
+                            <strong>Estimated ROI</strong>
+                            <div class="roi-result" id="roiResult">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Criteria Tab -->
+                <div id="success-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Success Criteria (Minimum 3 required)</label>
+                        <span class="hint">Define measurable criteria to determine project success</span>
+                        <div class="criteria-list" id="criteriaList"></div>
+                        <button type="button" class="add-criterion-btn" onclick="addCriterion()">+ Add Success Criterion</button>
+                        <div class="error-message" id="criteriaError">At least 3 success criteria are required</div>
+                    </div>
+                </div>
+
+                <!-- Stakeholders Tab -->
+                <div id="stakeholders-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Stakeholder Management</label>
+                        <span class="hint">Add stakeholders with roles and contact information</span>
+                        <div class="stakeholder-list" id="stakeholderList"></div>
+                        <button type="button" class="add-criterion-btn" onclick="addStakeholder()">+ Add Stakeholder</button>
+                        <div class="error-message" id="stakeholderError">At least 1 sponsor and 2 approvers are required</div>
+                    </div>
+                </div>
+
+                <!-- Timeline & Budget Tab -->
+                <div id="timeline-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Project Timeline</label>
+                        <div class="timeline-grid">
+                            <div>
+                                <label>Start Date</label>
+                                <input type="date" id="startDate" onchange="validateTimeline()">
+                            </div>
+                            <div>
+                                <label>Target Completion</label>
+                                <input type="date" id="endDate" onchange="validateTimeline()">
+                            </div>
+                        </div>
+                        <div class="error-message" id="timelineError">Target date must be after start date</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Budget Allocation</label>
+                        <input type="number" id="budget" placeholder="Total budget ($)" min="0" oninput="validateBudget()">
+                        <div class="error-message" id="budgetError">Budget must be a positive number</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Milestone Planning</label>
+                        <textarea id="milestones" placeholder="List key milestones and dates..." oninput="updatePreview()"></textarea>
+                    </div>
+
+                    <div class="gantt-preview">
+                        <strong>Timeline Preview</strong>
+                        <div class="gantt-bar" id="ganttBar">Project Duration: -- days</div>
+                    </div>
+                </div>
+
+                <!-- Approval Tab -->
+                <div id="approval-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>Approval Workflow</label>
+                        <div class="approval-workflow" id="approvalWorkflow">
+                            <div class="approval-step active">
+                                <div>
+                                    <strong>1. Draft Review</strong>
+                                    <p style="font-size: 13px; color: #6b7280; margin-top: 4px;">Initial review and validation</p>
+                                </div>
+                                <div style="color: #fbbf24; font-weight: 600;">In Progress</div>
+                            </div>
+                            <div class="approval-step">
+                                <div>
+                                    <strong>2. Stakeholder Approval</strong>
+                                    <p style="font-size: 13px; color: #6b7280; margin-top: 4px;">Approval from key stakeholders</p>
+                                </div>
+                                <div style="color: #6b7280;">Pending</div>
+                            </div>
+                            <div class="approval-step">
+                                <div>
+                                    <strong>3. Executive Sign-off</strong>
+                                    <p style="font-size: 13px; color: #6b7280; margin-top: 4px;">Final executive approval</p>
+                                </div>
+                                <div style="color: #6b7280;">Pending</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <div class="preview-header">
+                    <span>BRD Preview</span>
+                    <div>
+                        <button class="btn btn-secondary" onclick="exportJSON()" style="padding: 8px 16px; margin-right: 8px;">Export JSON</button>
+                        <button class="btn btn-secondary" onclick="exportPDF()" style="padding: 8px 16px;">Export PDF</button>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Problem Statement</h3>
+                    <div class="preview-content" id="previewProblem">
+                        <em style="color: #cbd5e1;">Your problem statement will appear here...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Business Objectives</h3>
+                    <div class="preview-content" id="previewObjectives">
+                        <em style="color: #cbd5e1;">Business objectives will appear here...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Business Impact</h3>
+                    <div class="preview-content" id="previewImpact">
+                        <em style="color: #cbd5e1;">Impact assessment will appear here...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Success Criteria</h3>
+                    <div class="preview-content" id="previewCriteria">
+                        <em style="color: #cbd5e1;">Success criteria will appear here...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Stakeholders</h3>
+                    <div class="preview-content" id="previewStakeholders">
+                        <em style="color: #cbd5e1;">Stakeholders will appear here...</em>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <h3>Timeline & Budget</h3>
+                    <div class="preview-content" id="previewTimeline">
+                        <em style="color: #cbd5e1;">Timeline details will appear here...</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="loadTemplate()">Load Template</button>
+            <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitBRD()" disabled>Submit for Approval</button>
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal" id="templateModal">
+        <div class="modal-content">
+            <div class="modal-header">Choose a Template</div>
+            <div class="template-grid">
+                <div class="template-card" onclick="applyTemplate('product')">
+                    <h4>Product Feature</h4>
+                    <p>New product feature development</p>
+                </div>
+                <div class="template-card" onclick="applyTemplate('platform')">
+                    <h4>Platform Enhancement</h4>
+                    <p>Infrastructure or platform improvements</p>
+                </div>
+                <div class="template-card" onclick="applyTemplate('integration')">
+                    <h4>System Integration</h4>
+                    <p>Third-party system integration</p>
+                </div>
+                <div class="template-card" onclick="applyTemplate('optimization')">
+                    <h4>Process Optimization</h4>
+                    <p>Business process improvement</p>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="closeTemplateModal()" style="margin-top: 20px; width: 100%;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Collaboration Indicator -->
+    <div class="collaborator-indicator" id="collaboratorIndicator"></div>
+
+    <!-- Backend Integration -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/demo/api-client.js"></script>
+    <script src="/demo/websocket-client.js"></script>
+    <script>
+        // State Management
+        let currentDraftId = null;
+        let currentTab = 'overview';
+        let criteriaCount = 0;
+        let stakeholderCount = 0;
+        let impactTypes = { revenue: null, cost: null };
+        let autoSaveInterval = null;
+        let userId = 'user-' + Math.random().toString(36).substr(2, 9);
+
+        // Validation State
+        let validationState = {
+            problemStatement: false,
+            successCriteria: false,
+            stakeholders: false,
+            timeline: false,
+            budget: true
+        };
+
+        // Templates
+        const templates = {
+            product: {
+                problemStatement: 'Our current product lacks key features that competitors offer, resulting in customer churn and missed revenue opportunities. We need to enhance our core product to remain competitive in the market.',
+                objectives: '- Increase user engagement by 40%\n- Reduce customer churn by 25%\n- Launch 3 new differentiating features\n- Achieve feature parity with top 2 competitors',
+                constraints: 'Budget: $500K, Timeline: 6 months, Must integrate with existing architecture, GDPR compliance required',
+                revenueImpact: 250000,
+                costImpact: 50000
+            },
+            platform: {
+                problemStatement: 'Our current infrastructure cannot scale to meet growing demand, leading to performance issues and system downtime. We need to modernize our platform to support business growth.',
+                objectives: '- Improve system uptime to 99.9%\n- Reduce page load time by 60%\n- Support 10x current traffic\n- Enable auto-scaling capabilities',
+                constraints: 'Budget: $750K, Timeline: 9 months, Zero downtime migration required, Must maintain backward compatibility',
+                revenueImpact: 0,
+                costImpact: 150000
+            },
+            integration: {
+                problemStatement: 'Manual data entry between systems is error-prone and time-consuming, costing significant resources and causing delays. We need automated integration to improve efficiency.',
+                objectives: '- Eliminate 90% of manual data entry\n- Reduce integration errors to <1%\n- Real-time data synchronization\n- Support 5+ third-party systems',
+                constraints: 'Budget: $300K, Timeline: 4 months, API rate limits must be respected, Security audit required',
+                revenueImpact: 0,
+                costImpact: 200000
+            },
+            optimization: {
+                problemStatement: 'Current business processes are inefficient with multiple manual steps, bottlenecks, and redundancies. We need to streamline operations to reduce costs and improve productivity.',
+                objectives: '- Reduce process time by 50%\n- Eliminate 3 manual approval steps\n- Improve team productivity by 30%\n- Enable self-service capabilities',
+                constraints: 'Budget: $200K, Timeline: 3 months, Change management training required, Must not disrupt current operations',
+                revenueImpact: 0,
+                costImpact: 180000
+            }
+        };
+
+        // Tab Switching
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Emit WebSocket event
+            if (typeof ws !== 'undefined' && ws.socket) {
+                ws.socket.emit('brd:editing', {
+                    brdId: currentDraftId,
+                    userId: userId,
+                    section: tabName
+                });
+            }
+        }
+
+        // Problem Statement Validation
+        function validateProblemStatement() {
+            const textarea = document.getElementById('problemStatement');
+            const counter = document.getElementById('problemCounter');
+            const hint = document.getElementById('problemHint');
+            const error = document.getElementById('problemError');
+            const length = textarea.value.length;
+
+            // Update counter
+            counter.innerHTML = `<span>${length} / ${length < 100 ? '100 min' : '2000 max'}</span>`;
+
+            // Validation
+            if (length === 0) {
+                counter.classList.remove('error', 'success');
+                hint.textContent = 'Keep typing...';
+                error.classList.remove('visible');
+                textarea.classList.remove('error');
+                validationState.problemStatement = false;
+            } else if (length < 100) {
+                counter.classList.add('error');
+                counter.classList.remove('success');
+                hint.textContent = `${100 - length} more characters needed`;
+                error.classList.add('visible');
+                textarea.classList.add('error');
+                validationState.problemStatement = false;
+            } else if (length > 2000) {
+                counter.classList.add('error');
+                counter.classList.remove('success');
+                hint.textContent = `${length - 2000} characters over limit`;
+                error.textContent = 'Problem statement cannot exceed 2000 characters';
+                error.classList.add('visible');
+                textarea.classList.add('error');
+                validationState.problemStatement = false;
+            } else {
+                counter.classList.remove('error');
+                counter.classList.add('success');
+                hint.textContent = 'Looking good!';
+                error.classList.remove('visible');
+                textarea.classList.remove('error');
+                validationState.problemStatement = true;
+            }
+
+            updatePreview();
+            checkFormValidity();
+        }
+
+        // Impact Type Selection
+        function setImpactType(category, type) {
+            impactTypes[category] = type;
+
+            // Update button states
+            const buttons = event.target.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            calculateROI();
+        }
+
+        // ROI Calculator
+        function calculateROI() {
+            const revenue = parseFloat(document.getElementById('revenueImpact').value) || 0;
+            const cost = parseFloat(document.getElementById('costImpact').value) || 0;
+            const budget = parseFloat(document.getElementById('budget').value) || 1;
+
+            let totalBenefit = 0;
+
+            if (impactTypes.revenue === 'increase') totalBenefit += revenue;
+            else if (impactTypes.revenue === 'decrease') totalBenefit -= revenue;
+
+            if (impactTypes.cost === 'savings') totalBenefit += cost;
+            else if (impactTypes.cost === 'investment') totalBenefit -= cost;
+
+            const roi = budget > 0 ? ((totalBenefit - budget) / budget * 100).toFixed(1) : 0;
+
+            document.getElementById('roiResult').textContent = roi + '%';
+            document.getElementById('roiResult').style.color = roi >= 0 ? '#059669' : '#dc2626';
+
+            updatePreview();
+        }
+
+        // Success Criteria Management
+        function addCriterion() {
+            criteriaCount++;
+            const list = document.getElementById('criteriaList');
+            const item = document.createElement('div');
+            item.className = 'criterion-item';
+            item.id = 'criterion-' + criteriaCount;
+            item.innerHTML = `
+                <button type="button" class="remove-btn" onclick="removeCriterion(${criteriaCount})">×</button>
+                <div class="criterion-fields">
+                    <input type="text" placeholder="Success criterion description" oninput="updatePreview()">
+                    <input type="text" placeholder="Measurement method" oninput="updatePreview()">
+                    <select onchange="updatePreview()">
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            `;
+            list.appendChild(item);
+            validateCriteria();
+            updatePreview();
+        }
+
+        function removeCriterion(id) {
+            document.getElementById('criterion-' + id).remove();
+            validateCriteria();
+            updatePreview();
+        }
+
+        function validateCriteria() {
+            const count = document.getElementById('criteriaList').children.length;
+            const error = document.getElementById('criteriaError');
+
+            if (count < 3) {
+                error.classList.add('visible');
+                validationState.successCriteria = false;
+            } else {
+                error.classList.remove('visible');
+                validationState.successCriteria = true;
+            }
+
+            checkFormValidity();
+        }
+
+        // Stakeholder Management
+        function addStakeholder() {
+            stakeholderCount++;
+            const list = document.getElementById('stakeholderList');
+            const item = document.createElement('div');
+            item.className = 'stakeholder-item';
+            item.id = 'stakeholder-' + stakeholderCount;
+            item.innerHTML = `
+                <input type="text" placeholder="Name" oninput="updatePreview()">
+                <input type="email" placeholder="Email" oninput="updatePreview()">
+                <select onchange="validateStakeholders(); updatePreview();">
+                    <option value="">Select role...</option>
+                    <option value="sponsor">Sponsor</option>
+                    <option value="approver">Approver</option>
+                    <option value="contributor">Contributor</option>
+                    <option value="informed">Informed</option>
+                </select>
+                <div class="approval-status pending">Pending</div>
+                <button type="button" class="remove-btn" onclick="removeStakeholder(${stakeholderCount})" style="position: relative; top: 0; right: 0; margin-left: 8px;">×</button>
+            `;
+            list.appendChild(item);
+            validateStakeholders();
+            updatePreview();
+        }
+
+        function removeStakeholder(id) {
+            document.getElementById('stakeholder-' + id).remove();
+            validateStakeholders();
+            updatePreview();
+        }
+
+        function validateStakeholders() {
+            const stakeholders = document.getElementById('stakeholderList').children;
+            const error = document.getElementById('stakeholderError');
+
+            let sponsorCount = 0;
+            let approverCount = 0;
+
+            Array.from(stakeholders).forEach(item => {
+                const role = item.querySelector('select').value;
+                if (role === 'sponsor') sponsorCount++;
+                if (role === 'approver') approverCount++;
+            });
+
+            if (sponsorCount < 1 || approverCount < 2) {
+                error.classList.add('visible');
+                validationState.stakeholders = false;
+            } else {
+                error.classList.remove('visible');
+                validationState.stakeholders = true;
+            }
+
+            checkFormValidity();
+        }
+
+        // Timeline Validation
+        function validateTimeline() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const error = document.getElementById('timelineError');
+            const ganttBar = document.getElementById('ganttBar');
+
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = end - start;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 0) {
+                    error.classList.add('visible');
+                    validationState.timeline = false;
+                    ganttBar.textContent = 'Invalid date range';
+                } else {
+                    error.classList.remove('visible');
+                    validationState.timeline = true;
+                    ganttBar.textContent = `Project Duration: ${diffDays} days`;
+                    ganttBar.style.width = Math.min(100, (diffDays / 365) * 100) + '%';
+                }
+            } else {
+                validationState.timeline = false;
+            }
+
+            checkFormValidity();
+            updatePreview();
+        }
+
+        // Budget Validation
+        function validateBudget() {
+            const budget = parseFloat(document.getElementById('budget').value);
+            const error = document.getElementById('budgetError');
+
+            if (budget && budget < 0) {
+                error.classList.add('visible');
+                validationState.budget = false;
+            } else {
+                error.classList.remove('visible');
+                validationState.budget = true;
+            }
+
+            checkFormValidity();
+            calculateROI();
+        }
+
+        // Form Validity Check
+        function checkFormValidity() {
+            const submitBtn = document.getElementById('submitBtn');
+            const isValid = Object.values(validationState).every(v => v === true);
+            submitBtn.disabled = !isValid;
+        }
+
+        // Preview Update
+        function updatePreview() {
+            // Problem Statement
+            const problem = document.getElementById('problemStatement').value;
+            document.getElementById('previewProblem').innerHTML = problem || '<em style="color: #cbd5e1;">Your problem statement will appear here...</em>';
+
+            // Objectives
+            const objectives = document.getElementById('objectives').value;
+            document.getElementById('previewObjectives').innerHTML = objectives.replace(/\n/g, '<br>') || '<em style="color: #cbd5e1;">Business objectives will appear here...</em>';
+
+            // Business Impact
+            let impactHTML = '';
+            const revenue = document.getElementById('revenueImpact').value;
+            const cost = document.getElementById('costImpact').value;
+            const customer = document.getElementById('customerImpact').value;
+            const market = document.getElementById('marketImpact').value;
+
+            if (revenue) impactHTML += `<strong>Revenue Impact:</strong> ${impactTypes.revenue === 'increase' ? '+' : '-'}$${parseInt(revenue).toLocaleString()}<br>`;
+            if (cost) impactHTML += `<strong>Cost Impact:</strong> ${impactTypes.cost === 'savings' ? 'Savings of ' : 'Investment of '}$${parseInt(cost).toLocaleString()}<br>`;
+            if (customer) impactHTML += `<strong>Customer Satisfaction:</strong> +${customer}%<br>`;
+            if (market) impactHTML += `<strong>Market Position:</strong> ${market.charAt(0).toUpperCase() + market.slice(1)} impact<br>`;
+
+            document.getElementById('previewImpact').innerHTML = impactHTML || '<em style="color: #cbd5e1;">Impact assessment will appear here...</em>';
+
+            // Success Criteria
+            const criteria = Array.from(document.getElementById('criteriaList').children);
+            let criteriaHTML = '<ul style="margin: 0; padding-left: 20px;">';
+            criteria.forEach(item => {
+                const desc = item.querySelector('input[type="text"]').value;
+                const priority = item.querySelector('select').value;
+                if (desc) {
+                    criteriaHTML += `<li><strong>[${priority.toUpperCase()}]</strong> ${desc}</li>`;
+                }
+            });
+            criteriaHTML += '</ul>';
+            document.getElementById('previewCriteria').innerHTML = criteria.length > 0 ? criteriaHTML : '<em style="color: #cbd5e1;">Success criteria will appear here...</em>';
+
+            // Stakeholders
+            const stakeholders = Array.from(document.getElementById('stakeholderList').children);
+            let stakeholderHTML = '<ul style="margin: 0; padding-left: 20px;">';
+            stakeholders.forEach(item => {
+                const name = item.querySelector('input[type="text"]').value;
+                const role = item.querySelector('select').value;
+                if (name && role) {
+                    stakeholderHTML += `<li><strong>${name}</strong> - ${role.charAt(0).toUpperCase() + role.slice(1)}</li>`;
+                }
+            });
+            stakeholderHTML += '</ul>';
+            document.getElementById('previewStakeholders').innerHTML = stakeholders.length > 0 ? stakeholderHTML : '<em style="color: #cbd5e1;">Stakeholders will appear here...</em>';
+
+            // Timeline & Budget
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const budget = document.getElementById('budget').value;
+            const milestones = document.getElementById('milestones').value;
+
+            let timelineHTML = '';
+            if (startDate) timelineHTML += `<strong>Start Date:</strong> ${new Date(startDate).toLocaleDateString()}<br>`;
+            if (endDate) timelineHTML += `<strong>Target Completion:</strong> ${new Date(endDate).toLocaleDateString()}<br>`;
+            if (budget) timelineHTML += `<strong>Budget:</strong> $${parseInt(budget).toLocaleString()}<br>`;
+            if (milestones) timelineHTML += `<strong>Milestones:</strong><br>${milestones.replace(/\n/g, '<br>')}`;
+
+            document.getElementById('previewTimeline').innerHTML = timelineHTML || '<em style="color: #cbd5e1;">Timeline details will appear here...</em>';
+        }
+
+        // Auto-save
+        function setupAutoSave() {
+            autoSaveInterval = setInterval(async () => {
+                await saveDraft(true);
+            }, 30000); // Every 30 seconds
+        }
+
+        async function saveDraft(isAutoSave = false) {
+            const problem = document.getElementById('problemStatement').value;
+            if (!problem.trim() && !currentDraftId) return;
+
+            const data = {
+                title: 'BRD: ' + (problem.substring(0, 50) || 'Untitled'),
+                description: problem,
+                priority: 'high',
+                status: 'draft',
+                metadata: {
+                    type: 'BRD',
+                    objectives: document.getElementById('objectives').value,
+                    constraints: document.getElementById('constraints').value,
+                    revenueImpact: document.getElementById('revenueImpact').value,
+                    costImpact: document.getElementById('costImpact').value,
+                    customerImpact: document.getElementById('customerImpact').value,
+                    marketImpact: document.getElementById('marketImpact').value,
+                    budget: document.getElementById('budget').value,
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value,
+                    milestones: document.getElementById('milestones').value
+                }
+            };
+
+            if (typeof api !== 'undefined') {
+                try {
+                    if (currentDraftId) {
+                        await api.put(`/requirements/${currentDraftId}`, data);
+                    } else {
+                        const result = await api.post('/requirements', data);
+                        currentDraftId = result.id;
+                    }
+
+                    const now = new Date().toLocaleTimeString();
+                    document.getElementById('autosaveText').textContent = `Auto-saved at ${now}`;
+
+                    if (!isAutoSave) {
+                        showToast('Draft saved successfully', 'success');
+                    }
+                } catch (err) {
+                    console.error('Save failed:', err);
+                    if (!isAutoSave) {
+                        showToast('Failed to save draft', 'error');
+                    }
+                }
+            } else {
+                // Demo mode - local storage fallback
+                try {
+                    if (!currentDraftId) {
+                        currentDraftId = 'BRD-' + Date.now();
+                    }
+                    localStorage.setItem('brd_draft_' + currentDraftId, JSON.stringify(data));
+
+                    const now = new Date().toLocaleTimeString();
+                    document.getElementById('autosaveText').textContent = `Auto-saved at ${now}`;
+
+                    if (!isAutoSave) {
+                        showToast('Draft saved locally (demo mode)', 'success');
+                    }
+                } catch (err) {
+                    console.error('Local save failed:', err);
+                    if (!isAutoSave) {
+                        showToast('Failed to save draft locally', 'error');
+                    }
+                }
+            }
+        }
+
+        async function submitBRD() {
+            if (!validationState.problemStatement) {
+                showToast('Please complete the problem statement', 'error');
+                switchTab('overview');
+                return;
+            }
+
+            await saveDraft();
+
+            // Update UI for submission
+            document.getElementById('statusBadge').textContent = 'Submitted';
+            showToast('BRD submitted for approval', 'success');
+
+            // Update approval workflow
+            const steps = document.querySelectorAll('.approval-step');
+            steps[0].classList.remove('active');
+            steps[0].classList.add('completed');
+            steps[1].classList.add('active');
+
+            if (currentDraftId && typeof api !== 'undefined') {
+                try {
+                    await api.put(`/requirements/${currentDraftId}`, { status: 'submitted' });
+
+                    // Emit WebSocket event
+                    if (typeof ws !== 'undefined' && ws.socket) {
+                        ws.socket.emit('brd:submitted', {
+                            brdId: currentDraftId,
+                            userId: userId
+                        });
+                    }
+                } catch (err) {
+                    console.error('Submit failed:', err);
+                }
+            }
+
+            // Navigate to Module 3 (PRD) after submission
+            setTimeout(() => {
+                // Try postMessage first (if in iframe)
+                window.parent.postMessage({
+                    type: 'NAVIGATE_TO_MODULE',
+                    moduleNumber: 3,
+                    params: { brdId: currentDraftId }
+                }, '*');
+
+                // Also try direct navigation as fallback
+                setTimeout(() => {
+                    window.location.href = '/demo/module-3-prd.html?brdId=' + currentDraftId;
+                }, 500);
+            }, 1500);
+        }
+
+        // Template Management
+        function loadTemplate() {
+            document.getElementById('templateModal').classList.add('visible');
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('templateModal').classList.remove('visible');
+        }
+
+        function applyTemplate(type) {
+            const template = templates[type];
+            if (template) {
+                document.getElementById('problemStatement').value = template.problemStatement;
+                document.getElementById('objectives').value = template.objectives;
+                document.getElementById('constraints').value = template.constraints;
+                document.getElementById('revenueImpact').value = template.revenueImpact;
+                document.getElementById('costImpact').value = template.costImpact;
+
+                // Set impact types
+                if (template.revenueImpact > 0) {
+                    impactTypes.revenue = 'increase';
+                }
+                if (template.costImpact > 0) {
+                    impactTypes.cost = 'savings';
+                }
+
+                // Add default criteria
+                addCriterion();
+                addCriterion();
+                addCriterion();
+
+                // Add default stakeholder
+                addStakeholder();
+                addStakeholder();
+                addStakeholder();
+
+                validateProblemStatement();
+                calculateROI();
+                updatePreview();
+                closeTemplateModal();
+                showToast('Template applied successfully', 'success');
+            }
+        }
+
+        // Export Functions
+        function exportJSON() {
+            const data = {
+                problemStatement: document.getElementById('problemStatement').value,
+                objectives: document.getElementById('objectives').value,
+                constraints: document.getElementById('constraints').value,
+                impact: {
+                    revenue: document.getElementById('revenueImpact').value,
+                    cost: document.getElementById('costImpact').value,
+                    customer: document.getElementById('customerImpact').value,
+                    market: document.getElementById('marketImpact').value
+                },
+                criteria: Array.from(document.getElementById('criteriaList').children).map(item => ({
+                    description: item.querySelector('input[type="text"]').value,
+                    measurement: item.querySelectorAll('input')[1].value,
+                    priority: item.querySelector('select').value
+                })),
+                stakeholders: Array.from(document.getElementById('stakeholderList').children).map(item => ({
+                    name: item.querySelector('input[type="text"]').value,
+                    email: item.querySelector('input[type="email"]').value,
+                    role: item.querySelector('select').value
+                })),
+                timeline: {
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value,
+                    budget: document.getElementById('budget').value,
+                    milestones: document.getElementById('milestones').value
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'brd-export.json';
+            a.click();
+            showToast('BRD exported as JSON', 'success');
+        }
+
+        function exportPDF() {
+            showToast('Opening print dialog...', 'info');
+            setTimeout(() => window.print(), 500);
+        }
+
+        function showToast(message, type = 'info') {
+            console.log(`[Module 2] ${type.toUpperCase()}: ${message}`);
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // WebSocket Integration
+        function setupWebSocket() {
+            if (typeof ws !== 'undefined' && ws.socket) {
+                // Listen for editing events
+                ws.socket.on('brd:editing', (data) => {
+                    if (data.userId !== userId) {
+                        const indicator = document.getElementById('collaboratorIndicator');
+                        indicator.textContent = `Someone is editing the ${data.section} section`;
+                        indicator.classList.add('visible');
+                        setTimeout(() => indicator.classList.remove('visible'), 3000);
+                    }
+                });
+
+                // Listen for approval events
+                ws.socket.on('brd:approved', (data) => {
+                    if (data.brdId === currentDraftId) {
+                        showToast('BRD has been approved!', 'success');
+                        document.getElementById('statusBadge').textContent = 'Approved';
+
+                        // Update approval workflow
+                        const steps = document.querySelectorAll('.approval-step');
+                        steps.forEach(step => {
+                            step.classList.remove('active');
+                            step.classList.add('completed');
+                        });
+                    }
+                });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof ws !== 'undefined') {
+                ws.connect(userId, 'Demo User');
+                setupWebSocket();
+            }
+
+            setupAutoSave();
+
+            // Load demo data automatically
+            loadDemoData();
+        });
+
+        // Load Demo Data
+        function loadDemoData() {
+            // Load product template as default demo
+            const template = templates.product;
+
+            // Fill Overview tab
+            document.getElementById('problemStatement').value = template.problemStatement;
+            document.getElementById('objectives').value = template.objectives;
+            document.getElementById('constraints').value = template.constraints;
+
+            // Fill Business Impact tab
+            document.getElementById('revenueImpact').value = template.revenueImpact;
+            document.getElementById('costImpact').value = template.costImpact;
+            document.getElementById('customerImpact').value = '30'; // 30% improvement
+            document.getElementById('marketImpact').value = 'high'; // High impact
+
+            // Set impact types and trigger button states
+            impactTypes.revenue = 'increase';
+            impactTypes.cost = 'savings';
+
+            // Trigger button clicks to set visual state
+            setTimeout(() => {
+                const revenueButtons = document.querySelectorAll('.impact-item:nth-child(1) .impact-type button');
+                if (revenueButtons[0]) revenueButtons[0].classList.add('active');
+
+                const costButtons = document.querySelectorAll('.impact-item:nth-child(2) .impact-type button');
+                if (costButtons[0]) costButtons[0].classList.add('active');
+            }, 100);
+
+            // Add Success Criteria with demo data
+            const demoCriteria = [
+                { description: 'Achieve 95% user satisfaction score in post-launch survey', metric: 'User satisfaction', target: '95%' },
+                { description: 'Reduce customer support tickets by 30% within 3 months', metric: 'Support tickets', target: '30% reduction' },
+                { description: 'Increase monthly active users (MAU) by 40%', metric: 'MAU growth', target: '40% increase' },
+                { description: 'Launch all 3 new features within 6-month timeline', metric: 'Feature completion', target: '100%' }
+            ];
+
+            demoCriteria.forEach(criterion => {
+                addCriterion();
+                const lastCriterion = document.querySelector('.criterion-item:last-child');
+                const inputs = lastCriterion.querySelectorAll('input');
+                inputs[0].value = criterion.description; // First input is description
+                inputs[1].value = criterion.metric; // Second input is metric
+                // Set priority via select dropdown
+                const select = lastCriterion.querySelector('select');
+                if (select) select.value = 'high';
+            });
+
+            // Add Stakeholders with demo data
+            const demoStakeholders = [
+                { name: 'Sarah Chen', email: 'sarah.chen@company.com', role: 'sponsor' },
+                { name: 'Michael Rodriguez', email: 'michael.r@company.com', role: 'approver' },
+                { name: 'Emily Watson', email: 'emily.watson@company.com', role: 'approver' },
+                { name: 'David Kim', email: 'david.kim@company.com', role: 'contributor' }
+            ];
+
+            demoStakeholders.forEach(stakeholder => {
+                addStakeholder();
+                const lastStakeholder = document.querySelector('.stakeholder-item:last-child');
+                lastStakeholder.querySelectorAll('input')[0].value = stakeholder.name;
+                lastStakeholder.querySelectorAll('input')[1].value = stakeholder.email;
+                const roleSelect = lastStakeholder.querySelector('select');
+                roleSelect.value = stakeholder.role;
+                // Trigger change event to update validation
+                roleSelect.dispatchEvent(new Event('change'));
+            });
+
+            // Fill Timeline & Budget tab
+            const today = new Date();
+            const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+            const endDate = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate() + 7);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            document.getElementById('budget').value = '500000';
+
+            // Trigger validations
+            validateProblemStatement();
+            validateCriteria();
+            validateStakeholders();
+            validateTimeline();
+            validateBudget();
+            calculateROI();
+            updatePreview();
+
+            console.log('[BRD Demo] Pre-filled with demo data');
+        }
+    </script>
+
+    <!-- State Synchronization -->
+    <script src="/demo/module-state-sync.js"></script>
+    <script>
+        if (typeof ConductorModuleState !== 'undefined') {
+            ConductorModuleState.init(2);
+            console.log('[Module 2] State synchronization initialized');
+        }
+    </script>
+</body>
+</html>

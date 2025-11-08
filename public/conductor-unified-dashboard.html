@@ -1700,6 +1700,14 @@
         }
 
     </style>
+
+    <!-- Toast Notifications & Activity Feed Redesign -->
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <link rel="stylesheet" href="/css/activity-feed-redesign.css">
+
+    <!-- JavaScript Utilities -->
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
 </head>
 <body>
     <!-- Global Navigation -->
@@ -2208,7 +2216,7 @@
                     <span>5️⃣</span>
                     <span>Replay: Change Impact</span>
                 </a>
-                <button class="quick-start-btn secondary" onclick="if(confirm('Reset tour progress?')) { window.demoWalkthrough.resetProgress(); alert('Tour progress reset!'); }" style="width: 100%; margin-top: 0.5rem;">
+                <button class="quick-start-btn secondary" onclick="if(confirm('Reset tour progress?')) { window.demoWalkthrough.resetProgress(); toast.success('Tour progress reset!'); }" style="width: 100%; margin-top: 0.5rem;">
                     <span>🔄 Reset Tour Progress</span>
                 </button>
             </div>
@@ -3194,7 +3202,7 @@
 
         // View profile (placeholder)
         function viewProfile() {
-            alert('User profile page coming soon!');
+            toast.info('User profile page coming soon!');
             toggleUserDropdown();
         }
 
@@ -3262,7 +3270,7 @@
             AppState.settings.darkMode = toggle.classList.contains('active');
             saveState();
             // Implement dark mode styling here
-            alert('Dark mode coming soon!');
+            toast.info('Dark mode coming soon!');
         }
 
         function toggleEmailNotifications() {
@@ -3302,9 +3310,9 @@
                         Object.assign(AppState, imported);
                         saveState();
                         updateUIFromState();
-                        alert('Data imported successfully!');
+                        toast.success('Data imported successfully!');
                     } catch (err) {
-                        alert('Error importing data: ' + err.message);
+                        toast.error('Error importing data: ' + err.message);
                     }
                 };
                 reader.readAsText(file);

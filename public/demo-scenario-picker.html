@@ -348,6 +348,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
 </head>
 <body>
     <div class="container">
@@ -494,12 +497,12 @@
                         window.location.href = '/conductor-unified-dashboard.html';
                     }, 800);
                 } else {
-                    alert('Failed to load scenario: ' + result.message);
+                    toast.error('Failed to load scenario: ' + result.message);
                     loadingOverlay.classList.remove('active');
                 }
             } catch (error) {
                 console.error('Failed to load scenario:', error);
-                alert('Failed to load scenario. Please try again.');
+                toast.error('Failed to load scenario. Please try again.');
                 loadingOverlay.classList.remove('active');
             }
         }
