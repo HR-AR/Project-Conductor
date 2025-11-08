@@ -1,13 +1,14 @@
 /**
- * Agent Activity Feed - Real-time agent orchestration visibility
+ * Agent Activity Feed - DISABLED (redundant with Live Collaboration Feed)
  * Project Conductor - Phase 1, Priority 1, Component 1.1
  *
- * This feed shows live agent activity to demonstrate AI orchestration
- * for investor demos and user visibility.
+ * This feed has been hidden to prevent duplicate UI elements.
+ * Use Live Collaboration Feed instead.
  */
 
-/* ===== Agent Activity Feed Container ===== */
+/* ===== Agent Activity Feed Container - HIDDEN ===== */
 .agent-activity-feed {
+  display: none !important; /* Hidden to prevent UI clutter */
   position: fixed;
   bottom: 2rem;
   left: 2rem;
@@ -17,7 +18,6 @@
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 950;
-  display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
