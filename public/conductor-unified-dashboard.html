@@ -12,6 +12,9 @@
     <!-- DNS Prefetch for faster module loading -->
     <!-- Note: DNS prefetch uses current origin dynamically -->
 
+    <!-- Design System - Core styles for professional UI -->
+    <link rel="stylesheet" href="/css/design-system.css">
+
     <!-- Agent Activity Feed Styles -->
     <link rel="stylesheet" href="/css/activity-feed.css">
 
@@ -1796,22 +1799,7 @@
         </div>
     </nav>
 
-    <!-- Demo Mode Banner (only visible when in demo mode) -->
-    <div id="demoBanner" class="demo-banner" style="display: none;">
-        <div class="demo-banner-content">
-            <div class="demo-banner-left">
-                <span class="demo-banner-icon">ℹ️</span>
-                <div class="demo-banner-text">
-                    <strong>Demo Mode</strong>
-                    <span class="demo-banner-description">Explore safely! This is sample data from the <span id="demoScenarioName"></span> scenario. Changes won't be saved.</span>
-                </div>
-            </div>
-            <div class="demo-banner-actions">
-                <button class="demo-banner-btn secondary" onclick="resetDemoData()">🔄 Reset Demo</button>
-                <button class="demo-banner-btn primary" onclick="exitDemoMode()">Exit Demo</button>
-            </div>
-        </div>
-    </div>
+    <!-- Demo banner removed for cleaner UI -->
 
     <!-- Progress Tracker -->
     <div class="progress-tracker">
@@ -2469,12 +2457,12 @@
         const CACHE_VERSION = 'v' + Date.now(); // Cache busting
         const MODULES = [
             { id: 0, name: 'Onboarding', file: '/module-0-onboarding.html?v=' + CACHE_VERSION },
-            { id: 1, name: 'Present', file: '/analytics-dashboard.html?v=' + CACHE_VERSION },
-            { id: 2, name: 'BRD', file: '/project-detail.html?v=' + CACHE_VERSION },
-            { id: 3, name: 'PRD', file: '/project-detail.html?v=' + CACHE_VERSION },
-            { id: 4, name: 'Engineering Design', file: '/project-detail.html?v=' + CACHE_VERSION },
-            { id: 5, name: 'Alignment', file: '/analytics-dashboard.html?v=' + CACHE_VERSION },
-            { id: 6, name: 'Implementation', file: '/analytics-dashboard.html?v=' + CACHE_VERSION }
+            { id: 1, name: 'Present', file: '/module-1-present.html?v=' + CACHE_VERSION },
+            { id: 2, name: 'BRD', file: '/module-2-brd.html?v=' + CACHE_VERSION },
+            { id: 3, name: 'PRD', file: '/module-3-prd-alignment.html?v=' + CACHE_VERSION },
+            { id: 4, name: 'Engineering Design', file: '/module-4-engineering-design.html?v=' + CACHE_VERSION },
+            { id: 5, name: 'Alignment', file: '/module-5-change-impact.html?v=' + CACHE_VERSION },
+            { id: 6, name: 'Implementation', file: '/module-6-implementation.html?v=' + CACHE_VERSION }
         ];
 
         // Module Cache Management with HTML Pre-loading
