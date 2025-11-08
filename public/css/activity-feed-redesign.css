@@ -6,8 +6,9 @@
  * REPLACES: activity-feed.css (old design)
  */
 
-/* ===== Activity Feed Toggle Button (in header) ===== */
+/* ===== Activity Feed Toggle Button (DISABLED - overlaps navigation) ===== */
 .activity-feed-toggle {
+  display: none !important; /* Hidden to prevent navigation overlap */
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
@@ -19,7 +20,6 @@
   width: 56px;
   height: 56px;
   cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
