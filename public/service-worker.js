@@ -24,9 +24,9 @@ const STATIC_FILES_TO_CACHE = [
   '/module-1.5-ai-generator.html',
   '/module-1.6-project-history.html',
   '/module-2-brd.html',
-  '/module-3-prd.html',
+  '/module-3-prd-alignment.html',
   '/module-4-engineering-design.html',
-  '/module-5-alignment.html',
+  '/module-5-change-impact.html',
   '/module-6-implementation.html',
 
   // CSS files
