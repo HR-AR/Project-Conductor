@@ -1,0 +1,4546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Conductor - Unified Dashboard</title>
+
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="max-age=3600, must-revalidate">
+    <meta http-equiv="Pragma" content="cache">
+
+    <!-- DNS Prefetch for faster module loading -->
+    <!-- Note: DNS prefetch uses current origin dynamically -->
+
+    <!-- Agent Activity Feed Styles -->
+    <link rel="stylesheet" href="/css/activity-feed.css">
+
+    <!-- Conflict Alert Styles -->
+    <link rel="stylesheet" href="/css/conflict-alert.css">
+
+    <!-- Session Warning Styles -->
+    <link rel="stylesheet" href="/css/session-warning.css">
+
+    <!-- Authentication Scripts (loaded before auth-guard) -->
+    <script src="/js/auth-client.js"></script>
+    <script src="/js/auth-guard.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        /* Global Navigation Bar */
+        .global-nav {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: white;
+        }
+
+        .nav-tabs {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: #2ecc71;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .nav-badge {
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge.warning {
+            border-color: #f59e0b;
+            color: #d97706;
+        }
+
+        .nav-badge.success {
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 0 1.5rem;
+        }
+
+        .search-bar {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            color: white;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            background: rgba(255,255,255,0.25);
+            width: 350px;
+        }
+
+        .search-bar::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .icon-button {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .icon-button:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.1);
+        }
+
+        .icon-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #4f46e5;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 500;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Demo Mode Banner */
+        .demo-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-bottom: 2px solid #f59e0b;
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .demo-banner-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .demo-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .demo-banner-icon {
+            font-size: 1.5rem;
+        }
+
+        .demo-banner-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .demo-banner-text strong {
+            font-size: 0.95rem;
+            color: #92400e;
+            font-weight: 600;
+        }
+
+        .demo-banner-description {
+            font-size: 0.85rem;
+            color: #78350f;
+        }
+
+        #demoScenarioName {
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .demo-banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .demo-banner-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .demo-banner-btn.secondary {
+            background: rgba(255, 255, 255, 0.7);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .demo-banner-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.02);
+        }
+
+        .demo-banner-btn.primary {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .demo-banner-btn.primary:hover {
+            background: #d97706;
+            transform: scale(1.02);
+        }
+
+        /* User Profile Dropdown */
+        .user-profile {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .user-avatar:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            min-width: 240px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1100;
+            overflow: hidden;
+        }
+
+        .user-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-header {
+            padding: 16px;
+            border-bottom: 1px solid #e1e8ed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .user-dropdown-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .user-dropdown-email {
+            font-size: 12px;
+            opacity: 0.9;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-dropdown-role {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 11px;
+            margin-top: 6px;
+            text-transform: capitalize;
+        }
+
+        .user-dropdown-menu {
+            padding: 8px 0;
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f5f7fa;
+        }
+
+        .user-dropdown-item.danger {
+            color: #e74c3c;
+        }
+
+        .user-dropdown-item.danger:hover {
+            background: #fee;
+        }
+
+        .user-dropdown-divider {
+            height: 1px;
+            background: #e1e8ed;
+            margin: 8px 0;
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .progress-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-size: 1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .progress-percentage {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2a5298;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e1e8ed;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298 0%, #2ecc71 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-breakdown {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Dashboard Home */
+        .dashboard-home {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #111827;
+            letter-spacing: -0.01em;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+
+        .activity-icon {
+            font-size: 1.5rem;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 0.95rem;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .action-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-item {
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-item:hover {
+            transform: translateX(5px);
+        }
+
+        .action-item.critical {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .action-item.warning {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+        }
+
+        .action-item.success {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+        }
+
+        .quick-start {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .quick-start-btn {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quick-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-start-btn.secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.6);
+        }
+
+        .fab-menu {
+            position: fixed;
+            bottom: 5rem;
+            right: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 1rem;
+            display: none;
+            z-index: 998;
+            min-width: 250px;
+        }
+
+        .fab-menu.open {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fab-menu-item {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .fab-menu-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        /* Notification Center */
+        .notification-dropdown {
+            position: absolute;
+            top: 4rem;
+            right: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            min-width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+        }
+
+        .notification-dropdown.open {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e1e8ed;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .notification-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-text {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        /* Live Collaboration Feed */
+        .collaboration-feed {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 400px;
+            max-height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feed-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feed-minimize {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .feed-minimize:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .feed-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            max-height: 400px;
+        }
+
+        .feed-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            animation: slideIn 0.3s ease-out;
+            transition: all 0.2s ease;
+        }
+
+        .feed-item:hover {
+            background: #e8eaed;
+            transform: translateX(-3px);
+        }
+
+        .feed-item.new {
+            border-left-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .feed-item.sales {
+            border-left-color: #3498db;
+        }
+
+        .feed-item.engineering {
+            border-left-color: #2ecc71;
+        }
+
+        .feed-item.marketing {
+            border-left-color: #9b59b6;
+        }
+
+        .feed-item.product {
+            border-left-color: #e67e22;
+        }
+
+        .feed-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feed-avatar.sales {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .feed-avatar.engineering {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .feed-avatar.marketing {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .feed-avatar.product {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .feed-details {
+            flex: 1;
+        }
+
+        .feed-user {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .feed-team {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-action {
+            font-size: 0.9rem;
+            color: #34495e;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-timestamp {
+            font-size: 0.75rem;
+            color: #95a5a6;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .collaboration-feed.minimized {
+            width: 60px;
+            max-height: 60px;
+        }
+
+        .collaboration-feed.minimized .feed-header {
+            border-radius: 12px;
+        }
+
+        .collaboration-feed.minimized .feed-content,
+        .collaboration-feed.minimized .feed-title {
+            display: none;
+        }
+
+        .feed-pulse {
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: white;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-item {
+            color: #7f8c8d;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item:hover {
+            color: #3498db;
+        }
+
+        .breadcrumb-item.active {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .breadcrumb-separator {
+            color: #bdc3c7;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+            transition: right 0.3s ease;
+            z-index: 1002;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .settings-content {
+            padding: 2rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #bdc3c7;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #2ecc71;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        .danger-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .danger-button:hover {
+            background: #c0392b;
+        }
+
+        /* Help System */
+        .help-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: white;
+            color: #3498db;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .help-button:hover {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Module Frame */
+        .module-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 160px);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            background: white;
+        }
+
+        .module-frame.preloaded {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .module-frame.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 10;
+        }
+
+        .module-frame.error {
+            display: none;
+        }
+
+        /* Module Error Display */
+        .module-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 160px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .module-error.active {
+            display: flex;
+            z-index: 11;
+        }
+
+        .module-error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .module-error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-error-message {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .module-error-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .retry-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .back-button {
+            padding: 0.75rem 1.5rem;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #7f8c8d;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav-tabs {
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .nav-tabs::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.3);
+                border-radius: 2px;
+            }
+
+            .dashboard-home {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                width: 150px;
+            }
+
+            .search-bar:focus {
+                width: 200px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-logo span:last-child {
+                display: none;
+            }
+
+            .nav-tab {
+                padding: 1rem 0.75rem;
+                font-size: 0.85rem;
+                min-width: 80px;
+            }
+
+            .nav-tab span:last-child {
+                font-size: 0.75rem;
+            }
+
+            .nav-actions {
+                gap: 0.75rem;
+            }
+
+            .search-bar {
+                display: none;
+            }
+
+            .progress-breakdown {
+                font-size: 0.8rem;
+                gap: 1rem;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .fab {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.25rem;
+            }
+
+            .fab-menu {
+                right: 1.5rem;
+                bottom: 4rem;
+                min-width: 200px;
+            }
+
+            .help-button {
+                bottom: 1.5rem;
+                left: 1.5rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .module-error-icon {
+                font-size: 3rem;
+            }
+
+            .module-error-title {
+                font-size: 1.25rem;
+            }
+
+            .module-error-message {
+                font-size: 0.9rem;
+            }
+
+            .module-error-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .retry-button, .back-button {
+                width: 100%;
+            }
+
+            .collaboration-feed {
+                width: calc(100% - 2rem);
+                right: 1rem;
+                bottom: 6rem;
+            }
+
+            .collaboration-feed.minimized {
+                width: 60px;
+                right: 1rem;
+                bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 414px) {
+            .nav-tab {
+                padding: 1rem 0.5rem;
+                font-size: 0.75rem;
+                min-width: 60px;
+            }
+
+            .nav-badge {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.35rem;
+                min-width: 16px;
+            }
+
+            .icon-button {
+                width: 35px;
+                height: 35px;
+            }
+
+            .progress-tracker {
+                padding: 1rem;
+            }
+
+            .progress-title {
+                font-size: 0.9rem;
+            }
+
+            .progress-percentage {
+                font-size: 1.25rem;
+            }
+
+            .breadcrumb-container {
+                padding: 0 1rem;
+                font-size: 0.8rem;
+            }
+
+            .card-title {
+                font-size: 1.25rem;
+            }
+
+            .summary-value {
+                font-size: 1.1rem;
+            }
+
+            .activity-text, .notification-text {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+
+            .nav-logo {
+                padding: 1rem 0.5rem;
+                font-size: 1.25rem;
+            }
+
+            .nav-tab {
+                padding: 1rem 0.35rem;
+            }
+
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .notification-dropdown {
+                min-width: calc(100vw - 2rem);
+                right: 1rem;
+            }
+        }
+
+        /* Top Progress Bar */
+        .top-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: transparent;
+            z-index: 2001;
+            display: none;
+        }
+
+        .top-progress-bar.active {
+            display: block;
+        }
+
+        .top-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        /* Skeleton Screen Styles */
+        .skeleton-screen {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            background: #f5f7fa;
+            z-index: 1999;
+            display: none;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .skeleton-screen.active {
+            display: block;
+            animation: fadeIn 200ms ease-in;
+        }
+
+        .skeleton-header {
+            width: 300px;
+            height: 40px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .skeleton-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .skeleton-card {
+            height: 200px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .skeleton-card.large {
+            height: 300px;
+        }
+
+        .skeleton-stat-card {
+            height: 120px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        .skeleton-task-card {
+            height: 150px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        .skeleton-text-block {
+            height: 100px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-form-field {
+            height: 50px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-text-area {
+            height: 150px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-button {
+            width: 150px;
+            height: 45px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-chart {
+            height: 350px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        .skeleton-table {
+            height: 400px;
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Loading State (Fallback) */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-progress {
+            width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: loadingProgress 2s ease-in-out infinite;
+        }
+
+        @keyframes loadingProgress {
+            0%, 100% { width: 0%; }
+            50% { width: 70%; }
+        }
+    
+        /* Preload Progress Indicator */
+        #preloadProgress {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 9999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: slideInUp 0.3s ease;
+        }
+
+        #preloadProgress.show {
+            display: block;
+            opacity: 1;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+    </style>
+
+    <!-- Toast Notifications & Activity Feed Redesign -->
+    <link rel="stylesheet" href="/css/toast-notifications.css">
+    <link rel="stylesheet" href="/css/activity-feed-redesign.css">
+
+    <!-- JavaScript Utilities -->
+    <script src="/js/toast-manager.js"></script>
+    <script src="/js/avatar-fallback.js"></script>
+</head>
+<body>
+    <!-- Global Navigation -->
+    <nav class="global-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="showHome(); return false;">
+                <span>🎯</span>
+                <span>Project Conductor</span>
+            </a>
+
+            <div class="nav-tabs">
+                <a class="nav-tab" data-module="0" onclick="navigateToModule(0)">
+                    <span>🎓</span>
+                    <span>Onboarding</span>
+                </a>
+                <a class="nav-tab" data-module="1" onclick="navigateToModule(1)">
+                    <span>📖</span>
+                    <span>Present</span>
+                </a>
+                <a class="nav-tab" data-module="2" onclick="navigateToModule(2)">
+                    <span>💡</span>
+                    <span>BRD</span>
+                </a>
+                <a class="nav-tab" data-module="3" onclick="navigateToModule(3)">
+                    <span>📋</span>
+                    <span>PRD</span>
+                </a>
+                <a class="nav-tab" data-module="4" onclick="navigateToModule(4)">
+                    <span>🔧</span>
+                    <span>Engineering Design</span>
+                </a>
+                <a class="nav-tab" data-module="5" onclick="navigateToModule(5)">
+                    <span>✅</span>
+                    <span>Alignment</span>
+                    <span class="nav-badge warning">3</span>
+                </a>
+                <a class="nav-tab" data-module="6" onclick="navigateToModule(6)">
+                    <span>🔨</span>
+                    <span>Implementation</span>
+                    <span class="nav-badge success">2</span>
+                </a>
+            </div>
+
+            <div class="nav-actions">
+                <input type="text" class="search-bar" placeholder="Search everything..." id="globalSearch" onkeyup="handleSearch(event)">
+                <button class="icon-button" onclick="window.demoWalkthrough.start()" title="Take Interactive Tour" data-tour-id="take-tour-btn">
+                    <span>🎓</span>
+                </button>
+                <button class="icon-button" onclick="toggleNotifications()">
+                    <span>🔔</span>
+                    <span class="icon-badge">3</span>
+                </button>
+                <button class="icon-button" onclick="toggleSettings()">
+                    <span>⚙️</span>
+                </button>
+
+                <!-- User Profile Dropdown -->
+                <div class="user-profile">
+                    <div class="user-avatar" onclick="toggleUserDropdown()" id="userAvatar" title="User Profile">
+                        👤
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name" id="userName">Loading...</div>
+                            <div class="user-dropdown-email" id="userEmail">user@example.com</div>
+                            <span class="user-dropdown-role" id="userRole">user</span>
+                        </div>
+                        <div class="user-dropdown-menu">
+                            <button class="user-dropdown-item" onclick="viewProfile()">
+                                <span>👤</span>
+                                <span>My Profile</span>
+                            </button>
+                            <button class="user-dropdown-item" onclick="toggleSettings()">
+                                <span>⚙️</span>
+                                <span>Settings</span>
+                            </button>
+                            <div class="user-dropdown-divider"></div>
+                            <button class="user-dropdown-item danger" onclick="handleLogout()">
+                                <span>🚪</span>
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Demo Mode Banner (only visible when in demo mode) -->
+    <div id="demoBanner" class="demo-banner" style="display: none;">
+        <div class="demo-banner-content">
+            <div class="demo-banner-left">
+                <span class="demo-banner-icon">ℹ️</span>
+                <div class="demo-banner-text">
+                    <strong>Demo Mode</strong>
+                    <span class="demo-banner-description">Explore safely! This is sample data from the <span id="demoScenarioName"></span> scenario. Changes won't be saved.</span>
+                </div>
+            </div>
+            <div class="demo-banner-actions">
+                <button class="demo-banner-btn secondary" onclick="resetDemoData()">🔄 Reset Demo</button>
+                <button class="demo-banner-btn primary" onclick="exitDemoMode()">Exit Demo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-container">
+            <div class="progress-header">
+                <div class="progress-title">Overall Progress</div>
+                <div class="progress-percentage" id="progressPercentage">60%</div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar" style="width: 60%;"></div>
+            </div>
+            <div class="progress-breakdown" id="progressBreakdown">
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Problem defined</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Stakeholders invited</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">⚠️</span>
+                    <span>Requirements aligned: 12/15</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">🔄</span>
+                    <span>Implementation: In progress</span>
+                </div>
+                <div class="progress-item">
+                    <span class="progress-icon">✅</span>
+                    <span>Changes pending: 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-container" id="breadcrumb">
+            <a href="#" class="breadcrumb-item active" onclick="showHome(); return false;">Home</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Home -->
+        <div id="dashboardHome" class="dashboard-home">
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- At-a-Glance Summary -->
+                <div class="card">
+                    <h2 class="card-title">At-a-Glance Summary</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">Current PRD</div>
+                            <div class="summary-value">E-commerce Checkout Improvement</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Status</div>
+                            <div class="summary-value" style="color: #3498db;">60% Complete</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Owner</div>
+                            <div class="summary-value">John Chen</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Stakeholders</div>
+                            <div class="summary-value">4 active</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Timeline</div>
+                            <div class="summary-value" style="color: #f39c12;">12 days remaining</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Last Updated</div>
+                            <div class="summary-value">2 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">✅</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Sarah</strong> approved REQ-003</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #f39c12;">
+                            <div class="activity-icon">💬</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Mike</strong> added concern to REQ-007</div>
+                                <div class="activity-time">4 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #2ecc71;">
+                            <div class="activity-icon">🤖</div>
+                            <div class="activity-content">
+                                <div class="activity-text"><strong>Agent-Code</strong> completed API generation</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" style="border-left-color: #9b59b6;">
+                            <div class="activity-icon">🔗</div>
+                            <div class="activity-content">
+                                <div class="activity-text">Traceability link created: REQ-005 → TEST-012</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start -->
+                <div class="card">
+                    <h2 class="card-title">Quick Start</h2>
+                    <div class="quick-start">
+                        <button class="quick-start-btn" onclick="navigateToModule(2)">
+                            <span>Create BRD</span>
+                            <span>→</span>
+                        </button>
+                        <button class="quick-start-btn secondary" onclick="navigateToModule(3)">
+                            <span>Create PRD</span>
+                            <span>→</span>
+                        </button>
+                        <button class="quick-start-btn secondary" onclick="navigateToModule(5)">
+                            <span>View Alignment</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Action Items -->
+                <div class="card">
+                    <h2 class="card-title">Action Items</h2>
+                    <div class="action-items">
+                        <div class="action-item critical" onclick="navigateToModule(5)">
+                            <span>🔴</span>
+                            <div>
+                                <div style="font-weight: 600;">3 requirements need alignment</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">High priority</div>
+                            </div>
+                        </div>
+                        <div class="action-item warning" onclick="navigateToModule(2)">
+                            <span>🟡</span>
+                            <div>
+                                <div style="font-weight: 600;">1 stakeholder hasn't responded</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Follow up needed</div>
+                            </div>
+                        </div>
+                        <div class="action-item success" onclick="navigateToModule(6)">
+                            <span>🟢</span>
+                            <div>
+                                <div style="font-weight: 600;">2 tests passing, ready to deploy</div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Review deployment</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="card">
+                    <h2 class="card-title">Key Metrics</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Requirements Coverage</span>
+                                <span style="font-weight: 600; color: #2ecc71;">87%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 87%; background: #2ecc71;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Traceability</span>
+                                <span style="font-weight: 600; color: #3498db;">92%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 92%; background: #3498db;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: #7f8c8d;">Test Coverage</span>
+                                <span style="font-weight: 600; color: #f39c12;">76%</span>
+                            </div>
+                            <div class="progress-bar-container" style="height: 8px;">
+                                <div class="progress-bar-fill" style="width: 76%; background: #f39c12;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Container -->
+        <div id="moduleContainer" style="display: none; position: relative; min-height: calc(100vh - 160px);">
+            <!-- Multiple iframes for caching -->
+            <iframe id="moduleFrame0" class="module-frame" data-module="0" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+            <iframe id="moduleFrame1" class="module-frame" data-module="1" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+            <iframe id="moduleFrame2" class="module-frame" data-module="2" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+            <iframe id="moduleFrame3" class="module-frame" data-module="3" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+            <iframe id="moduleFrame4" class="module-frame" data-module="4" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+            <iframe id="moduleFrame5" class="module-frame" data-module="5" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals allow-top-navigation"></iframe>
+
+            <!-- Error displays for each module -->
+            <div id="moduleError0" class="module-error" data-module="0">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The Learn module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(0)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+            <div id="moduleError1" class="module-error" data-module="1">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The Present module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(1)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+            <div id="moduleError2" class="module-error" data-module="2">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The Problem Input module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(2)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+            <div id="moduleError3" class="module-error" data-module="3">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The PRD Alignment module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(3)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+            <div id="moduleError4" class="module-error" data-module="4">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The Implementation module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(4)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+            <div id="moduleError5" class="module-error" data-module="5">
+                <div class="module-error-icon">⚠️</div>
+                <div class="module-error-title">Module Failed to Load</div>
+                <div class="module-error-message">The Change Impact module couldn't be loaded. This might be due to a network issue or the module file not being available.</div>
+                <div class="module-error-actions">
+                    <button class="retry-button" onclick="retryModule(5)">Retry</button>
+                    <button class="back-button" onclick="showHome()">Back to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="toggleFabMenu()">+</button>
+    <div class="fab-menu" id="fabMenu">
+        <a class="fab-menu-item" onclick="showAddRequirement()">
+            <span>➕</span>
+            <span>Add Requirement</span>
+        </a>
+        <a class="fab-menu-item" onclick="showInviteStakeholder()">
+            <span>👥</span>
+            <span>Invite Stakeholder</span>
+        </a>
+        <a class="fab-menu-item" onclick="showStartDiscussion()">
+            <span>💬</span>
+            <span>Start Discussion</span>
+        </a>
+        <a class="fab-menu-item" onclick="showViewMetrics()">
+            <span>📊</span>
+            <span>View Metrics</span>
+        </a>
+        <a class="fab-menu-item" onclick="toggleNotifications()">
+            <span>🔔</span>
+            <span>Notifications (3)</span>
+        </a>
+        <a class="fab-menu-item" onclick="toggleSettings()">
+            <span>⚙️</span>
+            <span>Settings</span>
+        </a>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">Notifications</div>
+        <div class="notification-item" onclick="navigateToModule(5)">
+            <div class="notification-text">Sarah marked REQ-007 as Align But</div>
+            <div class="notification-time">1 hour ago</div>
+        </div>
+        <div class="notification-item" onclick="navigateToModule(6)">
+            <div class="notification-text">Implementation phase 3 complete ✅</div>
+            <div class="notification-time">3 hours ago</div>
+        </div>
+        <div class="notification-item">
+            <div class="notification-text">Mike requested meeting on REQ-012</div>
+            <div class="notification-time">5 hours ago</div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Settings</div>
+            <button class="settings-close" onclick="toggleSettings()">×</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <div class="settings-section-title">User Profile</div>
+                <div class="settings-option">
+                    <div>
+                        <div style="font-weight: 600;">John Chen</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d;">john.chen@example.com</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Preferences</div>
+                <div class="settings-option">
+                    <span>Dark Mode</span>
+                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleDarkMode()"></div>
+                </div>
+                <div class="settings-option">
+                    <span>Email Notifications</span>
+                    <div class="toggle-switch active" id="emailNotifications" onclick="toggleEmailNotifications()"></div>
+                </div>
+                <div class="settings-option">
+                    <span>Auto-save</span>
+                    <div class="toggle-switch active" id="autoSave"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Data Management</div>
+                <button class="quick-start-btn secondary" onclick="exportData()" style="margin-bottom: 1rem; width: 100%;">
+                    <span>📥 Export All Data</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="importData()" style="margin-bottom: 1rem; width: 100%;">
+                    <span>📤 Import Existing PRD</span>
+                </button>
+                <button class="danger-button" onclick="clearAllData()">
+                    🗑️ Clear All Data
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Keyboard Shortcuts</div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Search</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + K</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>New Requirement</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + N</code>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Settings</span>
+                        <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Cmd/Ctrl + ,</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Interactive Tour</div>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.start(); toggleSettings();">
+                    <span>🎓</span>
+                    <span>Start Full Tour</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(0); toggleSettings();">
+                    <span>0️⃣</span>
+                    <span>Replay: Learn Module</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(2); toggleSettings();">
+                    <span>2️⃣</span>
+                    <span>Replay: Problem Input</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(3); toggleSettings();">
+                    <span>3️⃣</span>
+                    <span>Replay: PRD Alignment</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(4); toggleSettings();">
+                    <span>4️⃣</span>
+                    <span>Replay: Implementation</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="window.demoWalkthrough.jumpToModule(5); toggleSettings();">
+                    <span>5️⃣</span>
+                    <span>Replay: Change Impact</span>
+                </a>
+                <button class="quick-start-btn secondary" onclick="if(confirm('Reset tour progress?')) { window.demoWalkthrough.resetProgress(); toast.success('Tour progress reset!'); }" style="width: 100%; margin-top: 0.5rem;">
+                    <span>🔄 Reset Tour Progress</span>
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Agent Activity Testing</div>
+                <button class="quick-start-btn" onclick="testAgentActivity()" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🤖 Test Agent Event</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="startAgentDemo()" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🎬 Start Demo Mode</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="clearAgentActivity()" style="width: 100%;">
+                    <span>🗑️ Clear Activity Feed</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Conflict Detection Testing</div>
+                <button class="quick-start-btn" onclick="testConflictDetection('critical')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>🚨 Critical Conflict</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testConflictDetection('high')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>⚠️ High Severity</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testConflictDetection('medium')" style="margin-bottom: 0.5rem; width: 100%;">
+                    <span>⚡ Medium Severity</span>
+                    <span>→</span>
+                </button>
+                <button class="quick-start-btn secondary" onclick="testWorkflowResume()" style="width: 100%;">
+                    <span>✓ Resume Workflow</span>
+                    <span>→</span>
+                </button>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Help & Support</div>
+                <a class="fab-menu-item" href="#" onclick="openVideoTutorials()">
+                    <span>📹</span>
+                    <span>Video Tutorials</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="openDocumentation()">
+                    <span>📚</span>
+                    <span>Documentation</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="openExamplePRDs()">
+                    <span>📋</span>
+                    <span>Example PRDs</span>
+                </a>
+                <a class="fab-menu-item" href="#" onclick="contactSupport()">
+                    <span>💬</span>
+                    <span>Contact Support</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-button" onclick="openHelp()">?</button>
+
+    <!-- Live Collaboration Feed -->
+    <div class="collaboration-feed" id="collaborationFeed">
+        <div class="feed-header">
+            <div class="feed-title">
+                <div class="feed-pulse"></div>
+                <span>Live Collaboration</span>
+            </div>
+            <button class="feed-minimize" onclick="toggleCollaborationFeed()">−</button>
+        </div>
+        <div class="feed-content" id="feedContent">
+            <!-- Feed items will be added dynamically -->
+        </div>
+    </div>
+
+    <!-- Agent Activity Feed (NEW - Component 1.1) -->
+    <div class="agent-activity-feed collapsed" id="agentActivityFeed">
+        <div class="activity-feed-header">
+            <div class="activity-feed-title">
+                <span class="activity-feed-icon">🤖</span>
+                <span>Agent Activity</span>
+                <span class="activity-count" id="activityCount">0</span>
+            </div>
+            <div class="activity-feed-controls">
+                <button class="activity-feed-btn" id="activityMinimizeBtn" title="Minimize">➖</button>
+            </div>
+        </div>
+        <div class="activity-feed-content" id="activityFeedContent">
+            <!-- Activity items will be added dynamically by activity-feed.js -->
+            <div class="activity-feed-empty">
+                <div class="activity-feed-empty-icon">🤖</div>
+                <div class="activity-feed-empty-title">No Agent Activity</div>
+                <div class="activity-feed-empty-message">Agents will appear here when they start working</div>
+            </div>
+        </div>
+        <div class="activity-feed-footer">
+            <button class="activity-show-more-btn" id="activityShowMoreBtn" style="display: none;">Show more ↓</button>
+            <button class="activity-feed-clear-btn" id="activityClearBtn">Clear All</button>
+        </div>
+    </div>
+
+    <!-- Top Progress Bar -->
+    <div class="top-progress-bar" id="topProgressBar">
+        <div class="top-progress-fill" id="topProgressFill"></div>
+    </div>
+
+    <!-- Skeleton Screens for Each Module -->
+    <div id="skeletonScreen0" class="skeleton-screen" data-module="0">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-text-block"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen1" class="skeleton-screen" data-module="1">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-grid">
+            <div class="skeleton-stat-card"></div>
+            <div class="skeleton-stat-card"></div>
+            <div class="skeleton-stat-card"></div>
+            <div class="skeleton-stat-card"></div>
+        </div>
+        <div class="skeleton-content">
+            <div class="skeleton-chart"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen2" class="skeleton-screen" data-module="2">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-form-field"></div>
+            <div class="skeleton-form-field"></div>
+            <div class="skeleton-text-area"></div>
+            <div class="skeleton-button"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen3" class="skeleton-screen" data-module="3">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-form-field"></div>
+            <div class="skeleton-form-field"></div>
+            <div class="skeleton-text-area"></div>
+            <div class="skeleton-button"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen4" class="skeleton-screen" data-module="4">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-card large"></div>
+            <div class="skeleton-text-block"></div>
+            <div class="skeleton-text-block"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen5" class="skeleton-screen" data-module="5">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-table"></div>
+        </div>
+    </div>
+
+    <div id="skeletonScreen6" class="skeleton-screen" data-module="6">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-grid">
+            <div class="skeleton-task-card"></div>
+            <div class="skeleton-task-card"></div>
+            <div class="skeleton-task-card"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay (Simplified, used as fallback) -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-text" id="loadingText">Loading module...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+    </div>
+    <!-- Preload Progress Indicator -->
+    <div id="preloadProgress">Pre-loading modules: 0/7</div>
+
+
+    <script>
+        // ============================================================================
+        // ServiceWorker Registration - Aggressive Caching for Instant Loads
+        // ============================================================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('[ServiceWorker] Registration successful:', registration.scope);
+
+                        // Check for updates every time the page loads
+                        registration.update();
+
+                        // Listen for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            console.log('[ServiceWorker] Update found, installing...');
+
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('[ServiceWorker] New version available, reload to update');
+
+                                    // Optional: Show notification to user
+                                    if (confirm('A new version of Project Conductor is available. Reload to update?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.warn('[ServiceWorker] Registration failed:', error);
+                        // Gracefully fail - app still works without ServiceWorker
+                    });
+            });
+
+            // Handle ServiceWorker messages
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                console.log('[ServiceWorker] Message received:', event.data);
+            });
+
+            // Monitor connection status
+            window.addEventListener('online', () => {
+                console.log('[ServiceWorker] Connection restored');
+                // Optionally refresh data
+            });
+
+            window.addEventListener('offline', () => {
+                console.log('[ServiceWorker] Connection lost - using cached content');
+                // Optionally show offline indicator
+            });
+        } else {
+            console.warn('[ServiceWorker] Not supported in this browser');
+        }
+
+        // ============================================================================
+        // Module Configuration
+        // ============================================================================
+        const CACHE_VERSION = 'v' + Date.now(); // Cache busting
+        const MODULES = [
+            { id: 0, name: 'Onboarding', file: '/module-0-onboarding.html?v=' + CACHE_VERSION },
+            { id: 1, name: 'Present', file: '/analytics-dashboard.html?v=' + CACHE_VERSION },
+            { id: 2, name: 'BRD', file: '/project-detail.html?v=' + CACHE_VERSION },
+            { id: 3, name: 'PRD', file: '/project-detail.html?v=' + CACHE_VERSION },
+            { id: 4, name: 'Engineering Design', file: '/project-detail.html?v=' + CACHE_VERSION },
+            { id: 5, name: 'Alignment', file: '/analytics-dashboard.html?v=' + CACHE_VERSION },
+            { id: 6, name: 'Implementation', file: '/analytics-dashboard.html?v=' + CACHE_VERSION }
+        ];
+
+        // Module Cache Management with HTML Pre-loading
+        const ModuleCache = {
+            loaded: new Set(),
+            loading: new Set(),
+            preloadQueue: [],
+            loadTimes: {},
+            startTimes: {},
+            htmlCache: {}, // NEW: Store fetched HTML content
+
+            isLoaded(moduleId) {
+                return this.loaded.has(moduleId);
+            },
+
+            isCached(moduleId) {
+                return this.htmlCache.hasOwnProperty(moduleId);
+            },
+
+            getCache(moduleId) {
+                return this.htmlCache[moduleId];
+            },
+
+            setCache(moduleId, html) {
+                this.htmlCache[moduleId] = html;
+            },
+
+            markLoaded(moduleId) {
+                this.loaded.add(moduleId);
+                this.loading.delete(moduleId);
+
+                // Calculate load time
+                if (this.startTimes[moduleId]) {
+                    const loadTime = Date.now() - this.startTimes[moduleId];
+                    this.loadTimes[moduleId] = loadTime;
+                    console.log(`Module ${moduleId} cached (loaded in ${loadTime}ms)`);
+                    delete this.startTimes[moduleId];
+                } else {
+                    console.log(`Module ${moduleId} cached`);
+                }
+            },
+
+            isLoading(moduleId) {
+                return this.loading.has(moduleId);
+            },
+
+            markLoading(moduleId) {
+                this.loading.add(moduleId);
+                this.startTimes[moduleId] = Date.now();
+            },
+
+            shouldPreload(moduleId, currentModule) {
+                // Pre-load adjacent modules
+                const adjacentModules = [currentModule - 1, currentModule + 1];
+                return adjacentModules.includes(moduleId) && !this.isLoaded(moduleId) && !this.isLoading(moduleId);
+            },
+
+            getPerformanceStats() {
+                return {
+                    loadedModules: Array.from(this.loaded),
+                    loadTimes: this.loadTimes,
+                    averageLoadTime: Object.values(this.loadTimes).reduce((a, b) => a + b, 0) / Object.keys(this.loadTimes).length || 0
+                };
+            },
+
+            clearCache() {
+                this.loaded.clear();
+                this.loading.clear();
+                this.loadTimes = {};
+                this.startTimes = {};
+                console.log('Module cache cleared');
+            }
+        };
+
+        // State Management
+        const AppState = {
+            currentModule: 'home',
+            currentPRD: {
+                problem: "Cart abandonment at 68%",
+                stakeholders: ["john@example.com", "sarah@example.com", "mike@example.com"],
+                goals: ["Reduce cart abandonment by 30%", "Improve checkout flow UX"],
+                requirements: [],
+                progress: 60
+            },
+            notifications: [],
+            settings: {
+                darkMode: false,
+                emailNotifications: true,
+                autoSave: true
+            }
+        };
+
+        // Dashboard State Manager with localStorage sync (eliminates postMessage latency)
+        const DashboardStateManager = {
+            version: 1,
+            statePrefix: 'conductor_state_',
+            performanceStats: {
+                totalSyncs: 0,
+                totalTime: 0,
+                avgTime: 0
+            },
+
+            // Set state and trigger storage event for instant iframe sync
+            setState(key, value) {
+                const startTime = performance.now();
+                const state = {
+                    key,
+                    value,
+                    timestamp: Date.now(),
+                    version: this.version++
+                };
+                const storageKey = this.statePrefix + key;
+
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(state));
+
+                    // Manually trigger storage event for same-window iframes
+                    // (storage event doesn't fire naturally in same window)
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: storageKey,
+                        newValue: JSON.stringify(state),
+                        oldValue: localStorage.getItem(storageKey),
+                        storageArea: localStorage,
+                        url: window.location.href
+                    }));
+
+                    const syncTime = performance.now() - startTime;
+                    this.performanceStats.totalSyncs++;
+                    this.performanceStats.totalTime += syncTime;
+                    this.performanceStats.avgTime = this.performanceStats.totalTime / this.performanceStats.totalSyncs;
+
+                    if (syncTime > 10) {
+                        console.warn(`[StateManager] setState('${key}') took ${syncTime.toFixed(2)}ms (slow)`);
+                    }
+
+                    return true;
+                } catch (error) {
+                    console.error('[StateManager] Failed to set state:', error);
+                    // Fallback to postMessage if localStorage fails
+                    return false;
+                }
+            },
+
+            // Get state from localStorage
+            getState(key) {
+                try {
+                    const storageKey = this.statePrefix + key;
+                    const item = localStorage.getItem(storageKey);
+                    return item ? JSON.parse(item) : null;
+                } catch (error) {
+                    console.error('[StateManager] Failed to get state:', error);
+                    return null;
+                }
+            },
+
+            // Set full application state
+            setFullState(appState) {
+                return this.setState('appState', appState);
+            },
+
+            // Clear all conductor state
+            clearAllState() {
+                const keys = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(this.statePrefix)) {
+                        keys.push(key);
+                    }
+                }
+                keys.forEach(key => localStorage.removeItem(key));
+                console.log(`[StateManager] Cleared ${keys.length} state items`);
+            },
+
+            // Get performance stats
+            getStats() {
+                return {
+                    ...this.performanceStats,
+                    avgTime: this.performanceStats.avgTime.toFixed(2) + 'ms'
+                };
+            }
+        };
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('conductorState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                Object.assign(AppState, state);
+                updateUIFromState();
+            }
+        }
+
+        // Save state to localStorage and sync with iframes
+        function saveState() {
+            localStorage.setItem('conductorState', JSON.stringify(AppState));
+            // NEW: Use DashboardStateManager for instant iframe sync
+            DashboardStateManager.setFullState(AppState);
+        }
+
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            if (AppState.settings.autoSave) {
+                saveState();
+                console.log('Auto-saved at', new Date().toLocaleTimeString());
+            }
+        }, 30000);
+
+        // Update UI from state
+        function updateUIFromState() {
+            document.getElementById('progressBar').style.width = AppState.currentPRD.progress + '%';
+            document.getElementById('progressPercentage').textContent = AppState.currentPRD.progress + '%';
+        }
+
+        // Pre-load a module in the background
+        function preloadModule(moduleId) {
+            if (ModuleCache.isLoaded(moduleId) || ModuleCache.isLoading(moduleId)) {
+                return;
+            }
+
+            const module = MODULES[moduleId];
+            if (!module) return;
+
+            ModuleCache.markLoading(moduleId);
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+
+            if (!iframe.src || iframe.src === 'about:blank') {
+                console.log(`Pre-loading module ${moduleId}: ${module.name}`);
+                iframe.src = module.file;
+                iframe.classList.add('preloaded');
+
+                iframe.onload = () => {
+                    ModuleCache.markLoaded(moduleId);
+                    // NEW: Use localStorage for instant state sync (replaces postMessage)
+                    DashboardStateManager.setFullState(AppState);
+                    console.log(`[Performance] State synced to preloaded module ${moduleId} via localStorage`)
+                };
+            }
+        }
+
+        // ===== AGGRESSIVE PRE-LOADING SYSTEM =====
+        // Pre-load progress tracking
+        const PreloadProgress = {
+            total: 0,
+            loaded: 0,
+            failed: 0,
+            startTime: null,
+
+            init(total) {
+                this.total = total;
+                this.loaded = 0;
+                this.failed = 0;
+                this.startTime = Date.now();
+            },
+
+            increment(success = true) {
+                if (success) {
+                    this.loaded++;
+                } else {
+                    this.failed++;
+                }
+                this.updateUI();
+            },
+
+            updateUI() {
+                const completed = this.loaded + this.failed;
+                const element = document.getElementById('preloadProgress');
+                if (element) {
+                    element.textContent = `Pre-loading modules: ${this.loaded}/${this.total}${this.failed > 0 ? ` (${this.failed} failed)` : ''}`;
+
+                    if (completed >= this.total) {
+                        const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+                        console.log(`[PreloadProgress] All modules processed in ${duration}s - ${this.loaded} loaded, ${this.failed} failed`);
+
+                        // Hide progress indicator after 1 second
+                        setTimeout(() => {
+                            element.style.opacity = '0';
+                            setTimeout(() => {
+                                element.style.display = 'none';
+                            }, 300);
+                        }, 1000);
+                    }
+                }
+            },
+
+            reset() {
+                const element = document.getElementById('preloadProgress');
+                if (element) {
+                    element.style.display = 'none';
+                    element.style.opacity = '0';
+                }
+            }
+        };
+
+        /**
+         * Aggressively pre-fetch all module HTML files and cache them in memory
+         * This eliminates iframe loading delays for instant module switching
+         */
+        async function aggressivePreloadAllModules() {
+            console.log('[AggressivePreload] Starting aggressive pre-load of all modules...');
+
+            PreloadProgress.init(MODULES.length);
+
+            // Show progress indicator
+            const progressElement = document.getElementById('preloadProgress');
+            if (progressElement) {
+                progressElement.style.display = 'block';
+                progressElement.style.opacity = '1';
+            }
+
+            // Fetch all modules in parallel
+            const fetchPromises = MODULES.map(async (module, index) => {
+                try {
+                    console.log(`[AggressivePreload] Fetching module ${index}: ${module.name}`);
+
+                    const response = await fetch(module.file, {
+                        method: 'GET',
+                        headers: {
+                            'Cache-Control': 'max-age=3600'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const html = await response.text();
+
+                    // Store in cache
+                    ModuleCache.setCache(index, html);
+
+                    console.log(`[AggressivePreload] Cached module ${index}: ${module.name} (${(html.length / 1024).toFixed(2)} KB)`);
+
+                    PreloadProgress.increment(true);
+
+                    return { success: true, moduleId: index, size: html.length };
+                } catch (error) {
+                    console.error(`[AggressivePreload] Failed to fetch module ${index}:`, error);
+                    PreloadProgress.increment(false);
+                    return { success: false, moduleId: index, error: error.message };
+                }
+            });
+
+            // Wait for all fetches to complete
+            const results = await Promise.all(fetchPromises);
+
+            // Calculate statistics
+            const successful = results.filter(r => r.success);
+            const failed = results.filter(r => !r.success);
+            const totalSize = successful.reduce((sum, r) => sum + (r.size || 0), 0);
+
+            console.log(`[AggressivePreload] Complete! ${successful.length}/${MODULES.length} modules cached, ${(totalSize / 1024).toFixed(2)} KB total`);
+
+            if (failed.length > 0) {
+                console.warn(`[AggressivePreload] ${failed.length} modules failed to load:`, failed);
+            }
+
+            return {
+                successful: successful.length,
+                failed: failed.length,
+                totalSize: totalSize
+            };
+        }
+
+
+        // Load module with caching and error handling
+        function loadModule(moduleId) {
+            const module = MODULES[moduleId];
+            if (!module) return Promise.reject(new Error('Invalid module ID'));
+
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+            const errorDiv = document.getElementById(`moduleError${moduleId}`);
+
+            // If already loaded, just show it
+            if (ModuleCache.isLoaded(moduleId)) {
+                console.log(`Module ${moduleId} loaded from cache`);
+                return Promise.resolve(iframe);
+            }
+
+            // NEW: Check if module HTML is pre-cached and use srcdoc for instant loading
+            if (ModuleCache.isCached(moduleId)) {
+                console.log(`[AggressivePreload] Using cached HTML for module ${moduleId} - instant load!`);
+                const cachedHTML = ModuleCache.getCache(moduleId);
+
+                return new Promise((resolve, reject) => {
+                    ModuleCache.markLoading(moduleId);
+
+                    const loadTimeout = setTimeout(() => {
+                        console.error(`Module ${moduleId} srcdoc load timeout`);
+                        showModuleError(moduleId);
+                        ModuleCache.loading.delete(moduleId);
+                        reject(new Error(`Module ${moduleId} srcdoc load timeout`));
+                    }, 5000); // Shorter timeout for cached content
+
+                    // Use srcdoc for instant rendering
+                    iframe.srcdoc = cachedHTML;
+
+                    iframe.onload = () => {
+                        clearTimeout(loadTimeout);
+                        ModuleCache.markLoaded(moduleId);
+                        hideModuleError(moduleId);
+
+                        // Sync state via localStorage
+                        DashboardStateManager.setFullState(AppState);
+                        console.log(`[AggressivePreload] Module ${moduleId} loaded instantly from cache (<100ms expected)`);
+                        resolve(iframe);
+                    };
+
+                    iframe.onerror = () => {
+                        clearTimeout(loadTimeout);
+                        console.error(`Module ${moduleId} srcdoc failed, falling back to src`);
+                        // Fall back to src loading
+                        iframe.removeAttribute('srcdoc');
+                        iframe.src = module.file;
+                    };
+                });
+            }
+
+            // If not loaded and not cached, load it now (fallback to traditional loading)
+            return new Promise((resolve, reject) => {
+                ModuleCache.markLoading(moduleId);
+
+                // Set a timeout for loading
+                const loadTimeout = setTimeout(() => {
+                    console.error(`Module ${moduleId} load timeout`);
+                    showModuleError(moduleId);
+                    ModuleCache.loading.delete(moduleId);
+                    reject(new Error(`Module ${moduleId} load timeout`));
+                }, 10000); // 10 second timeout
+
+                // Always set src if not the target file
+                const currentSrc = iframe.getAttribute('src');
+                if (!currentSrc || currentSrc === 'about:blank' || currentSrc !== module.file) {
+                    console.log(`Setting iframe ${moduleId} src to ${module.file}`);
+                    iframe.src = module.file;
+                }
+
+                iframe.onload = () => {
+                    clearTimeout(loadTimeout);
+
+                    // Check if the iframe actually loaded content
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (!iframeDoc || !iframeDoc.body || iframeDoc.body.innerHTML.trim() === '') {
+                            console.error(`Module ${moduleId} loaded but has no content`);
+                            showModuleError(moduleId);
+                            reject(new Error('Module loaded but empty'));
+                            return;
+                        }
+                    } catch (e) {
+                        // Cross-origin or security error - assume it loaded correctly
+                        console.log(`Module ${moduleId} loaded (cross-origin)`);
+                    }
+
+                    ModuleCache.markLoaded(moduleId);
+                    hideModuleError(moduleId);
+
+                    // NEW: Use localStorage for instant state sync (replaces postMessage)
+                    DashboardStateManager.setFullState(AppState);
+                    console.log(`[Performance] State synced to module ${moduleId} via localStorage`);
+                    resolve(iframe);
+                };
+
+                iframe.onerror = () => {
+                    clearTimeout(loadTimeout);
+                    console.error(`Module ${moduleId} failed to load`);
+                    showModuleError(moduleId);
+                    ModuleCache.loading.delete(moduleId);
+                    reject(new Error(`Module ${moduleId} failed to load`));
+                };
+
+                // Fallback for already loaded iframes
+                if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                    clearTimeout(loadTimeout);
+                    ModuleCache.markLoaded(moduleId);
+                    hideModuleError(moduleId);
+                    resolve(iframe);
+                }
+            });
+        }
+
+        // Show module error
+        function showModuleError(moduleId) {
+            const errorDiv = document.getElementById(`moduleError${moduleId}`);
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+
+            if (errorDiv) {
+                errorDiv.classList.add('active');
+            }
+            if (iframe) {
+                iframe.classList.add('error');
+            }
+        }
+
+        // Hide module error
+        function hideModuleError(moduleId) {
+            const errorDiv = document.getElementById(`moduleError${moduleId}`);
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+
+            if (errorDiv) {
+                errorDiv.classList.remove('active');
+            }
+            if (iframe) {
+                iframe.classList.remove('error');
+            }
+        }
+
+        // Retry loading a module
+        function retryModule(moduleId) {
+            const iframe = document.getElementById(`moduleFrame${moduleId}`);
+            const errorDiv = document.getElementById(`moduleError${moduleId}`);
+
+            // Clear error state
+            hideModuleError(moduleId);
+
+            // Remove from cache
+            ModuleCache.loaded.delete(moduleId);
+            ModuleCache.loading.delete(moduleId);
+
+            // Clear iframe src to force reload
+            iframe.src = 'about:blank';
+
+            // Show loading
+            showLoading(MODULES[moduleId].name, moduleId);
+
+            // Attempt to reload
+            setTimeout(() => {
+                navigateToModule(moduleId);
+            }, 500);
+        }
+
+        // Navigation with caching
+        function navigateToModule(moduleNumber) {
+            console.log('[Dashboard] navigateToModule called:', moduleNumber);
+
+            const module = MODULES[moduleNumber];
+            if (!module) {
+                console.error('[Dashboard] Module not found:', moduleNumber);
+                return;
+            }
+
+            console.log('[Dashboard] Loading module:', module);
+
+            // Show loading with module name
+            showLoading(module.name, moduleNumber);
+
+            AppState.currentModule = moduleNumber;
+
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === moduleNumber);
+            });
+
+            // Update breadcrumb
+            updateBreadcrumb(['Home', module.name]);
+
+            // Hide home, show module container
+            document.getElementById('dashboardHome').style.display = 'none';
+            document.getElementById('moduleContainer').style.display = 'block';
+
+            // Hide all other iframes and errors
+            document.querySelectorAll('.module-frame').forEach(frame => {
+                frame.classList.remove('active', 'visible', 'loaded');
+            });
+            document.querySelectorAll('.module-error').forEach(error => {
+                error.classList.remove('active');
+            });
+
+            // Load and show the selected module
+            console.log('[Dashboard] Calling loadModule for:', moduleNumber);
+            loadModule(moduleNumber).then((iframe) => {
+                console.log('[Dashboard] loadModule promise resolved');
+                // Smooth transition
+                setTimeout(() => {
+                    console.log(`[Dashboard] Adding active class to module ${moduleNumber}`);
+                    console.log('[Dashboard] Iframe element:', iframe);
+                    console.log('[Dashboard] Iframe src:', iframe.src);
+                    iframe.classList.add('active', 'loaded', 'visible');
+                    console.log('[Dashboard] Iframe classes:', iframe.className);
+
+                    // Debug: Log iframe properties
+                    console.log(`Iframe ${moduleNumber} state:`, {
+                        src: iframe.src,
+                        width: iframe.offsetWidth,
+                        height: iframe.offsetHeight,
+                        display: window.getComputedStyle(iframe).display,
+                        visibility: window.getComputedStyle(iframe).visibility,
+                        opacity: window.getComputedStyle(iframe).opacity
+                    });
+
+                    hideLoading(moduleNumber);
+
+                    // Pre-load adjacent modules
+                    preloadAdjacentModules(moduleNumber);
+                }, 100);
+            }).catch((error) => {
+                console.error('Error loading module:', error);
+                hideLoading(moduleNumber);
+                // Error UI will already be shown by loadModule
+            });
+
+            // Fallback: hide loading after 10 seconds
+            setTimeout(() => {
+                hideLoading(moduleNumber);
+            }, 10000);
+
+            saveState();
+        }
+
+        // Pre-load adjacent modules for faster navigation
+        function preloadAdjacentModules(currentModule) {
+            // Pre-load previous and next modules
+            const toPreload = [currentModule - 1, currentModule + 1];
+
+            toPreload.forEach(moduleId => {
+                if (moduleId >= 0 && moduleId < MODULES.length) {
+                    if (ModuleCache.shouldPreload(moduleId, currentModule)) {
+                        setTimeout(() => preloadModule(moduleId), 500);
+                    }
+                }
+            });
+        }
+
+        function showHome() {
+            AppState.currentModule = 'home';
+
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Update breadcrumb
+            updateBreadcrumb(['Home']);
+
+            // Show home, hide module
+            document.getElementById('dashboardHome').style.display = 'grid';
+            document.getElementById('moduleContainer').style.display = 'none';
+
+            saveState();
+        }
+
+        // Breadcrumb
+        function updateBreadcrumb(items) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = items.map((item, index) => {
+                const isLast = index === items.length - 1;
+                const isHome = item === 'Home';
+                return `
+                    <a href="#" class="breadcrumb-item ${isLast ? 'active' : ''}"
+                       onclick="${isHome ? 'showHome()' : ''}; return false;">
+                        ${item}
+                    </a>
+                    ${!isLast ? '<span class="breadcrumb-separator">›</span>' : ''}
+                `;
+            }).join('');
+        }
+
+        // FAB Menu
+        function toggleFabMenu() {
+            const menu = document.getElementById('fabMenu');
+            menu.classList.toggle('open');
+        }
+
+        // Close FAB menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const fabMenu = document.getElementById('fabMenu');
+            const fab = document.querySelector('.fab');
+            if (!fabMenu.contains(e.target) && !fab.contains(e.target)) {
+                fabMenu.classList.remove('open');
+            }
+        });
+
+        // User Profile Dropdown
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // Load user info from AuthClient
+        function loadUserInfo() {
+            if (typeof AuthClient !== 'undefined') {
+                const authClient = new AuthClient();
+                const user = authClient.getCurrentUser();
+
+                if (user) {
+                    // Update user avatar with initials
+                    const userAvatar = document.getElementById('userAvatar');
+                    const initials = getInitials(user);
+                    userAvatar.textContent = initials;
+
+                    // Update user info in dropdown
+                    document.getElementById('userName').textContent = getUserDisplayName(user);
+                    document.getElementById('userEmail').textContent = user.email || 'user@example.com';
+                    document.getElementById('userRole').textContent = user.role || 'user';
+
+                    console.log('[Dashboard] User info loaded:', user);
+                } else {
+                    console.warn('[Dashboard] No user info available');
+                }
+            }
+        }
+
+        // Get user initials for avatar
+        function getInitials(user) {
+            if (user.firstName && user.lastName) {
+                return (user.firstName[0] + user.lastName[0]).toUpperCase();
+            } else if (user.username) {
+                return user.username.substring(0, 2).toUpperCase();
+            } else if (user.email) {
+                return user.email.substring(0, 2).toUpperCase();
+            }
+            return '👤';
+        }
+
+        // Get user display name
+        function getUserDisplayName(user) {
+            if (user.firstName && user.lastName) {
+                return `${user.firstName} ${user.lastName}`;
+            } else if (user.username) {
+                return user.username;
+            } else if (user.email) {
+                return user.email.split('@')[0];
+            }
+            return 'User';
+        }
+
+        // View profile (placeholder)
+        function viewProfile() {
+            toast.info('User profile page coming soon!');
+            toggleUserDropdown();
+        }
+
+        // Handle logout
+        async function handleLogout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                try {
+                    if (typeof AuthClient !== 'undefined') {
+                        const authClient = new AuthClient();
+                        await authClient.logout();
+                    } else {
+                        window.location.href = '/login.html?logout=true';
+                    }
+                } catch (error) {
+                    console.error('[Dashboard] Logout error:', error);
+                    window.location.href = '/login.html?logout=true';
+                }
+            }
+        }
+
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const userDropdown = document.getElementById('userDropdown');
+            const userProfile = e.target.closest('.user-profile');
+
+            if (userDropdown && !userProfile && userDropdown.classList.contains('open')) {
+                userDropdown.classList.remove('open');
+            }
+        });
+
+        // Load user info on page load
+        document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+        // Listen for auth user loaded event
+        window.addEventListener('authuser:loaded', (e) => {
+            if (e.detail && e.detail.user) {
+                loadUserInfo();
+            }
+        });
+
+        // Notifications
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // Close notifications when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notificationDropdown');
+            const button = e.target.closest('.icon-button');
+            if (!dropdown.contains(e.target) && !button) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // Settings
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        }
+
+        function toggleDarkMode() {
+            const toggle = document.getElementById('darkModeToggle');
+            toggle.classList.toggle('active');
+            AppState.settings.darkMode = toggle.classList.contains('active');
+            saveState();
+            // Implement dark mode styling here
+            toast.info('Dark mode coming soon!');
+        }
+
+        function toggleEmailNotifications() {
+            const toggle = document.getElementById('emailNotifications');
+            toggle.classList.toggle('active');
+            AppState.settings.emailNotifications = toggle.classList.contains('active');
+            saveState();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(AppState, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `conductor-export-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        Object.assign(AppState, imported);
+                        saveState();
+                        updateUIFromState();
+                        toast.success('Data imported successfully!');
+                    } catch (err) {
+                        alert('Error importing data: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Search
+        function handleSearch(event) {
+            const query = event.target.value.toLowerCase();
+            if (query.length < 2) return;
+
+            // Implement search logic here
+            console.log('Searching for:', query);
+        }
+
+        // Quick Actions
+        function showAddRequirement() {
+            alert('Add Requirement modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showInviteStakeholder() {
+            alert('Invite Stakeholder modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showStartDiscussion() {
+            alert('Start Discussion modal coming soon!');
+            toggleFabMenu();
+        }
+
+        function showViewMetrics() {
+            alert('View Metrics dashboard coming soon!');
+            toggleFabMenu();
+        }
+
+        // Help
+        function openHelp() {
+            alert('Context-sensitive help system:\n\n• Video Tutorials\n• Documentation\n• Example PRDs\n• Contact Support\n\nOpening help center...');
+        }
+
+        function openVideoTutorials() {
+            window.open('https://example.com/tutorials', '_blank');
+        }
+
+        function openDocumentation() {
+            window.open('https://example.com/docs', '_blank');
+        }
+
+        function openExamplePRDs() {
+            window.open('https://example.com/examples', '_blank');
+        }
+
+        function contactSupport() {
+            window.open('mailto:support@conductor.io', '_blank');
+        }
+
+        // Loading
+        // Show skeleton screen and progress bar
+        function showLoading(moduleName = 'module', moduleId = null) {
+            // Show top progress bar
+            const progressBar = document.getElementById('topProgressBar');
+            const progressFill = document.getElementById('topProgressFill');
+            progressBar.classList.add('active');
+            progressFill.style.width = '0%';
+
+            // Animate progress
+            setTimeout(() => { progressFill.style.width = '30%'; }, 100);
+            setTimeout(() => { progressFill.style.width = '60%'; }, 300);
+
+            // Show skeleton screen if moduleId is provided
+            if (moduleId !== null && moduleId >= 0 && moduleId <= 6) {
+                // Hide all skeleton screens first
+                document.querySelectorAll('.skeleton-screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+
+                // Show the specific skeleton screen
+                const skeleton = document.getElementById(`skeletonScreen${moduleId}`);
+                if (skeleton) {
+                    skeleton.classList.add('active');
+                }
+            }
+        }
+
+        function hideLoading(moduleId = null) {
+            // Complete and hide progress bar
+            const progressBar = document.getElementById('topProgressBar');
+            const progressFill = document.getElementById('topProgressFill');
+            progressFill.style.width = '100%';
+
+            setTimeout(() => {
+                progressBar.classList.remove('active');
+                progressFill.style.width = '0%';
+            }, 300);
+
+            // Hide skeleton screen
+            if (moduleId !== null) {
+                const skeleton = document.getElementById(`skeletonScreen${moduleId}`);
+                if (skeleton) {
+                    skeleton.classList.remove('active');
+                }
+            } else {
+                // Hide all skeleton screens
+                document.querySelectorAll('.skeleton-screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+            }
+
+            // Hide fallback overlay
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + K - Search
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('globalSearch').focus();
+            }
+
+            // Cmd/Ctrl + N - New Requirement
+            if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+                e.preventDefault();
+                showAddRequirement();
+            }
+
+            // Cmd/Ctrl + , - Settings
+            if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+                e.preventDefault();
+                toggleSettings();
+            }
+
+            // Escape - Close modals
+            if (e.key === 'Escape') {
+                document.getElementById('notificationDropdown').classList.remove('open');
+                document.getElementById('fabMenu').classList.remove('open');
+                document.getElementById('settingsPanel').classList.remove('open');
+            }
+        });
+
+        // Sync state with all loaded iframes
+        function syncStateWithIframes() {
+            const startTime = performance.now();
+            // NEW: Single localStorage update syncs to ALL iframes instantly
+            DashboardStateManager.setFullState(AppState);
+            const syncTime = performance.now() - startTime;
+            console.log(`[Performance] Synced state to ${ModuleCache.loaded.size} modules in ${syncTime.toFixed(2)}ms`);
+        }
+
+        // Listen for messages from iframes
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'UPDATE_STATE') {
+                Object.assign(AppState, event.data.state);
+                saveState();
+                updateUIFromState();
+
+                // Sync the updated state with all other loaded iframes
+                syncStateWithIframes();
+            } else if (event.data.type === 'MODULE_READY') {
+                console.log(`Module ${event.data.moduleId} is ready`);
+            }
+        });
+
+        // Warn before leaving with unsaved changes
+        window.addEventListener('beforeunload', (e) => {
+            if (AppState.settings.autoSave) return;
+
+            e.preventDefault();
+            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+
+            // Show resume message if state exists
+            const saved = localStorage.getItem('conductorState');
+            if (saved) {
+                console.log('Resuming where you left off...');
+            }
+
+            // AGGRESSIVE PRE-LOADING: Load ALL modules immediately in parallel
+            setTimeout(() => {
+                console.log('[AggressivePreload] Triggering aggressive pre-load of ALL 7 modules...');
+                aggressivePreloadAllModules().then((stats) => {
+                    console.log(`[AggressivePreload] Pre-loading complete:`, stats);
+                    console.log(`[AggressivePreload] Module switching should now be instant (<100ms)`);
+                }).catch((error) => {
+                    console.error('[AggressivePreload] Pre-loading encountered errors:', error);
+                });
+            }, 500); // Start immediately after DOM is ready
+
+            // Add browser cache hints via link preload
+            addCacheHints();
+        });
+
+        // Add cache hints for module files
+        function addCacheHints() {
+            const head = document.head;
+
+            MODULES.forEach((module, index) => {
+                // Add preconnect for faster loading
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = module.file;
+                link.as = 'document';
+
+                // Prioritize first few modules
+                if (index <= 2) {
+                    link.setAttribute('importance', 'high');
+                }
+
+                head.appendChild(link);
+            });
+
+            console.log('Cache hints added for all modules');
+        }
+
+        // Simulate live updates
+        setInterval(() => {
+            // Update notification count randomly
+            const notificationBadge = document.querySelector('.icon-badge');
+            const currentCount = parseInt(notificationBadge.textContent);
+            if (Math.random() > 0.8) {
+                notificationBadge.textContent = currentCount + 1;
+            }
+        }, 10000);
+
+        // Developer Tools - Expose to console
+        window.ConductorDebug = {
+            getModuleCache: () => ModuleCache,
+            getPerformanceStats: () => ModuleCache.getPerformanceStats(),
+            clearCache: () => {
+                ModuleCache.clearCache();
+                // Clear iframe sources
+                document.querySelectorAll('.module-frame').forEach(frame => {
+                    frame.src = 'about:blank';
+                });
+                console.log('All caches cleared. Reload modules to see fresh content.');
+            },
+            preloadAll: () => {
+                MODULES.forEach((module, index) => {
+                    setTimeout(() => preloadModule(index), index * 500);
+                });
+                console.log('Pre-loading all modules...');
+            },
+            showLoadedModules: () => {
+                console.log('Loaded modules:', Array.from(ModuleCache.loaded).map(id => `${id}: ${MODULES[id].name}`));
+            },
+            getAppState: () => AppState,
+            version: '2.0.0 - Optimized with Caching'
+        };
+
+        // Collaboration Feed Management
+        const CollaborationFeed = {
+            events: [],
+            maxEvents: 10,
+            minimized: false,
+            socket: null, // WebSocket connection
+
+            teams: {
+                sales: { name: 'Sales Team', users: ['Sarah Chen', 'Mark Davis', 'Lisa Wang'] },
+                engineering: { name: 'Engineering Team', users: ['Alex Kumar', 'Jordan Lee', 'Taylor Swift'] },
+                marketing: { name: 'Marketing Team', users: ['Emily Brown', 'Chris Martin', 'Diana Prince'] },
+                product: { name: 'Product Team', users: ['John Chen', 'Maya Patel', 'Sam Wilson'] },
+                business: { name: 'Business Team', users: ['Michael Scott', 'Dwight Schrute', 'Pam Beesly'] }
+            },
+
+            actions: [
+                { team: 'sales', action: 'approved requirement', requirement: 'One-Click Checkout' },
+                { team: 'engineering', action: 'added technical concern to', requirement: 'Payment Gateway Integration' },
+                { team: 'marketing', action: 'updated acceptance criteria for', requirement: 'Trust Badge Display' },
+                { team: 'product', action: 'changed priority to "critical" for', requirement: 'Mobile Checkout Flow' },
+                { team: 'sales', action: 'marked as "Aligned" for', requirement: 'Shipping Calculator' },
+                { team: 'engineering', action: 'started implementation of', requirement: 'API Integration' },
+                { team: 'marketing', action: 'added stakeholder feedback to', requirement: 'Security Indicators' },
+                { team: 'product', action: 'created traceability link for', requirement: 'Analytics Tracking' },
+                { team: 'sales', action: 'requested changes on', requirement: 'Checkout UX' },
+                { team: 'engineering', action: 'completed code review for', requirement: 'Payment Processing' }
+            ],
+
+            addEvent(team, user, action, requirement) {
+                const event = {
+                    id: Date.now(),
+                    team: team,
+                    user: user,
+                    action: action,
+                    requirement: requirement,
+                    timestamp: new Date(),
+                    isNew: true
+                };
+
+                this.events.unshift(event);
+                if (this.events.length > this.maxEvents) {
+                    this.events.pop();
+                }
+
+                this.renderEvent(event);
+
+                // Remove "new" flag after animation
+                setTimeout(() => {
+                    event.isNew = false;
+                    const element = document.getElementById(`feed-${event.id}`);
+                    if (element) {
+                        element.classList.remove('new');
+                    }
+                }, 3000);
+            },
+
+            renderEvent(event) {
+                const feedContent = document.getElementById('feedContent');
+                const initials = event.user.split(' ').map(n => n[0]).join('');
+
+                const eventEl = document.createElement('div');
+                eventEl.id = `feed-${event.id}`;
+                eventEl.className = `feed-item ${event.team} ${event.isNew ? 'new' : ''}`;
+                eventEl.innerHTML = `
+                    <div class="feed-avatar ${event.team}">${initials}</div>
+                    <div class="feed-details">
+                        <div class="feed-user">${event.user}</div>
+                        <div class="feed-team">${this.teams[event.team].name}</div>
+                        <div class="feed-action">${event.action} <strong>${event.requirement}</strong></div>
+                        <div class="feed-timestamp">${this.formatTime(event.timestamp)}</div>
+                    </div>
+                `;
+
+                feedContent.insertBefore(eventEl, feedContent.firstChild);
+
+                // Remove oldest if exceeding max
+                const items = feedContent.querySelectorAll('.feed-item');
+                if (items.length > this.maxEvents) {
+                    items[items.length - 1].remove();
+                }
+            },
+
+            formatTime(date) {
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000); // seconds
+
+                if (diff < 60) return '< 1m';
+                if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+                return `${Math.floor(diff / 86400)}d`;
+            },
+
+            simulateRandomEvent() {
+                const randomAction = this.actions[Math.floor(Math.random() * this.actions.length)];
+                const team = randomAction.team;
+                const users = this.teams[team].users;
+                const randomUser = users[Math.floor(Math.random() * users.length)];
+
+                this.addEvent(team, randomUser, randomAction.action, randomAction.requirement);
+            },
+
+            startSimulation() {
+                // Add initial events with staggered timestamps
+                const initialEvents = [
+                    { team: 'sales', user: 'Sarah Chen', action: 'approved requirement', requirement: 'One-Click Checkout', delay: 300000 },
+                    { team: 'engineering', user: 'Alex Kumar', action: 'started implementation of', requirement: 'Payment Gateway API', delay: 120000 },
+                    { team: 'product', user: 'John Chen', action: 'updated acceptance criteria for', requirement: 'Mobile Checkout Flow', delay: 60000 }
+                ];
+
+                initialEvents.forEach((event, index) => {
+                    const timestamp = new Date(Date.now() - event.delay);
+                    const evt = {
+                        id: Date.now() - index,
+                        team: event.team,
+                        user: event.user,
+                        action: event.action,
+                        requirement: event.requirement,
+                        timestamp: timestamp,
+                        isNew: false
+                    };
+                    this.events.push(evt);
+                    this.renderEvent(evt);
+                });
+
+                // Initialize WebSocket connection for real-time events
+                this.initializeWebSocket();
+
+                // Simulate new events every 8-15 seconds
+                setInterval(() => {
+                    this.simulateRandomEvent();
+                }, Math.random() * 7000 + 8000);
+            },
+
+            initializeWebSocket() {
+                // Check if socket.io is available
+                if (typeof io === 'undefined') {
+                    console.log('Socket.io not available, using simulation mode only');
+                    return;
+                }
+
+                try {
+                    // Connect to WebSocket server
+                    this.socket = io();
+
+                    // BRD Events
+                    this.socket.on('brd:created', (data) => {
+                        this.addEvent('business', data.createdBy, 'created BRD', data.title);
+                    });
+
+                    this.socket.on('brd:approved', (data) => {
+                        this.addEvent('business', data.stakeholderName, 'approved BRD', data.brdId);
+                    });
+
+                    this.socket.on('brd:rejected', (data) => {
+                        this.addEvent('business', data.stakeholderName, 'rejected BRD', data.brdId);
+                    });
+
+                    this.socket.on('brd:fully_approved', (data) => {
+                        this.addEvent('business', 'Team', 'fully approved BRD', data.title);
+                    });
+
+                    // PRD Events
+                    this.socket.on('prd:created', (data) => {
+                        this.addEvent('product', data.createdBy, 'created PRD', data.title);
+                    });
+
+                    this.socket.on('prd:generated', (data) => {
+                        this.addEvent('product', data.generatedBy, 'generated PRD from BRD', data.title);
+                    });
+
+                    this.socket.on('prd:aligned', (data) => {
+                        this.addEvent('product', data.alignedBy, 'aligned feature', data.featureName);
+                    });
+
+                    this.socket.on('prd:locked', (data) => {
+                        this.addEvent('product', data.lockedBy, 'locked PRD', data.reason);
+                    });
+
+                    this.socket.on('prd:feature_added', (data) => {
+                        this.addEvent('product', data.addedBy, 'added feature', data.featureName);
+                    });
+
+                    this.socket.on('prd:story_added', (data) => {
+                        this.addEvent('product', data.addedBy, 'added user story', data.storyTitle);
+                    });
+
+                    // Engineering Design Events
+                    this.socket.on('design:submitted', (data) => {
+                        this.addEvent('engineering', data.createdBy, 'submitted design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:approved', (data) => {
+                        this.addEvent('engineering', data.approvedBy, 'approved design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:rejected', (data) => {
+                        this.addEvent('engineering', data.rejectedBy, 'rejected design for', data.team + ' team');
+                    });
+
+                    this.socket.on('design:conflict_detected', (data) => {
+                        this.addEvent('engineering', data.detectedBy, 'detected conflict in', data.team + ' design');
+                    });
+
+                    // Conflict Events
+                    this.socket.on('conflict:created', (data) => {
+                        this.addEvent('engineering', data.raisedByName, 'raised concern about', data.title);
+                    });
+
+                    this.socket.on('conflict:comment_added', (data) => {
+                        this.addEvent('engineering', data.addedByName, 'commented on conflict', data.conflictId);
+                    });
+
+                    this.socket.on('conflict:voted', (data) => {
+                        this.addEvent('engineering', data.votedByName, 'voted on conflict resolution', data.conflictId);
+                    });
+
+                    this.socket.on('conflict:resolved', (data) => {
+                        this.addEvent('product', 'Team', 'resolved conflict', data.resolution);
+                    });
+
+                    // Change Log Events
+                    this.socket.on('change:logged', (data) => {
+                        this.addEvent('product', 'System', 'logged change in', data.item + ' (' + data.phase + ')');
+                    });
+
+                    this.socket.on('change:approved', (data) => {
+                        this.addEvent('product', data.approvedBy, 'approved change', data.changeId);
+                    });
+
+                    this.socket.on('change:rejected', (data) => {
+                        this.addEvent('product', data.rejectedBy, 'rejected change', data.changeId);
+                    });
+
+                    // Presence Events
+                    this.socket.on('user:joined', (data) => {
+                        console.log('User joined:', data.username);
+                    });
+
+                    this.socket.on('user:left', (data) => {
+                        console.log('User left:', data.username);
+                    });
+
+                    // Connection events
+                    this.socket.on('connect', () => {
+                        console.log('Connected to WebSocket server');
+                        // Join default project room
+                        this.socket.emit('join:project', {
+                            projectId: 'default',
+                            userId: 'dashboard-user',
+                            username: 'Dashboard'
+                        });
+                    });
+
+                    this.socket.on('disconnect', () => {
+                        console.log('Disconnected from WebSocket server');
+                    });
+
+                    this.socket.on('connect_error', (error) => {
+                        console.log('WebSocket connection error:', error.message);
+                    });
+
+                    console.log('WebSocket event listeners initialized');
+                } catch (error) {
+                    console.error('Error initializing WebSocket:', error);
+                }
+            }
+        };
+
+        function toggleCollaborationFeed() {
+            const feed = document.getElementById('collaborationFeed');
+            CollaborationFeed.minimized = !CollaborationFeed.minimized;
+            feed.classList.toggle('minimized');
+
+            const button = feed.querySelector('.feed-minimize');
+            button.textContent = CollaborationFeed.minimized ? '+' : '−';
+        }
+
+        console.log('%c🎯 Project Conductor Dashboard v2.0.0', 'color: #2a5298; font-size: 16px; font-weight: bold;');
+        console.log('%cOptimizations enabled: Module pre-loading, caching, lazy loading', 'color: #2ecc71; font-size: 12px;');
+        console.log('%cType ConductorDebug for developer tools', 'color: #7f8c8d; font-size: 11px;');
+
+        // Start collaboration feed simulation after DOM load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => CollaborationFeed.startSimulation(), 2000);
+            });
+        } else {
+            setTimeout(() => CollaborationFeed.startSimulation(), 2000);
+        }
+
+        // ===== Agent Activity Feed Testing Functions =====
+
+        /**
+         * Test a single agent event
+         */
+        function testAgentActivity() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                return;
+            }
+
+            const agentTypes = ['business', 'quality', 'security', 'engineering', 'product', 'design', 'test'];
+            const eventTypes = ['started', 'progress', 'completed', 'conflict_detected', 'paused', 'error'];
+            const messages = {
+                started: ['started analyzing requirements', 'began processing task', 'initialized workflow'],
+                progress: ['is analyzing data', 'processing information', 'validating results'],
+                completed: ['completed successfully', 'finished analysis', 'task completed'],
+                conflict_detected: ['detected a security vulnerability', 'found a conflict', 'identified an issue'],
+                paused: ['paused due to dependency', 'waiting for approval', 'paused workflow'],
+                error: ['encountered an error', 'failed to process', 'operation failed']
+            };
+
+            // Random selections
+            const agentType = agentTypes[Math.floor(Math.random() * agentTypes.length)];
+            const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+            const messageOptions = messages[eventType];
+            const message = messageOptions[Math.floor(Math.random() * messageOptions.length)];
+
+            // Simulate the event
+            window.agentActivityFeed.simulateEvent(
+                agentType,
+                eventType,
+                `${window.agentActivityFeed.getAgentName(agentType)} ${message}`
+            );
+
+            console.log(`[Test] Simulated ${eventType} event for ${agentType} agent`);
+        }
+
+        /**
+         * Start the demo mode with multiple sequential events
+         */
+        function startAgentDemo() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet. Please wait a moment and try again.');
+                return;
+            }
+
+            window.agentActivityFeed.startDemoMode();
+            alert('Agent demo mode started! Watch the activity feed for simulated agent actions.');
+            console.log('[Demo] Started agent activity demo mode');
+        }
+
+        /**
+         * Clear the agent activity feed
+         */
+        function clearAgentActivity() {
+            if (!window.agentActivityFeed) {
+                alert('Agent Activity Feed not initialized yet.');
+                return;
+            }
+
+            window.agentActivityFeed.clearFeed();
+            console.log('[Test] Cleared agent activity feed');
+        }
+
+        /**
+         * Test conflict detection (Component 1.4)
+         */
+        function testConflictDetection(severity = 'high') {
+            if (!window.conflictHandler) {
+                alert('Conflict Handler not initialized yet. Retrying in 1 second...');
+                setTimeout(() => testConflictDetection(severity), 1000);
+                return;
+            }
+
+            window.conflictHandler.simulateConflict(severity);
+            console.log(`[Test] Simulated ${severity} severity conflict`);
+        }
+
+        /**
+         * Test workflow resume (Component 1.4)
+         */
+        function testWorkflowResume() {
+            if (!window.conflictHandler) {
+                alert('Conflict Handler not initialized yet.');
+                return;
+            }
+
+            // Simulate workflow resume event
+            if (window.conflictHandler.socket) {
+                window.conflictHandler.handleWorkflowResumed({
+                    timestamp: Date.now(),
+                    reason: 'Test resume'
+                });
+            } else {
+                // Manual resume
+                window.conflictHandler.handleWorkflowResumed({
+                    timestamp: Date.now(),
+                    reason: 'Test resume'
+                });
+            }
+
+            console.log('[Test] Simulated workflow resume');
+        }
+
+        // ===== MINIMALIST DASHBOARD - First Principles =====
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const agentFeed = document.getElementById('agentActivityFeed');
+            const feedHeader = agentFeed.querySelector('.activity-feed-header');
+            const feedContent = agentFeed.querySelector('.activity-feed-content');
+            const showMoreBtn = document.getElementById('activityShowMoreBtn');
+
+            // Header click to toggle collapsed state
+            feedHeader.addEventListener('click', () => {
+                agentFeed.classList.toggle('collapsed');
+            });
+
+            // Show more button functionality
+            showMoreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                feedContent.classList.toggle('show-all');
+                showMoreBtn.textContent = feedContent.classList.contains('show-all')
+                    ? 'Show less ↑'
+                    : 'Show more ↓';
+            });
+
+            // Observer to show/hide "Show more" button based on item count
+            const observer = new MutationObserver(() => {
+                const itemCount = feedContent.querySelectorAll('.activity-item').length;
+                showMoreBtn.style.display = itemCount > 3 ? 'block' : 'none';
+            });
+
+            observer.observe(feedContent, { childList: true, subtree: true });
+        });
+    </script>
+
+    <!-- Demo Walkthrough System -->
+    <script src="demo-walkthrough.js"></script>
+
+    <!-- Demo Journey Controller -->
+    <script src="demo-journey.js"></script>
+
+    <!-- Agent Activity Feed (NEW - Component 1.1) -->
+    <script src="/public/js/activity-feed.js"></script>
+
+    <!-- Conflict Handler (NEW - Component 1.4) -->
+    <script src="/public/js/conflict-handler.js"></script>
+
+    <!-- Session Management (NEW - Component 4.5) -->
+    <script src="/public/js/auth-client.js"></script>
+    <script src="/public/js/session-manager.js"></script>
+    <script src="/public/js/activity-tracker.js"></script>
+
+    <!-- Initialize Session Management -->
+    <script>
+        // Initialize auth client globally
+        window.authClient = new AuthClient();
+
+        // Auto-start session management if authenticated
+        if (window.authClient.isAuthenticated()) {
+            console.log('[Dashboard] User authenticated, initializing session management');
+
+            // Initialize session manager
+            window.sessionManager = new SessionManager(window.authClient);
+            window.sessionManager.startMonitoring();
+
+            // Initialize activity tracker
+            window.activityTracker = new ActivityTracker(window.sessionManager, {
+                inactivityTimeout: 30 * 60 * 1000, // 30 minutes
+                warningTime: 5 * 60 * 1000, // 5 minutes warning
+            });
+            window.activityTracker.start();
+
+            console.log('[Dashboard] Session management active');
+        } else {
+            console.log('[Dashboard] User not authenticated, session management inactive');
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.sessionManager) {
+                window.sessionManager.stopMonitoring();
+            }
+            if (window.activityTracker) {
+                window.activityTracker.stop();
+            }
+        });
+    </script>
+
+    <!-- Demo Mode Management -->
+    <script>
+        // Demo Data Loader
+        function loadDemoData() {
+            const demoDataRaw = sessionStorage.getItem('demo_data');
+            if (!demoDataRaw) return null;
+            try {
+                return JSON.parse(demoDataRaw);
+            } catch (e) {
+                console.error('Failed to parse demo data:', e);
+                return null;
+            }
+        }
+
+        // Populate Dashboard with Demo Data
+        function populateDashboardWithDemoData(demoData) {
+            if (!demoData) return;
+            console.log('[Demo] Populating dashboard with:', demoData);
+
+            // Update project info from first demo project
+            if (demoData.projects && demoData.projects.length > 0) {
+                const project = demoData.projects[0];
+                const summaryValues = document.querySelectorAll('.summary-value');
+                if (summaryValues[0]) summaryValues[0].textContent = project.title;
+                if (summaryValues[1]) {
+                    summaryValues[1].textContent = `${project.health_score}% Complete`;
+                    summaryValues[1].style.color = project.health_score > 70 ? '#2ecc71' : '#f39c12';
+                }
+                if (summaryValues[2]) summaryValues[2].textContent = project.owner.name;
+
+                // Populate team members from first project
+                if (project.team && project.team.length > 0) {
+                    populateTeamMembers(project.team);
+                }
+            }
+
+            // Update progress from milestones
+            if (demoData.milestones) {
+                const completed = demoData.milestones.filter(m => m.status === 'completed').length;
+                const total = demoData.milestones.length;
+                const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressPercentage');
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (progressText) progressText.textContent = `${percent}%`;
+            }
+
+            // Populate recent activity from comments
+            if (demoData.comments && demoData.comments.length > 0) {
+                populateRecentActivity(demoData.comments);
+            }
+
+            // Update action items from approvals
+            if (demoData.approvals) {
+                populateActionItems(demoData.approvals);
+            }
+        }
+
+        // Helper: Populate team members
+        function populateTeamMembers(teamMembers) {
+            const activityList = document.querySelector('.activity-list');
+            if (!activityList || teamMembers.length === 0) return;
+
+            // Clear existing items
+            activityList.innerHTML = '';
+
+            // Add team member activities
+            teamMembers.slice(0, 5).forEach((member, index) => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.style.borderLeftColor = '#3498db';
+
+                const timeAgo = ['Just now', '2 mins ago', '1 hour ago', '3 hours ago', '1 day ago'][index % 5];
+                const activities = [
+                    'joined the project',
+                    'updated requirements',
+                    'approved milestone',
+                    'added feedback',
+                    'reviewed design'
+                ];
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">
+                        <img src="${member.avatar}" alt="${member.name}" style="width: 32px; height: 32px; border-radius: 50%;">
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            <strong>${member.name}</strong> ${activities[index % activities.length]}
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+
+                activityList.appendChild(activityItem);
+            });
+
+            console.log(`[Demo] Populated ${teamMembers.length} team members`);
+        }
+
+        // Helper: Populate recent activity from comments
+        function populateRecentActivity(comments) {
+            const activityList = document.querySelector('.activity-list');
+            if (!activityList || comments.length === 0) return;
+
+            // If team members already populated, append comments
+            comments.slice(0, 3).forEach(comment => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.style.borderLeftColor = '#9b59b6';
+
+                const timeAgo = new Date(comment.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                activityItem.innerHTML = `
+                    <div class="activity-icon">💬</div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            <strong>${comment.user.name}</strong> commented: "${comment.content.substring(0, 50)}${comment.content.length > 50 ? '...' : ''}"
+                        </div>
+                        <div class="activity-time">${timeAgo}</div>
+                    </div>
+                `;
+
+                activityList.appendChild(activityItem);
+            });
+        }
+
+        // Helper: Populate action items from approvals
+        function populateActionItems(approvals) {
+            const actionItemsContainer = document.querySelector('.action-items');
+            if (!actionItemsContainer) return;
+
+            const pending = approvals.filter(a => a.status === 'pending');
+            const approved = approvals.filter(a => a.status === 'approved');
+            const atRisk = pending.filter(a => a.hours_elapsed > a.sla_hours * 0.75);
+
+            // Clear existing action items
+            actionItemsContainer.innerHTML = '';
+
+            // Critical: SLA at risk
+            if (atRisk.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item critical';
+                item.onclick = () => navigateToModule(2);
+                item.innerHTML = `
+                    <span>🔴</span>
+                    <div>
+                        <div style="font-weight: 600;">${atRisk.length} approval${atRisk.length > 1 ? 's' : ''} at risk of missing SLA</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Urgent attention needed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+
+            // Warning: Pending approvals
+            if (pending.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item warning';
+                item.onclick = () => navigateToModule(2);
+                item.innerHTML = `
+                    <span>🟡</span>
+                    <div>
+                        <div style="font-weight: 600;">${pending.length} approval${pending.length > 1 ? 's' : ''} pending</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Follow up needed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+
+            // Success: Approved items
+            if (approved.length > 0) {
+                const item = document.createElement('div');
+                item.className = 'action-item success';
+                item.onclick = () => navigateToModule(3);
+                item.innerHTML = `
+                    <span>🟢</span>
+                    <div>
+                        <div style="font-weight: 600;">${approved.length} approval${approved.length > 1 ? 's' : ''} completed</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.25rem;">Ready to proceed</div>
+                    </div>
+                `;
+                actionItemsContainer.appendChild(item);
+            }
+        }
+
+        // Check if in demo mode on page load
+        (function() {
+            const isDemo = sessionStorage.getItem('demo') === 'true';
+            const demoScenario = sessionStorage.getItem('demo_scenario');
+
+            if (isDemo) {
+                // Show demo banner
+                const banner = document.getElementById('demoBanner');
+                const scenarioName = document.getElementById('demoScenarioName');
+
+                if (banner && scenarioName) {
+                    banner.style.display = 'block';
+
+                    // Set scenario name
+                    const scenarioNames = {
+                        'business': 'Business Team',
+                        'engineering': 'Engineering Team',
+                        'product': 'Product Team'
+                    };
+                    scenarioName.textContent = scenarioNames[demoScenario] || 'Demo';
+                }
+
+                // Load and populate demo data
+                const demoData = loadDemoData();
+                if (demoData) {
+                    // Wait for DOM if needed, then populate
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => populateDashboardWithDemoData(demoData));
+                    } else {
+                        setTimeout(() => populateDashboardWithDemoData(demoData), 500);
+                    }
+                }
+
+                // Auto-reset after 60 minutes
+                setTimeout(() => {
+                    if (sessionStorage.getItem('demo') === 'true') {
+                        alert('Demo session expired (60 minutes). Refreshing with new data...');
+                        resetDemoData();
+                    }
+                }, 60 * 60 * 1000);
+            }
+        })();
+
+        // Exit demo mode
+        function exitDemoMode() {
+            if (confirm('Exit demo mode? This will clear demo data and return to your real projects.')) {
+                sessionStorage.removeItem('demo');
+                sessionStorage.removeItem('demo_data');
+                sessionStorage.removeItem('demo_scenario');
+
+                // Redirect to scenario picker or home
+                window.location.href = '/conductor-unified-dashboard.html';
+            }
+        }
+
+        // Reset demo data (reload the same scenario)
+        async function resetDemoData() {
+            const demoScenario = sessionStorage.getItem('demo_scenario');
+
+            if (!demoScenario) {
+                alert('No demo scenario found');
+                return;
+            }
+
+            try {
+                // Call seed API again
+                const response = await fetch('/api/v1/demo/seed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ scenario: demoScenario })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update demo data in sessionStorage
+                    sessionStorage.setItem('demo_data', JSON.stringify(result.data));
+
+                    // Reload page to show fresh data
+                    window.location.reload();
+                } else {
+                    alert('Failed to reset demo: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Failed to reset demo:', error);
+                alert('Failed to reset demo. Please try again.');
+            }
+        }
+
+        // Interactive Tour / Demo Walkthrough System
+        window.demoWalkthrough = {
+            currentStep: 0,
+            tourActive: false,
+            progressKey: 'conductor_tour_progress',
+
+            start: function() {
+                console.log('[DemoWalkthrough] Starting interactive tour');
+                this.tourActive = true;
+                this.currentStep = 0;
+                this.saveProgress();
+
+                // Navigate to first module (Learn/Onboarding)
+                navigateToModule(0);
+
+                // Show welcome message
+                setTimeout(() => {
+                    this.showTourMessage(
+                        'Welcome to Project Conductor!',
+                        'This interactive tour will guide you through all modules. Click Next to continue.',
+                        0
+                    );
+                }, 1000);
+            },
+
+            jumpToModule: function(moduleId) {
+                console.log(`[DemoWalkthrough] Jumping to module ${moduleId}`);
+                this.currentStep = moduleId;
+                this.tourActive = true;
+                this.saveProgress();
+
+                navigateToModule(moduleId);
+
+                setTimeout(() => {
+                    const messages = [
+                        { title: 'Learn Module', text: 'Discover how Project Conductor works.' },
+                        { title: 'Present Module', text: 'View your dashboard and project analytics.' },
+                        { title: 'Problem Input (BRD)', text: 'Create and manage business requirements.' },
+                        { title: 'PRD Alignment', text: 'Align stakeholders on product requirements.' },
+                        { title: 'Engineering Design', text: 'Document technical architecture and design.' },
+                        { title: 'Alignment Module', text: 'Track approval status across all phases.' },
+                        { title: 'Implementation', text: 'Monitor development progress and changes.' }
+                    ];
+
+                    const msg = messages[moduleId] || { title: 'Module Tour', text: 'Exploring this module.' };
+                    this.showTourMessage(msg.title, msg.text, moduleId);
+                }, 1000);
+            },
+
+            showTourMessage: function(title, text, moduleId) {
+                // Create a non-intrusive toast notification instead of a blocking alert
+                const toast = document.createElement('div');
+                toast.className = 'tour-toast';
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 2rem;
+                    right: 2rem;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    z-index: 10000;
+                    animation: slideInUp 0.3s ease-out;
+                `;
+
+                toast.innerHTML = `
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <span style="font-size: 2rem;">🎓</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">${title}</div>
+                            <div style="opacity: 0.9; font-size: 0.95rem; line-height: 1.4;">${text}</div>
+                            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                                <button onclick="window.demoWalkthrough.nextStep()" style="
+                                    background: white;
+                                    color: #667eea;
+                                    border: none;
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">Next</button>
+                                <button onclick="window.demoWalkthrough.endTour()" style="
+                                    background: rgba(255, 255, 255, 0.2);
+                                    color: white;
+                                    border: 1px solid rgba(255, 255, 255, 0.3);
+                                    padding: 0.5rem 1rem;
+                                    border-radius: 6px;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                ">End Tour</button>
+                            </div>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" style="
+                            background: none;
+                            border: none;
+                            color: white;
+                            font-size: 1.5rem;
+                            cursor: pointer;
+                            padding: 0;
+                            line-height: 1;
+                        ">×</button>
+                    </div>
+                `;
+
+                // Remove any existing tour toast
+                const existing = document.querySelector('.tour-toast');
+                if (existing) existing.remove();
+
+                document.body.appendChild(toast);
+
+                // Auto-dismiss after 10 seconds
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.style.animation = 'slideOutDown 0.3s ease-out';
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 10000);
+            },
+
+            nextStep: function() {
+                this.currentStep++;
+                if (this.currentStep >= MODULES.length) {
+                    this.endTour();
+                    return;
+                }
+
+                this.jumpToModule(this.currentStep);
+            },
+
+            endTour: function() {
+                console.log('[DemoWalkthrough] Ending tour');
+                this.tourActive = false;
+                this.saveProgress();
+
+                // Remove any existing toast
+                const toast = document.querySelector('.tour-toast');
+                if (toast) toast.remove();
+
+                // Show completion message
+                alert('Tour completed! You can restart it anytime from the Settings menu (⚙️).');
+            },
+
+            resetProgress: function() {
+                this.currentStep = 0;
+                this.tourActive = false;
+                localStorage.removeItem(this.progressKey);
+                console.log('[DemoWalkthrough] Progress reset');
+            },
+
+            saveProgress: function() {
+                localStorage.setItem(this.progressKey, JSON.stringify({
+                    step: this.currentStep,
+                    active: this.tourActive,
+                    lastUpdated: new Date().toISOString()
+                }));
+            },
+
+            loadProgress: function() {
+                try {
+                    const saved = localStorage.getItem(this.progressKey);
+                    if (saved) {
+                        const progress = JSON.parse(saved);
+                        this.currentStep = progress.step || 0;
+                        this.tourActive = progress.active || false;
+                        return progress;
+                    }
+                } catch (e) {
+                    console.error('[DemoWalkthrough] Failed to load progress:', e);
+                }
+                return null;
+            }
+        };
+
+        // Add animation keyframes for tour toast
+        if (!document.querySelector('#tour-toast-animations')) {
+            const style = document.createElement('style');
+            style.id = 'tour-toast-animations';
+            style.textContent = `
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOutDown {
+                    from {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Load saved tour progress on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedProgress = window.demoWalkthrough.loadProgress();
+            if (savedProgress && savedProgress.active) {
+                console.log('[DemoWalkthrough] Resuming tour from step', savedProgress.step);
+            }
+        });
+
+        console.log('[DemoWalkthrough] Interactive tour system initialized');
+    </script>
+</body>
+</html>

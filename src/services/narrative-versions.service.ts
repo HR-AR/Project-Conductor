@@ -41,7 +41,7 @@ export class NarrativeVersionsService {
       [params.narrative_id, params.content, params.author_id, params.change_reason, params.is_auto_generated || false]
     );
 
-    return result.rows[0];
+    return result.rows[0] as NarrativeVersion;
   }
 
   /**
@@ -63,7 +63,7 @@ export class NarrativeVersionsService {
       [narrative_id]
     );
 
-    return result.rows[0];
+    return result.rows[0] as NarrativeVersion | undefined;
   }
 
   /**
@@ -82,7 +82,7 @@ export class NarrativeVersionsService {
       [narrative_id, version]
     );
 
-    return result.rows[0];
+    return result.rows[0] as NarrativeVersion | undefined;
   }
 
   /**
@@ -102,7 +102,7 @@ export class NarrativeVersionsService {
       [narrative_id]
     );
 
-    return result.rows;
+    return result.rows as NarrativeVersion[];
   }
 
   /**

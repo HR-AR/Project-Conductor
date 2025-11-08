@@ -200,7 +200,7 @@ export class DecisionRegisterService {
     `;
 
     try {
-      const result = await db.query(query, [narrativeId, narrativeVersion, reviewerId]);
+      const result = await db.query<DecisionRow>(query, [narrativeId, narrativeVersion, reviewerId]);
 
       if (result.rows.length === 0) {
         return null;
@@ -227,7 +227,7 @@ export class DecisionRegisterService {
     `;
 
     try {
-      const result = await db.query(query, [narrativeId, narrativeVersion]);
+      const result = await db.query<DecisionRow>(query, [narrativeId, narrativeVersion]);
 
       return result.rows.map((row) => this.mapRowToDecision(row));
     } catch (error) {

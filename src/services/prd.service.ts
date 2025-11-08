@@ -20,9 +20,23 @@ import {
   PRD_STATUS,
   ALIGNMENT_STATUS,
 } from '../models/prd.model';
+import { Stakeholder } from '../models/brd.model';
 import { generateUniqueId } from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 import logger from '../utils/logger';
+
+interface PRDSummaryRow {
+  total: string;
+  draft_count: string;
+  under_review_count: string;
+  aligned_count: string;
+  locked_count: string;
+}
+
+interface BRDRowForPRD {
+  title?: string;
+  stakeholders?: string | Stakeholder[] | null;
+}
 
 class PRDService {
   private webSocketService?: WebSocketService;
@@ -94,7 +108,7 @@ class PRDService {
   async generateFromBRD(brdId: string, createdBy: string): Promise<PRD> {
     // Get the BRD
     const brdQuery = `SELECT * FROM brds WHERE id = $1 AND status = 'approved'`;
-    const brdResult = await db.query(brdQuery, [brdId]);
+    const brdResult = await db.query<BRDRowForPRD>(brdQuery, [brdId]);
 
     if (brdResult.rows.length === 0) {
       throw new Error('BRD not found or not approved');
@@ -105,7 +119,7 @@ class PRDService {
     // Generate PRD from BRD data
     const prdData: CreatePRDRequest = {
       brdId,
-      title: `PRD: ${brd.title}`,
+      title: `PRD: ${brd?.title ?? 'Untitled BRD'}`,
       features: [],
       userStories: [],
       technicalRequirements: [],
@@ -425,12 +439,14 @@ class PRDService {
 
     // Get stakeholders from source BRD
     const brdQuery = `SELECT stakeholders FROM brds WHERE id = $1`;
-    const brdResult = await db.query(brdQuery, [prd.brdId]);
+    const brdResult = await db.query<BRDRowForPRD>(brdQuery, [prd.brdId]);
     // PostgreSQL JSONB columns return as objects, not strings - check type before parsing
-    const stakeholdersData = brdResult.rows.length > 0
-      ? (typeof brdResult.rows[0].stakeholders === 'string' ? JSON.parse(brdResult.rows[0].stakeholders) : (brdResult.rows[0].stakeholders || []))
+    const brdRow = brdResult.rows[0];
+    const stakeholdersRaw = brdRow?.stakeholders;
+    const stakeholdersData = stakeholdersRaw
+      ? (typeof stakeholdersRaw === 'string' ? JSON.parse(stakeholdersRaw) : stakeholdersRaw)
       : [];
-    const stakeholders = stakeholdersData;
+    const stakeholders = stakeholdersData as Stakeholder[];
 
     const aligned = alignments.filter(a => a.status === ALIGNMENT_STATUS.ALIGNED).length;
     const alignBut = alignments.filter(a => a.status === ALIGNMENT_STATUS.ALIGN_BUT).length;
@@ -472,8 +488,14 @@ class PRDService {
     `;
 
     try {
-      const result = await db.query(query);
-      const row = result.rows[0];
+      const result = await db.query<PRDSummaryRow>(query);
+      const row = result.rows[0] ?? {
+        total: '0',
+        draft_count: '0',
+        under_review_count: '0',
+        aligned_count: '0',
+        locked_count: '0',
+      };
 
       // Get all PRDs for additional calculations
       const allPrds = await this.getAllPRDs();

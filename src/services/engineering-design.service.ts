@@ -20,6 +20,19 @@ import { generateUniqueId } from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 import logger from '../utils/logger';
 
+interface EngineeringSummaryRow {
+  total: string;
+  draft_count: string;
+  under_review_count: string;
+  approved_count: string;
+  rejected_count: string;
+}
+
+interface BRDProjectionRow {
+  budget: number;
+  timeline_target_date: string;
+}
+
 class EngineeringDesignService {
   private webSocketService?: WebSocketService;
 
@@ -243,11 +256,11 @@ class EngineeringDesignService {
 
     // Get associated PRD and BRD
     const prdQuery = `SELECT brd_id FROM prds WHERE id = $1`;
-    const prdResult = await db.query(prdQuery, [design.prdId]);
+    const prdResult = await db.query<{ brd_id: string }>(prdQuery, [design.prdId]);
     if (prdResult.rows.length === 0) throw new Error('PRD not found');
 
     const brdQuery = `SELECT budget, timeline_target_date FROM brds WHERE id = $1`;
-    const brdResult = await db.query(brdQuery, [prdResult.rows[0].brd_id]);
+    const brdResult = await db.query<BRDProjectionRow>(brdQuery, [prdResult.rows[0].brd_id]);
     if (brdResult.rows.length === 0) throw new Error('BRD not found');
 
     const brd = brdResult.rows[0];
@@ -346,8 +359,14 @@ class EngineeringDesignService {
     `;
 
     try {
-      const result = await db.query(query);
-      const row = result.rows[0];
+      const result = await db.query<EngineeringSummaryRow>(query);
+      const row = result.rows[0] ?? {
+        total: '0',
+        draft_count: '0',
+        under_review_count: '0',
+        approved_count: '0',
+        rejected_count: '0',
+      };
 
       const allDesigns = await this.getAllDesigns();
 

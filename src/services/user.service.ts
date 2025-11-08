@@ -18,6 +18,34 @@ import {
 import { hashPassword, comparePassword, validatePasswordStrength } from '../utils/password';
 import logger from '../utils/logger';
 
+interface UserRow {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: UserRole;
+  is_active: boolean;
+  last_login_at: Date | string | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+  password_hash?: string;
+}
+
+interface UserCountRow {
+  count: string;
+}
+
+interface UserStatsRow {
+  total: string;
+  admin_count: string;
+  manager_count: string;
+  user_count: string;
+  viewer_count: string;
+  active_count: string;
+  inactive_count: string;
+}
+
 export class UserService {
   /**
    * Create a new user
@@ -53,10 +81,12 @@ export class UserService {
       ];
 
       const result = await db.query(query, values);
+      const rows = result.rows as UserRow[];
+      const userRow = rows[0];
 
-      logger.info({ userId: result.rows[0].id, email: data.email }, 'User created successfully');
+      logger.info({ userId: userRow.id, email: data.email }, 'User created successfully');
 
-      return this.mapDatabaseUserToUser(result.rows[0]);
+      return this.mapDatabaseUserToUser(userRow);
     } catch (error) {
       logger.error({ error, email: data.email }, 'Failed to create user');
 
@@ -91,7 +121,8 @@ export class UserService {
         return null;
       }
 
-      return this.mapDatabaseUserToUser(result.rows[0]);
+      const [row] = result.rows as UserRow[];
+      return this.mapDatabaseUserToUser(row);
     } catch (error) {
       logger.error({ error, userId: id }, 'Failed to get user by ID');
       throw error;
@@ -115,10 +146,10 @@ export class UserService {
         return null;
       }
 
-      const row = result.rows[0];
+      const [row] = result.rows as UserRow[];
       return {
         ...this.mapDatabaseUserToUser(row),
-        passwordHash: row.password_hash,
+        passwordHash: row.password_hash || '',
       };
     } catch (error) {
       logger.error({ error, email }, 'Failed to get user by email');
@@ -179,7 +210,8 @@ export class UserService {
       // Count total matching records
       const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
       const countResult = await db.query(countQuery, values);
-      const total = parseInt(countResult.rows[0].count);
+      const countRow = countResult.rows[0] as UserCountRow | undefined;
+      const total = parseInt(countRow?.count || '0');
 
       // Calculate pagination
       const totalPages = Math.ceil(total / pagination.limit);
@@ -202,8 +234,8 @@ export class UserService {
       `;
 
       const dataResult = await db.query(dataQuery, [...values, pagination.limit, offset]);
-
-      const users = dataResult.rows.map((row: any) => this.mapDatabaseUserToUser(row));
+      const userRows = dataResult.rows as UserRow[];
+      const users = userRows.map(row => this.mapDatabaseUserToUser(row));
 
       return {
         data: users,
@@ -290,7 +322,8 @@ export class UserService {
 
       logger.info({ userId: id }, 'User updated successfully');
 
-      return this.mapDatabaseUserToUser(result.rows[0]);
+      const [row] = result.rows as UserRow[];
+      return this.mapDatabaseUserToUser(row);
     } catch (error) {
       logger.error({ error, userId: id }, 'Failed to update user');
 
@@ -355,7 +388,8 @@ export class UserService {
         throw new Error('User not found');
       }
 
-      const currentPasswordHash = result.rows[0].password_hash;
+      const [{ password_hash }] = result.rows as Array<{ password_hash: string }>;
+      const currentPasswordHash = password_hash;
 
       // Verify old password
       const isMatch = await comparePassword(oldPassword, currentPasswordHash);
@@ -429,18 +463,27 @@ export class UserService {
       `;
 
       const result = await db.query(query);
-      const row = result.rows[0];
+      const row = result.rows[0] as UserStatsRow | undefined;
+      const safeRow: UserStatsRow = row ?? {
+        total: '0',
+        admin_count: '0',
+        manager_count: '0',
+        user_count: '0',
+        viewer_count: '0',
+        active_count: '0',
+        inactive_count: '0',
+      };
 
       return {
-        total: parseInt(row.total),
+        total: parseInt(safeRow.total),
         byRole: {
-          admin: parseInt(row.admin_count),
-          manager: parseInt(row.manager_count),
-          user: parseInt(row.user_count),
-          viewer: parseInt(row.viewer_count),
+          admin: parseInt(safeRow.admin_count),
+          manager: parseInt(safeRow.manager_count),
+          user: parseInt(safeRow.user_count),
+          viewer: parseInt(safeRow.viewer_count),
         },
-        active: parseInt(row.active_count),
-        inactive: parseInt(row.inactive_count),
+        active: parseInt(safeRow.active_count),
+        inactive: parseInt(safeRow.inactive_count),
       };
     } catch (error) {
       logger.error({ error }, 'Failed to get user statistics');
@@ -451,13 +494,13 @@ export class UserService {
   /**
    * Map database row to User model
    */
-  private mapDatabaseUserToUser(row: any): User {
+  private mapDatabaseUserToUser(row: UserRow): User {
     return {
       id: row.id,
       username: row.username,
       email: row.email,
-      firstName: row.first_name,
-      lastName: row.last_name,
+      firstName: row.first_name ?? undefined,
+      lastName: row.last_name ?? undefined,
       role: row.role as UserRole,
       isActive: row.is_active,
       lastLoginAt: row.last_login_at ? new Date(row.last_login_at) : undefined,

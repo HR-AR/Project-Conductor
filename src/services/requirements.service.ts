@@ -74,6 +74,25 @@ interface RequirementVersionRow {
   changed_by_last_name?: string | null;
 }
 
+interface RequirementCountRow {
+  total: string;
+}
+
+interface RequirementSummaryRow {
+  total: string;
+  draft_count: string;
+  active_count: string;
+  completed_count: string;
+  archived_count: string;
+  cancelled_count: string;
+  low_priority_count: string;
+  medium_priority_count: string;
+  high_priority_count: string;
+  critical_priority_count: string;
+  overdue_count: string;
+  completed_this_month: string;
+}
+
 class RequirementsService {
   private webSocketService?: WebSocketService | undefined;
 
@@ -167,7 +186,8 @@ class RequirementsService {
         throw new Error('Requirement not found');
       }
 
-      return this.mapRowToRequirement(result.rows[0]);
+      const [row] = result.rows as RequirementRow[];
+      return this.mapRowToRequirement(row);
     } catch (error) {
       logger.error({ error, id }, 'Error getting requirement by ID');
       throw error;
@@ -288,10 +308,12 @@ class RequirementsService {
         db.query(dataQuery, [...queryParams, pagination.limit, offset])
       ]);
 
-      const total = parseInt(countResult.rows[0].total);
+      const totalRow = countResult.rows[0] as RequirementCountRow;
+      const total = parseInt(totalRow.total);
       const totalPages = Math.ceil(total / pagination.limit);
 
-      const requirements = dataResult.rows.map((row: RequirementRow) => this.mapRowToRequirement(row));
+      const requirementRows = dataResult.rows as RequirementRow[];
+      const requirements = requirementRows.map(row => this.mapRowToRequirement(row));
 
       return {
         data: requirements,
@@ -397,7 +419,7 @@ class RequirementsService {
         throw new Error('Requirement not found');
       }
 
-      const updatedRequirement = result.rows[0];
+      const updatedRequirement = result.rows[0] as Requirement;
 
       // Create version record
       await this.createVersionWithClient(
@@ -445,7 +467,7 @@ class RequirementsService {
         throw new Error('Requirement not found or already archived');
       }
 
-      const archivedRequirement = result.rows[0];
+      const archivedRequirement = result.rows[0] as Requirement;
 
       // Create version record for deletion
       await this.createVersion(archivedRequirement, deletedBy, 'Requirement archived');
@@ -486,7 +508,8 @@ class RequirementsService {
 
     try {
       const result = await db.query(query, [requirementId]);
-      return result.rows.map((row: RequirementVersionRow) => this.mapRowToVersion(row));
+      const rows = result.rows as RequirementVersionRow[];
+      return rows.map(row => this.mapRowToVersion(row));
     } catch (error) {
       logger.error({ error, requirementId }, 'Error getting requirement versions');
       throw new Error('Failed to get requirement versions');
@@ -520,8 +543,21 @@ class RequirementsService {
     `;
 
     try {
-      const result = await db.query(query, queryParams);
-      const row = result.rows[0];
+      const result = await db.query<RequirementSummaryRow>(query, queryParams);
+      const row = result.rows[0] ?? {
+        total: '0',
+        draft_count: '0',
+        active_count: '0',
+        completed_count: '0',
+        archived_count: '0',
+        cancelled_count: '0',
+        low_priority_count: '0',
+        medium_priority_count: '0',
+        high_priority_count: '0',
+        critical_priority_count: '0',
+        overdue_count: '0',
+        completed_this_month: '0',
+      };
 
       return {
         total: parseInt(row.total),
@@ -584,7 +620,8 @@ class RequirementsService {
     `;
 
     const versionResult = await client.query(versionQuery, [requirement.id]);
-    const nextVersion = versionResult.rows[0].next_version;
+    const nextVersionRow = versionResult.rows[0] as { next_version: number };
+    const nextVersion = Number(nextVersionRow.next_version);
 
     const insertQuery = `
       INSERT INTO requirements_versions (

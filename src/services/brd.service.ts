@@ -21,6 +21,16 @@ import { generateUniqueId } from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 import logger from '../utils/logger';
 
+interface BRDSummaryRow {
+  total: string;
+  draft_count: string;
+  under_review_count: string;
+  approved_count: string;
+  rejected_count: string;
+  total_budget: string | null;
+  average_budget: string | null;
+}
+
 class BRDService {
   private webSocketService?: WebSocketService;
 
@@ -377,8 +387,16 @@ class BRDService {
     `;
 
     try {
-      const result = await db.query(query);
-      const row = result.rows[0];
+      const result = await db.query<BRDSummaryRow>(query);
+      const row = result.rows[0] ?? {
+        total: '0',
+        draft_count: '0',
+        under_review_count: '0',
+        approved_count: '0',
+        rejected_count: '0',
+        total_budget: '0',
+        average_budget: '0',
+      };
 
       // Get department distribution
       const allBrds = await this.getAllBRDs();
@@ -416,8 +434,8 @@ class BRDService {
           rejected: parseInt(row.rejected_count),
         },
         byDepartment: departmentDistribution as Record<'business' | 'product' | 'engineering' | 'marketing' | 'sales', number>,
-        totalBudget: parseFloat(row.total_budget) || 0,
-        averageBudget: parseFloat(row.average_budget) || 0,
+        totalBudget: parseFloat(row.total_budget ?? '0') || 0,
+        averageBudget: parseFloat(row.average_budget ?? '0') || 0,
         fullyApproved,
         pendingApproval: parseInt(row.under_review_count),
       };

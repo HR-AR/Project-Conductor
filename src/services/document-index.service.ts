@@ -298,7 +298,7 @@ export class DocumentIndexService {
       await db.query('TRUNCATE TABLE document_index');
 
       // Get all narrative IDs
-      const result = await db.query(
+      const result = await db.query<{ narrative_id: number }>(
         `SELECT DISTINCT narrative_id FROM narrative_versions`
       );
 

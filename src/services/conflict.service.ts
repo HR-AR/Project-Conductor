@@ -24,6 +24,14 @@ import { generateUniqueId } from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 import logger from '../utils/logger';
 
+interface ConflictSummaryRow {
+  total: string;
+  open_count: string;
+  discussing_count: string;
+  resolved_count: string;
+  closed_count: string;
+}
+
 class ConflictService {
   private webSocketService?: WebSocketService;
 
@@ -343,8 +351,14 @@ class ConflictService {
     `;
 
     try {
-      const result = await db.query(query);
-      const row = result.rows[0];
+      const result = await db.query<ConflictSummaryRow>(query);
+      const row = result.rows[0] ?? {
+        total: '0',
+        open_count: '0',
+        discussing_count: '0',
+        resolved_count: '0',
+        closed_count: '0',
+      };
       const allConflicts = await this.getAllConflicts();
 
       const typeCount: Record<string, number> = { timeline: 0, budget: 0, scope: 0, technical: 0 };

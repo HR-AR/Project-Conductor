@@ -17,6 +17,17 @@ import { generateUniqueId } from '../utils/id-generator';
 import WebSocketService from './websocket.service';
 import logger from '../utils/logger';
 
+type StoredApproval = {
+  stakeholderId: string;
+  decision: string;
+  comments?: string;
+  timestamp: string | Date;
+};
+
+interface ChangeLogApprovalRow {
+  approved_by?: string | StoredApproval[] | null;
+}
+
 class ChangeLogService {
   private webSocketService?: WebSocketService;
 
@@ -97,8 +108,11 @@ class ChangeLogService {
     const changeLogResult = await db.query(getQuery, [id]);
     if (changeLogResult.rows.length === 0) throw new Error('Change log entry not found');
 
-    const currentEntry = changeLogResult.rows[0];
-    const approvals = typeof currentEntry.approved_by === 'string' ? JSON.parse(currentEntry.approved_by) : (currentEntry.approved_by || []);
+    const currentEntry = changeLogResult.rows[0] as ChangeLogApprovalRow;
+    const approvalsRaw = currentEntry?.approved_by;
+    const approvals: StoredApproval[] = typeof approvalsRaw === 'string'
+      ? JSON.parse(approvalsRaw)
+      : (approvalsRaw || []);
 
     const newApproval = {
       stakeholderId: approval.stakeholderId,

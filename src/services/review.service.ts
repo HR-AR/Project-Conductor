@@ -74,7 +74,7 @@ class ReviewService {
 
     try {
       const result = await db.query(query, values);
-      const review = result.rows[0];
+      const review = result.rows[0] as ReviewRow;
 
       // Get the complete review with user details
       const fullReview = await this.getReviewById(review.id);
@@ -179,7 +179,8 @@ class ReviewService {
         throw new Error('Review not found');
       }
 
-      return this.mapRowToReview(result.rows[0]);
+      const [row] = result.rows as ReviewRow[];
+      return this.mapRowToReview(row);
     } catch (error) {
       logger.error({ error, reviewId: id }, 'Error getting review by ID');
       throw error;
@@ -228,7 +229,8 @@ class ReviewService {
 
     try {
       const result = await db.query(query, queryParams);
-      return result.rows.map((row: ReviewRow) => this.mapRowToReview(row));
+      const rows = result.rows as ReviewRow[];
+      return rows.map(row => this.mapRowToReview(row));
     } catch (error) {
       logger.error({ error, requirementId }, 'Error getting reviews by requirement');
       throw new Error('Failed to get reviews');
@@ -256,7 +258,8 @@ class ReviewService {
 
     try {
       const result = await db.query(query, [reviewerId, REVIEW_STATUS.PENDING]);
-      return result.rows.map((row: ReviewRow) => this.mapRowToReview(row));
+      const rows = result.rows as ReviewRow[];
+      return rows.map(row => this.mapRowToReview(row));
     } catch (error) {
       logger.error({ error, reviewerId }, 'Error getting pending reviews');
       throw new Error('Failed to get pending reviews');
@@ -465,7 +468,10 @@ class ReviewService {
 
     try {
       const result = await db.query(query, [requirementId]);
-      return result.rows.length > 0 ? result.rows[0] : null;
+      if (result.rows.length === 0) {
+        return null;
+      }
+      return result.rows[0] as { status: string };
     } catch (error) {
       logger.error({ error, requirementId }, 'Error getting requirement status');
       return null;
