@@ -13,98 +13,365 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
 
-        .container {
-            background: white;
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .module-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
-            width: 100%;
-            padding: 60px 40px;
-            text-align: center;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
         }
 
         h1 {
             font-size: 2.5rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 0.5rem;
         }
 
-        .module-number {
-            display: inline-block;
+        .subtitle {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .nav-breadcrumb {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .nav-breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .progress-indicator {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            height: 2px;
+            background: #667eea;
+            width: 40%;
+            z-index: 1;
+            transition: width 0.3s ease;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.completed .progress-step-circle {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .progress-step.active .progress-step-circle {
+            background: white;
+            border-color: #667eea;
+            color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .progress-step-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .progress-step.completed .progress-step-label,
+        .progress-step.active .progress-step-label {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .stakeholder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stakeholder-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .stakeholder-item:hover {
+            background: #e9ecef;
+        }
+
+        .stakeholder-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 600;
-            margin-bottom: 30px;
+            font-size: 1.125rem;
         }
 
-        p {
-            font-size: 1.1rem;
-            color: #6c757d;
-            line-height: 1.6;
-            margin-bottom: 30px;
+        .stakeholder-info {
+            flex: 1;
         }
 
-        .features {
-            text-align: left;
-            margin: 40px 0;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .features h2 {
+        .stakeholder-name {
+            font-weight: 600;
             color: #2c3e50;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            margin-bottom: 0.25rem;
         }
 
-        .features ul {
-            list-style: none;
-            padding: 0;
+        .stakeholder-role {
+            font-size: 0.875rem;
+            color: #6c757d;
         }
 
-        .features li {
-            padding: 10px 0;
-            color: #495057;
-            font-size: 1rem;
+        .approval-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
         }
 
-        .features li::before {
-            content: "✓";
+        .approval-status.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .approval-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .approval-status.reviewing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .feature-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        .feature-checkbox.checked {
+            background: #667eea;
+            color: white;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-priority {
             display: inline-block;
-            width: 30px;
-            color: #667eea;
-            font-weight: bold;
-            font-size: 1.2rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .feature-priority.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .feature-priority.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .feature-priority.low {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
         .btn {
-            display: inline-block;
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 600;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
             font-size: 1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .btn:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
         }
 
         .btn-secondary {
@@ -113,51 +380,299 @@
             border: 2px solid #667eea;
         }
 
-        .status {
-            display: inline-block;
-            padding: 8px 20px;
-            background: #fff3cd;
-            color: #856404;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-top: 20px;
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        .status-banner {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-banner-icon {
+            font-size: 1.5rem;
+        }
+
+        .status-banner-text {
+            flex: 1;
+        }
+
+        .status-banner-title {
+            font-weight: 600;
+            color: #0c5460;
+            margin-bottom: 0.25rem;
+        }
+
+        .status-banner-subtitle {
+            font-size: 0.875rem;
+            color: #0c5460;
+            opacity: 0.8;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-steps {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .progress-steps::before,
+            .progress-line {
+                display: none;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <div class="header-content">
+            <span class="module-badge">Module 3 of 7</span>
+            <h1>📝 PRD Alignment</h1>
+            <p class="subtitle">Collaborate on Product Requirements and align stakeholders</p>
+        </div>
+    </div>
+
     <div class="container">
-        <span class="module-number">Module 3</span>
-        <h1>🎯 PRD Alignment</h1>
-        <p>Collaborate on Product Requirements Documents and align stakeholders on scope and features.</p>
-
-        <div class="features">
-            <h2>What This Module Provides</h2>
-            <ul>
-                <li>Product Requirements Document (PRD) creation</li>
-                <li>Feature specifications and user stories</li>
-                <li>Success criteria and acceptance tests</li>
-                <li>Stakeholder alignment and sign-off</li>
-                <li>Dependency mapping and risk assessment</li>
-                <li>Scope management and change control</li>
-                <li>Collaborative editing and commenting</li>
-            </ul>
+        <div class="nav-breadcrumb">
+            <a href="/conductor-unified-dashboard.html">Dashboard</a>
+            <span>›</span>
+            <a href="/module-2-brd.html">BRD</a>
+            <span>›</span>
+            <span>PRD Alignment</span>
         </div>
 
-        <span class="status">⚙️ Module in Development</span>
-
-        <div style="margin-top: 40px;">
-            <a href="/conductor-unified-dashboard.html" class="btn">Return to Dashboard</a>
-            <a href="/project-detail.html" class="btn btn-secondary">View Project Details</a>
+        <div class="progress-indicator">
+            <div class="progress-steps">
+                <div class="progress-line"></div>
+                <div class="progress-step completed">
+                    <div class="progress-step-circle">✓</div>
+                    <div class="progress-step-label">BRD Created</div>
+                </div>
+                <div class="progress-step active">
+                    <div class="progress-step-circle">2</div>
+                    <div class="progress-step-label">PRD Draft</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-step-circle">3</div>
+                    <div class="progress-step-label">Alignment</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-step-circle">4</div>
+                    <div class="progress-step-label">Approved</div>
+                </div>
+                <div class="progress-step">
+                    <div class="progress-step-circle">5</div>
+                    <div class="progress-step-label">Engineering</div>
+                </div>
+            </div>
         </div>
 
-        <p style="margin-top: 40px; font-size: 0.9rem; color: #adb5bd;">
-            The PRD Alignment module transforms approved business requirements into detailed
-            product specifications. It ensures all stakeholders agree on what will be built before development begins.
-        </p>
+        <div class="status-banner">
+            <div class="status-banner-icon">📋</div>
+            <div class="status-banner-text">
+                <div class="status-banner-title">PRD Generated from BRD</div>
+                <div class="status-banner-subtitle">Auto-generated requirements based on your business requirements document</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div>
+                <div class="card">
+                    <h2>📄 Product Requirements</h2>
+
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" value="E-commerce Platform Redesign" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product Vision</label>
+                        <textarea readonly>Create a modern, user-friendly e-commerce experience that increases conversion rates and customer satisfaction. The platform will feature AI-powered recommendations, streamlined checkout, and personalized shopping experiences.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Success Metrics</label>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value">+25%</div>
+                                <div class="metric-label">Conversion Rate</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">-40%</div>
+                                <div class="metric-label">Cart Abandonment</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">+50%</div>
+                                <div class="metric-label">User Engagement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 2rem;">
+                    <h2>✨ Key Features</h2>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-checkbox checked">✓</div>
+                            <div class="feature-text">
+                                <strong>AI-Powered Recommendations</strong>
+                                <span class="feature-priority high">High</span>
+                                <p style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">Personalized product suggestions based on browsing history and preferences</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-checkbox checked">✓</div>
+                            <div class="feature-text">
+                                <strong>One-Click Checkout</strong>
+                                <span class="feature-priority high">High</span>
+                                <p style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">Streamlined payment process with saved payment methods</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-checkbox checked">✓</div>
+                            <div class="feature-text">
+                                <strong>Real-time Inventory Updates</strong>
+                                <span class="feature-priority medium">Medium</span>
+                                <p style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">Live stock availability across all warehouses</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-checkbox checked">✓</div>
+                            <div class="feature-text">
+                                <strong>Advanced Search & Filters</strong>
+                                <span class="feature-priority medium">Medium</span>
+                                <p style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">AI-powered search with natural language processing</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-checkbox checked">✓</div>
+                            <div class="feature-text">
+                                <strong>Customer Reviews & Ratings</strong>
+                                <span class="feature-priority low">Low</span>
+                                <p style="font-size: 0.875rem; color: #6c757d; margin-top: 0.5rem;">Verified purchase reviews with photo uploads</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h2>👥 Stakeholder Alignment</h2>
+                    <div class="stakeholder-list">
+                        <div class="stakeholder-item">
+                            <div class="stakeholder-avatar">SC</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Sarah Chen</div>
+                                <div class="stakeholder-role">Product Manager</div>
+                            </div>
+                            <div class="approval-status approved">
+                                ✓ Approved
+                            </div>
+                        </div>
+
+                        <div class="stakeholder-item">
+                            <div class="stakeholder-avatar">MJ</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Mike Johnson</div>
+                                <div class="stakeholder-role">Engineering Lead</div>
+                            </div>
+                            <div class="approval-status reviewing">
+                                👀 Reviewing
+                            </div>
+                        </div>
+
+                        <div class="stakeholder-item">
+                            <div class="stakeholder-avatar">LW</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">Lisa Wang</div>
+                                <div class="stakeholder-role">Design Director</div>
+                            </div>
+                            <div class="approval-status pending">
+                                ⏳ Pending
+                            </div>
+                        </div>
+
+                        <div class="stakeholder-item">
+                            <div class="stakeholder-avatar">DK</div>
+                            <div class="stakeholder-info">
+                                <div class="stakeholder-name">David Kim</div>
+                                <div class="stakeholder-role">VP Engineering</div>
+                            </div>
+                            <div class="approval-status approved">
+                                ✓ Approved
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 2rem;">
+                    <h2>📊 Alignment Status</h2>
+                    <div style="text-align: center; padding: 1rem 0;">
+                        <div style="font-size: 3rem; font-weight: 700; color: #667eea;">50%</div>
+                        <div style="font-size: 1rem; color: #6c757d; margin-bottom: 1rem;">Stakeholder Approval</div>
+                        <div style="background: #e9ecef; height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: 50%; height: 100%;"></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: #6c757d; text-align: center; margin-top: 1rem;">
+                        2 of 4 stakeholders have approved
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/module-2-brd.html" class="btn btn-secondary">
+                ← Back to BRD
+            </a>
+            <button class="btn btn-primary" onclick="proceedToEngineering()">
+                Continue to Engineering Design →
+            </button>
+        </div>
     </div>
 
     <script>
-        // Log module load for analytics
+        // Log module load
         console.log('Module 3: PRD Alignment loaded');
 
         // Sync with parent dashboard
@@ -168,6 +683,30 @@
                 title: 'PRD Alignment'
             }, '*');
         }
+
+        // Handle BRD ID from query params
+        const urlParams = new URLSearchParams(window.location.search);
+        const brdId = urlParams.get('brdId');
+        if (brdId) {
+            console.log('Loaded PRD from BRD:', brdId);
+            // In a real implementation, this would fetch PRD data based on BRD ID
+        }
+
+        function proceedToEngineering() {
+            // Show confirmation
+            if (confirm('Ready to move to Engineering Design phase?\n\nThis will lock the PRD for stakeholder review.')) {
+                // Navigate to engineering design module
+                window.location.href = '/module-4-engineering-design.html?prdId=PRD-' + Date.now();
+            }
+        }
+
+        // Animate progress line on load
+        setTimeout(() => {
+            const progressLine = document.querySelector('.progress-line');
+            if (progressLine) {
+                progressLine.style.width = '40%';
+            }
+        }, 300);
     </script>
 </body>
 </html>
